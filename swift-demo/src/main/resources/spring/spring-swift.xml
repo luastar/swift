@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context
+       http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <!-- 配置文件 -->
+    <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="locations">
+            <list>
+                <value>classpath:props/swift.properties</value>
+                <value>classpath:props/redis.properties</value>
+            </list>
+        </property>
+    </bean>
+
+    <!-- 服务发现 -->
+    <context:component-scan base-package="com.luastar.swift.demo" use-default-filters="false">
+        <context:include-filter type="annotation" expression="com.luastar.swift.http.server.HttpService"/>
+        <context:include-filter type="annotation" expression="com.luastar.swift.rpc.server.RpcService"/>
+    </context:component-scan>
+
+    <bean id="loginInterceptor" class="com.luastar.swift.demo.http.handler.HelloInterceptor"/>
+
+    <!-- http 拦截器 可以配置多个 -->
+    <bean class="com.luastar.swift.http.route.MappedInterceptor">
+        <property name="includePatterns">
+            <list>
+                <value>/*</value>
+            </list>
+        </property>
+        <!--<property name="excludePatterns">-->
+        <!--<list>-->
+        <!--<value>/test</value>-->
+        <!--</list>-->
+        <!--</property>-->
+        <property name="interceptor" ref="loginInterceptor"/>
+    </bean>
+
+    <!-- http 路由 -->
+    <bean class="com.luastar.swift.http.route.HttpHandlerMapping">
+        <property name="exceptionHandler">
+            <bean class="com.luastar.swift.demo.http.handler.DefaultHttpExceptionHandler"/>
+        </property>
+    </bean>
+
+    <!-- Reference注解装配 -->
+    <bean class="com.luastar.swift.rpc.client.RpcReferenceBean"/>
+
+    <!-- redis配置 -->
+    <import resource="classpath:spring/spring-redis.xml"/>
+
+</beans>

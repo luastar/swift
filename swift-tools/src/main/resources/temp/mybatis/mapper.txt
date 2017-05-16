@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="${namespace}" >
+
+	<resultMap id="${mapName}ResultMap" type="${className}">
+<%
+	for(col in colList){
+		if(col.prikey){
+%>
+		<id property="${col.columnName}" column="${col.dbColumnName}"/>
+<%
+		}else{
+%>
+		<result property="${col.columnName}" column="${col.dbColumnName}"/>
+<%
+  		}
+  	}
+%>
+	</resultMap>
+  
+	<insert id="insert" useGeneratedKeys="true" keyProperty="id" parameterType="${className}">
+		insert into ${tableName} (
+<%
+for(col in insertColList){
+%>
+			${col}
+<%							
+}
+%>
+    	) values (
+<%
+for(col in insertValList){
+%>
+			${col}
+<%							
+}
+%>
+    	)
+	</insert>
+
+	<update id="update" parameterType="${className}">
+		update ${tableName}
+    	<set>
+<%
+  	for(col in colList){
+  		if(!col.prikey){
+  			if(colLP.last){
+%>
+  			<if test="${col.columnName} != null">${col.dbColumnName}=#{${col.columnName}}</if>
+<%		
+  			}else{
+%>
+  			<if test="${col.columnName} != null">${col.dbColumnName}=#{${col.columnName}},</if>
+<%		
+  			}
+  		}
+  	}
+%>
+		</set>
+		where ${pkColumn.dbColumnName}=#{${pkColumn.columnName}}
+	</update>
+  
+	<select id="get${className}ById" parameterType="int" resultMap="${mapName}ResultMap">
+		select * from ${tableName}
+		where ID=#{id} 
+	</select>
+  
+	<select id="count${className}" parameterType="map" resultType="int">
+		select count(*) from ${tableName}
+		<include refid="queryCondition"/>
+	</select>
+  
+	<select id="get${className}List" parameterType="map" resultMap="${mapName}ResultMap">
+		select * from ${tableName}
+		<include refid="queryCondition"/>
+		<if test="start != null and limit != null">
+		limit #{start},#{limit}
+		</if>
+	</select>
+  
+	<sql id="queryCondition">
+		<where>
+<%
+  	for(col in colList){
+  		if(colLP.first){
+%>
+			<if test="${col.columnName} != null">${col.dbColumnName}=#{${col.columnName}}</if>
+<%
+		}else{
+%>
+			<if test="${col.columnName} != null">and ${col.dbColumnName}=#{${col.columnName}}</if>
+<%
+  		}
+  	}
+%>
+		</where>
+	</sql>
+   
+</mapper>
