@@ -12,8 +12,8 @@ public abstract class JsonUtils {
         return jsonMapper.toJson(obj);
     }
 
-    public static <T> T fromJson(String json, Class<T> clazz) {
-        return jsonMapper.fromJson(json, clazz);
+    public static <T> T toObj(String json, Class<T> clazz) {
+        return jsonMapper.toObj(json, clazz);
     }
 
     public static String formatJson(String json) {

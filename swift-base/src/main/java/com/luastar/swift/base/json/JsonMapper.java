@@ -1,13 +1,16 @@
 /**
  * Copyright (c) 2005-2012 springside.org.cn
- * <p/>
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  */
 package com.luastar.swift.base.json;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.*;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.util.JSONPObject;
 import com.fasterxml.jackson.module.jaxb.JaxbAnnotationModule;
 import org.apache.commons.lang3.StringUtils;
@@ -15,12 +18,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Map;
 
 /**
  * 简单封装Jackson，实现JSON String<->Java Object的Mapper.
- *
+ * <p>
  * 封装不同的输出风格, 使用不同的builder函数创建实例.
  *
  * @author calvin
@@ -35,36 +39,32 @@ public class JsonMapper {
         this(Include.NON_NULL);
     }
 
+    /**
+     * Include.NON_NULL 只输出非Null的属性
+     * Include.NON_EMPTY 只输出非Null且非Empty(如List.isEmpty)的属性
+     * Include.NON_DEFAULT 只输出初始值被改变的属性
+     *
+     * @param include
+     */
     public JsonMapper(Include include) {
         mapper = new ObjectMapper();
         // 设置输出时包含属性的风格
         if (include != null) {
             mapper.setSerializationInclusion(include);
         }
+        // 设置默认时间格式化
+        mapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"));
         // 设置输入时忽略在JSON字符串中存在但Java对象实际没有的属性
         mapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
     }
 
     /**
-     * 创建只输出非Null且非Empty(如List.isEmpty)的属性到Json字符串的Mapper,建议在外部接口中使用.
-     */
-    public static JsonMapper nonEmptyMapper() {
-        return new JsonMapper(Include.NON_EMPTY);
-    }
-
-    /**
-     * 创建只输出初始值被改变的属性到Json字符串的Mapper, 最节约的存储方式，建议在内部接口中使用。
-     */
-    public static JsonMapper nonDefaultMapper() {
-        return new JsonMapper(Include.NON_DEFAULT);
-    }
-
-    /**
-     * Object可以是POJO，也可以是Collection或数组。
-     * 如果对象为Null, 返回"null".
-     * 如果集合为空集合, 返回"[]".
+     * 将对象转换成json字符串
      */
     public String toJson(Object object) {
+        if (object == null) {
+            return null;
+        }
         try {
             return mapper.writeValueAsString(object);
         } catch (IOException e) {
@@ -75,15 +75,11 @@ public class JsonMapper {
 
     /**
      * 反序列化POJO或简单Collection如List<String>.
-     *
-     * 如果JSON字符串为Null或"null"字符串, 返回Null.
-     * 如果JSON字符串为"[]", 返回空集合.
-     *
      * 如需反序列化复杂Collection如List<MyBean>, 请使用fromJson(String, JavaType)
      *
-     * @see #fromJson(String, JavaType)
+     * @see #toObj(String, JavaType)
      */
-    public <T> T fromJson(String jsonString, Class<T> clazz) {
+    public <T> T toObj(String jsonString, Class<T> clazz) {
         if (StringUtils.isEmpty(jsonString)) {
             return null;
         }
@@ -97,13 +93,11 @@ public class JsonMapper {
 
     /**
      * 反序列化复杂Collection如List<Bean>, 先使用createCollectionType()或contructMapType()构造类型, 然后调用本函数.
-     *
      */
-    public <T> T fromJson(String jsonString, JavaType javaType) {
+    public <T> T toObj(String jsonString, JavaType javaType) {
         if (StringUtils.isEmpty(jsonString)) {
             return null;
         }
-
         try {
             return (T) mapper.readValue(jsonString, javaType);
         } catch (IOException e) {
@@ -114,16 +108,20 @@ public class JsonMapper {
 
     /**
      * 格式化json
-     * @param json
+     *
+     * @param jsonString
      * @return
      */
-    public String formatJson(String json) {
+    public String formatJson(String jsonString) {
+        if (jsonString == null) {
+            return null;
+        }
         try {
-            Object obj = mapper.readValue(json, Object.class);
+            Object obj = mapper.readValue(jsonString, Object.class);
             return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(obj);
         } catch (Exception e) {
-            logger.error(e.getMessage(), e);
-            return json;
+            logger.warn("format json string error:" + jsonString, e);
+            return jsonString;
         }
     }
 
@@ -142,9 +140,12 @@ public class JsonMapper {
     }
 
     /**
-     * 当JSON里只含有Bean的部分屬性時，更新一個已存在Bean，只覆蓋該部分的屬性.
+     * 当JSON里只含有Bean的部分属性時，更新一個已存在Bean，只覆盖该部分的属性.
      */
     public void update(String jsonString, Object object) {
+        if (StringUtils.isEmpty(jsonString) || object == null) {
+            return;
+        }
         try {
             mapper.readerForUpdating(object).readValue(jsonString);
         } catch (JsonProcessingException e) {
@@ -155,16 +156,16 @@ public class JsonMapper {
     }
 
     /**
-     * 輸出JSONP格式數據.
+     * 输出JSONP格式.
      */
     public String toJsonP(String functionName, Object object) {
         return toJson(new JSONPObject(functionName, object));
     }
 
     /**
-     * 設定是否使用Enum的toString函數來讀寫Enum,
-     * 為False時時使用Enum的name()函數來讀寫Enum, 默認為False.
-     * 注意本函數一定要在Mapper創建後, 所有的讀寫動作之前調用.
+     * 设定是否使用Enum的toString函数来读写Enum,
+     * 为false时使用Enum的name()函数来读写Enum, 默认为False.
+     * 注意本函数一定要在Mapper创建后, 所有的读写操作之前调用.
      */
     public void enableEnumUseToString() {
         mapper.enable(SerializationFeature.WRITE_ENUMS_USING_TO_STRING);
