@@ -13,7 +13,7 @@
 
     <properties>
         <slf4j.version>1.7.6</slf4j.version>
-        <spring.version>4.1.7.RELEASE</spring.version>
+        <spring.version>4.2.9.RELEASE</spring.version>
         <jackson.version>2.6.4</jackson.version>
         <httpclient.version>4.5.3</httpclient.version>
         <poi.version>3.16</poi.version>
