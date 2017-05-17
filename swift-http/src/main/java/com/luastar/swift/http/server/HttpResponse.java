@@ -2,6 +2,7 @@ package com.luastar.swift.http.server;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.luastar.swift.base.utils.EncodeUtils;
 import com.luastar.swift.http.constant.HttpMediaType;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpResponseStatus;
@@ -43,8 +44,7 @@ public class HttpResponse {
 
     public void setResponseContentTypeStream(String fileName) {
         setHeader(HttpHeaderNames.CONTENT_TYPE.toString(), HttpMediaType.APPLICATION_OCTET_STREAM_UTF_8);
-        setHeader(HttpHeaderNames.CONTENT_DISPOSITION.toString(), "attachment;filename=\"" + fileName + "\"");
-        setHeader(HttpHeaderNames.CACHE_CONTROL.toString(), "no-cache");
+        setHeader(HttpHeaderNames.CONTENT_DISPOSITION.toString(), "attachment;filename=" + fileName);
     }
 
     public String getHeader(String key) {
