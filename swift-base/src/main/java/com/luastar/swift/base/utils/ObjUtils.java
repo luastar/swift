@@ -11,7 +11,6 @@ import java.util.regex.Pattern;
 public class ObjUtils {
 
     private static final String REGEXP_FORMAT_STRING = "(\\{\\d\\})";
-    private static final Pattern pattern = Pattern.compile(REGEXP_FORMAT_STRING, Pattern.CASE_INSENSITIVE);
 
     public static <T> T ifNull(T object, T defaultValue) {
         return object != null ? object : defaultValue;

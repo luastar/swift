@@ -16,12 +16,14 @@ import io.netty.handler.codec.http.cookie.ServerCookieEncoder;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.util.CharsetUtil;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.util.ReflectionUtils;
 
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
 import java.util.Map;
@@ -138,6 +140,13 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<HttpObject> 
             response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, httpResponse.getStatus(), buf);
             contentLength = buf.readableBytes();
         }
+        // 输出流
+        if (httpResponse.getOutputStream() != null) {
+            // 使用copiedBuffer会导致excel等文档打不开
+            ByteBuf buf = Unpooled.wrappedBuffer(httpResponse.getOutputStream().toByteArray());
+            response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, httpResponse.getStatus(), buf);
+            contentLength = buf.readableBytes();
+        }
         // 处理返回头信息
         for (Map.Entry<String, String> resHeader : httpResponse.getHeaderMap().entrySet()) {
             response.headers().add(resHeader.getKey(), resHeader.getValue());
@@ -148,16 +157,15 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<HttpObject> 
                 response.headers().add(HttpHeaderNames.SET_COOKIE, ServerCookieEncoder.STRICT.encode(cookie));
             }
         }
-        response.headers().setInt(HttpHeaderNames.CONTENT_LENGTH, contentLength);
         // 输出返回结果
         boolean keepAlive = HttpUtil.isKeepAlive(httpRequest.getFullHttpRequest());
         if (keepAlive) {
             response.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
             ctx.writeAndFlush(response);
         } else {
+            HttpUtil.setContentLength(response, contentLength);
             ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
         }
-        ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
     }
 
     /**
@@ -170,6 +178,7 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<HttpObject> 
             httpRequest = null;
         }
         if (httpResponse != null) {
+            IOUtils.closeQuietly(httpResponse.getOutputStream());
             httpResponse = null;
         }
         MDC.remove("requestId");

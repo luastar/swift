@@ -7,8 +7,7 @@ import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.cookie.Cookie;
 
-import java.util.Collections;
-import java.util.LinkedHashMap;
+import java.io.ByteArrayOutputStream;
 import java.util.Map;
 import java.util.Set;
 
@@ -17,6 +16,8 @@ public class HttpResponse {
     private String requestId;
 
     private String result;
+
+    private ByteArrayOutputStream outputStream;
 
     private Map<String, String> headerMap;
 
@@ -38,6 +39,12 @@ public class HttpResponse {
 
     public void setResponseContentTypePlain() {
         setHeader(HttpHeaderNames.CONTENT_TYPE.toString(), HttpMediaType.TEXT_PLAIN_UTF_8);
+    }
+
+    public void setResponseContentTypeStream(String fileName) {
+        setHeader(HttpHeaderNames.CONTENT_TYPE.toString(), HttpMediaType.APPLICATION_OCTET_STREAM_UTF_8);
+        setHeader(HttpHeaderNames.CONTENT_DISPOSITION.toString(), "attachment;filename=\"" + fileName + "\"");
+        setHeader(HttpHeaderNames.CACHE_CONTROL.toString(), "no-cache");
     }
 
     public String getHeader(String key) {
@@ -62,6 +69,14 @@ public class HttpResponse {
 
     public void setResult(String result) {
         this.result = result;
+    }
+
+    public ByteArrayOutputStream getOutputStream() {
+        return outputStream;
+    }
+
+    public void setOutputStream(ByteArrayOutputStream outputStream) {
+        this.outputStream = outputStream;
     }
 
     public Map<String, String> getHeaderMap() {

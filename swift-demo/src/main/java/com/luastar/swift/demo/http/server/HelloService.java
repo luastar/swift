@@ -6,11 +6,18 @@ import com.luastar.swift.http.server.HttpResponse;
 import com.luastar.swift.http.server.HttpService;
 import io.netty.handler.codec.http.multipart.FileUpload;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.ss.usermodel.CreationHelper;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.Map;
 
 @HttpService("/test")
@@ -38,7 +45,7 @@ public class HelloService {
         }
         logger.info("request to user : {}", request.bindObj(new User()));
         logger.info("request body is : {}", request.getBody());
-        if (StringUtils.isNoneBlank(request.getParameter("exp"))){
+        if (StringUtils.isNoneBlank(request.getParameter("exp"))) {
             throw new RuntimeException("业务异常");
         }
         // response
@@ -77,6 +84,24 @@ public class HelloService {
         logger.info("request body is : {}", request.getBody());
         // response
         response.setResult("TestCtrl[hello] OK !");
+    }
+
+    @HttpService("/download")
+    public void download(HttpRequest request, HttpResponse response) {
+        try {
+            Workbook wb = new XSSFWorkbook();
+            CreationHelper createHelper = wb.getCreationHelper();
+            Sheet sheet = wb.createSheet("sheet1");
+            Row row = sheet.createRow((short) 0);
+            row.createCell(0).setCellValue(createHelper.createRichTextString("aaa"));
+            row.createCell(1).setCellValue(createHelper.createRichTextString("bbb"));
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            wb.write(outputStream);
+            response.setResponseContentTypeStream("aaa.xlsx");
+            response.setOutputStream(outputStream);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 }
