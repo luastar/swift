@@ -1,5 +1,7 @@
 package com.luastar.swift.base.utils;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DateFormatUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,34 +14,13 @@ public abstract class DateUtils {
 
     private static final Logger logger = LoggerFactory.getLogger(DateUtils.class);
 
-    /**
-     * yyyy-MM-dd
-     */
-    public static final SimpleDateFormat FORMAT_DATE_WITH_BAR = new SimpleDateFormat("yyyy-MM-dd");
-    /**
-     * yyyyMMdd
-     */
-    public static final SimpleDateFormat FORMAT_DATE_NO_BAR = new SimpleDateFormat("yyyyMMdd");
-    /**
-     * yyyy年MM月dd日
-     */
-    public static final SimpleDateFormat FORMAT_DATE_CHINESE = new SimpleDateFormat("yyyy年MM月dd日");
-    /**
-     * yyyy-MM-dd HH:mm:ss
-     */
-    public static final SimpleDateFormat FORMAT_TIME_WITH_BAR = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    /**
-     * yyyy-MM-dd HH:mm
-     */
-    public static final SimpleDateFormat FORMAT_TIME_WITH_MINUTE = new SimpleDateFormat("yyyy-MM-dd HH:mm");
-    /**
-     * yyyyMMddHHmmss
-     */
-    public static final SimpleDateFormat FORMAT_TIME_NO_BAR = new SimpleDateFormat("yyyyMMddHHmmss");
-    /**
-     * yyyyMM
-     */
-    public static final SimpleDateFormat FORMAT_MONTH_1 = new SimpleDateFormat("yyyyMM");
+    public static final String FORMAT_DATE_WITH_BAR = "yyyy-MM-dd";
+    public static final String FORMAT_DATE_NO_BAR = "yyyyMMdd";
+    public static final String FORMAT_DATE_CHINESE = "yyyy年MM月dd日";
+    public static final String FORMAT_TIME_WITH_BAR = "yyyy-MM-dd HH:mm:ss";
+    public static final String FORMAT_TIME_WITH_MINUTE = "yyyy-MM-dd HH:mm";
+    public static final String FORMAT_TIME_NO_BAR = "yyyyMMddHHmmss";
+    public static final String FORMAT_MONTH = "yyyyMM";
 
     /**
      * 格式化成：yyyy-MM-dd HH:mm:ss
@@ -48,18 +29,55 @@ public abstract class DateUtils {
      * @return
      */
     public static String format(Date date) {
-        return FORMAT_TIME_WITH_BAR.format(date);
+        if (date == null) {
+            return null;
+        }
+        return DateFormatUtils.format(date, FORMAT_TIME_WITH_BAR);
     }
 
     /**
-     * 匹配格式：yyyy-MM-dd HH:mm:ss
+     * 格式化成：输入的格式
+     *
+     * @param date
+     * @return
+     */
+    public static String format(Date date, String pattern) {
+        if (date == null) {
+            return null;
+        }
+        return DateFormatUtils.format(date, pattern);
+    }
+
+    /**
+     * 匹配日期格式
      *
      * @param str
      * @return
      */
-    public static Date parse(String str) {
+    public static Date parse(String str, String... parsePatterns) {
         try {
-            return FORMAT_TIME_WITH_BAR.parse(str);
+            if (StringUtils.isEmpty(str)) {
+                return null;
+            }
+            return org.apache.commons.lang3.time.DateUtils.parseDate(str, parsePatterns);
+        } catch (ParseException e) {
+            logger.error(e.getMessage(), e);
+            return null;
+        }
+    }
+
+    /**
+     * 匹配日期格式
+     *
+     * @param str
+     * @return
+     */
+    public static Date parseDateStrictly(String str, String... parsePatterns) {
+        try {
+            if (StringUtils.isEmpty(str)) {
+                return null;
+            }
+            return org.apache.commons.lang3.time.DateUtils.parseDateStrictly(str, parsePatterns);
         } catch (ParseException e) {
             logger.error(e.getMessage(), e);
             return null;
