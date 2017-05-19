@@ -11,7 +11,7 @@ public class Main {
         String outDir = "/Users/zhuminghua/Downloads/output/";
         // 表名
         String[] tableNames = new String[]{
-                "company_new"
+                "OP_RECOMMEND_COMPANY"
         };
         // 是否生成 model
         boolean bModel = true;
@@ -20,14 +20,14 @@ public class Main {
         // 是否生成 xml
         boolean bXml = true;
         // model 包名
-        String modelPackageName = "com.fenbeitong.stereo.usercenter.entity.company";
+        String modelPackageName = "com.fenbeitong.stereo.core.entity.mysql.operations.recommend";
         // dao 包名
-        String daoPackageName = "com.fenbeitong.stereo.usercenter.dao.company";
+        String daoPackageName = "com.fenbeitong.stereo.core.dao.mysql.operations.recommend";
         // MyBatisRepository 包名
         String mybatisRepPackageName = "org.mybatis.spring.MyBatisRepository";
         // 生成类名时是否删除表前缀
         boolean delPrefix = false;
-        Map<String, String> dbMap = getDbInfo(2);
+        Map<String, String> dbMap = getDbInfo(1);
         String dbDriver = dbMap.get("dbDriver");
         String dbUrl = dbMap.get("dbUrl");
         String dbUsername = dbMap.get("dbUsername");
@@ -44,7 +44,7 @@ public class Main {
         if (type == 1) {
             // mysql
             dbMap.put("dbDriver", "com.mysql.jdbc.Driver");
-            dbMap.put("dbUrl", "jdbc:mysql://localhost:3306/stereo?useUnicode=true&amp;autoReconnect=true&amp;characterEncoding=UTF8");
+            dbMap.put("dbUrl", "jdbc:mysql://localhost:3306/stereo?useUnicode=true&amp;autoReconnect=true&amp;useSSL=false&amp;characterEncoding=UTF8");
             dbMap.put("dbUsername", "root");
             dbMap.put("dbPassword", "root123");
         } else {

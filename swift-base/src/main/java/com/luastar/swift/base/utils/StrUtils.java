@@ -33,6 +33,25 @@ public class StrUtils {
     }
 
     /**
+     * 格式化字符串，格式：hi,{0} hello world {1}, welcome {0}
+     */
+    public static String formatString(String str, Object... args) {
+        if (args == null) {
+            return str;
+        }
+        String result = str;
+        Matcher matcher = FORMAT_PATTERN.matcher(str);
+        while (matcher.find()) {
+            String token = matcher.group();
+            int idx = ObjUtils.toInteger(token.substring(1, token.length() - 1));
+            if (idx >= 0 && idx < args.length) {
+                result = result.replace(token, ObjUtils.toString(args[idx], ""));
+            }
+        }
+        return result;
+    }
+
+    /**
      * 格式化字符串，格式：hi,${a} hello world ${b}, welcome ${a}
      */
     public static String formatString(String str, Map<String, Object> args) {

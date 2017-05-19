@@ -481,7 +481,7 @@ public class HttpClientUtils {
     }
 
     public static String postBody(String url, String requestBody) {
-        return postBody(url, requestBody, DEFAULT_TIMEOUT, null, null);
+        return postBody(url, requestBody, DEFAULT_TIMEOUT);
     }
 
     public static String postBody(String url, String requestBody, int timeout) {
