@@ -11,6 +11,7 @@ import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
 import io.netty.handler.codec.http.multipart.*;
 import io.netty.util.CharsetUtil;
+import org.apache.commons.collections4.map.CaseInsensitiveMap;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -48,7 +49,7 @@ public class HttpRequest {
     private QueryStringDecoder queryStringDecoder;
     private HttpPostRequestDecoder postRequestDecoder;
 
-    private Map<String, String> headerMap = Maps.newLinkedHashMap();
+    private Map<String, String> headerMap = new CaseInsensitiveMap<String, String>();
     private Map<String, Cookie> cookieMap = Maps.newLinkedHashMap();
     private Map<String, String> parameterMap = Maps.newLinkedHashMap();
     private Map<String, FileUpload> fileMap = Maps.newLinkedHashMap();
