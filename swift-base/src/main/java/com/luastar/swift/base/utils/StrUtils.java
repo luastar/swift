@@ -5,6 +5,7 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.beetl.core.BeetlKit;
 
 import java.io.UnsupportedEncodingException;
+import java.text.MessageFormat;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -36,19 +37,7 @@ public class StrUtils {
      * 格式化字符串，格式：hi,{0} hello world {1}, welcome {0}
      */
     public static String formatString(String str, Object... args) {
-        if (args == null) {
-            return str;
-        }
-        String result = str;
-        Matcher matcher = FORMAT_PATTERN.matcher(str);
-        while (matcher.find()) {
-            String token = matcher.group();
-            int idx = ObjUtils.toInteger(token.substring(1, token.length() - 1));
-            if (idx >= 0 && idx < args.length) {
-                result = result.replace(token, ObjUtils.toString(args[idx], ""));
-            }
-        }
-        return result;
+        return MessageFormat.format(str, args);
     }
 
     /**
