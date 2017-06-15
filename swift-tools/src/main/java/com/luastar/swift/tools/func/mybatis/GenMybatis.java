@@ -17,33 +17,29 @@ public class GenMybatis {
 
     private static final Logger logger = LoggerFactory.getLogger(GenMybatis.class);
 
-    public static final String TEMP_MODEL = "/temp/mybatis/model.txt";
-    public static final String TEMP_MAPPER = "/temp/mybatis/mapper.txt";
-    public static final String TEMP_DAO = "/temp/mybatis/dao.txt";
+    public static final String DB_POSTGRESQL = "postgresql";
+    public static final String DB_MYSQL = "mysql";
 
+    private static final String TEMP_MODEL = "/temp/mybatis/model.txt";
+    private static final String TEMP_MAPPER = "/temp/mybatis/mapper.txt";
+    private static final String TEMP_DAO = "/temp/mybatis/dao.txt";
 
     private String outDir;
     private String[] tableNames;
-    private boolean bModel;
-    private boolean bDao;
-    private boolean bXml;
     private String modelPackageName;
     private String daoPackageName;
     private String mybatisRepPackageName;
-    private boolean delPrefix;
     private boolean needSchema;
+    private String dbName;
     private DataBaseUtils dbUtils;
     private BeetlUtils beetlUtils;
 
     public GenMybatis(String outDir,
                       String[] tableNames,
-                      boolean bModel,
-                      boolean bDao,
-                      boolean bXml,
                       String modelPackageName,
                       String daoPackageName,
                       String mybatisRepPackageName,
-                      boolean delPrefix,
+                      String dbName,
                       String dbDriver,
                       String dbUrl,
                       String dbUsername,
@@ -51,13 +47,10 @@ public class GenMybatis {
 
         this.outDir = outDir;
         this.tableNames = tableNames;
-        this.bModel = bModel;
-        this.bDao = bDao;
-        this.bXml = bXml;
         this.modelPackageName = modelPackageName;
         this.daoPackageName = daoPackageName;
         this.mybatisRepPackageName = mybatisRepPackageName;
-        this.delPrefix = delPrefix;
+        this.dbName = dbName;
         this.dbUtils = new DataBaseUtils(dbDriver, dbUrl, dbUsername, dbPassword);
         this.beetlUtils = new BeetlUtils();
     }
@@ -71,11 +64,11 @@ public class GenMybatis {
             logger.error("表不能为空！");
             return;
         }
-        if (bModel && StringUtils.isEmpty(modelPackageName)) {
+        if (StringUtils.isEmpty(modelPackageName)) {
             logger.error("modelPackageName不能为空！");
             return;
         }
-        if ((bDao || bXml) && StringUtils.isEmpty(daoPackageName)) {
+        if (StringUtils.isEmpty(daoPackageName)) {
             logger.error("daoPackageName不能为空！");
             return;
         }
@@ -87,9 +80,6 @@ public class GenMybatis {
     }
 
     private void gen_model(String tableName) {
-        if (!bModel) {
-            return;
-        }
         TableVO tableVO = dbUtils.getDbTableInfo(tableName, needSchema);
         String className = getClassName(tableName);
         beetlUtils.setTemplate(TEMP_MODEL);
@@ -101,9 +91,6 @@ public class GenMybatis {
     }
 
     private void gen_dao(String tableName) {
-        if (!bDao) {
-            return;
-        }
         String className = getClassName(tableName);
         String daoName = className + "Dao";
         beetlUtils.setTemplate(TEMP_DAO);
@@ -114,18 +101,18 @@ public class GenMybatis {
         beetlUtils.binding("className", className);
         beetlUtils.binding("classObjName", StrUtils.getFisrtCharLower(className));
         beetlUtils.toFile(outDir, daoName + ".java");
-
         logger.info("生成mapper成功，输出路径为：{}{}.java", outDir, daoName);
     }
 
     private void gen_xml(String tableName) {
-        if (!bXml) {
-            return;
-        }
         TableVO tableVO = dbUtils.getDbTableInfo(tableName, needSchema);
         String className = getClassName(tableName);
-
         beetlUtils.setTemplate(TEMP_MAPPER);
+        if (DB_POSTGRESQL.equals(dbName)) {
+            beetlUtils.binding("limit", "limit #{limit} offset #{start}");
+        } else {
+            beetlUtils.binding("limit", "limit #{start},#{limit}");
+        }
         beetlUtils.binding("namespace", daoPackageName + "." + className + "Dao");
         beetlUtils.binding("mapName", StrUtils.getFisrtCharLower(className));
         beetlUtils.binding("className", className);
@@ -135,7 +122,6 @@ public class GenMybatis {
         beetlUtils.binding("insertColList", getInsertRow(tableVO.getColumns(), "dbColumnName", 5));
         beetlUtils.binding("insertValList", getInsertRow(tableVO.getColumns(), "columnName", 5));
         beetlUtils.toFile(outDir, className + "Mapper.xml");
-
         logger.info("生成mapper成功，输出路径为：{}{}Mapper.xml", outDir, className);
     }
 
@@ -168,12 +154,6 @@ public class GenMybatis {
     }
 
     private String getClassName(String tableName) {
-        if (delPrefix) {
-            int index = tableName.indexOf("_");
-            if (index != -1) {
-                tableName = tableName.substring(index);
-            }
-        }
         return StrUtils.getCamelCaseString(tableName, true);
     }
 

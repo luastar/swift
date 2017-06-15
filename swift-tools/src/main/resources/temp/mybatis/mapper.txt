@@ -21,19 +21,19 @@
 	<insert id="insert" useGeneratedKeys="true" keyProperty="id" parameterType="${className}">
 		insert into ${tableName} (
 <%
-for(col in insertColList){
+    for(col in insertColList){
 %>
 			${col}
 <%							
-}
+    }
 %>
     	) values (
 <%
-for(col in insertValList){
+    for(col in insertValList){
 %>
 			${col}
 <%							
-}
+    }
 %>
     	)
 	</insert>
@@ -74,7 +74,7 @@ for(col in insertValList){
 		select * from ${tableName}
 		<include refid="queryCondition"/>
 		<if test="start != null and limit != null">
-		limit #{start},#{limit}
+		${limit}
 		</if>
 	</select>
   
