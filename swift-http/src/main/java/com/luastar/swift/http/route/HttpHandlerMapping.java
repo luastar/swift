@@ -14,10 +14,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.BridgeMethodResolver;
 import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.util.AntPathMatcher;
-import org.springframework.util.ClassUtils;
-import org.springframework.util.PathMatcher;
-import org.springframework.util.ReflectionUtils;
+import org.springframework.util.*;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -38,7 +35,7 @@ public class HttpHandlerMapping implements ApplicationContextAware, Initializing
 
     private final Map<RequestMappingInfo, HandlerMethod> handlerMethods = new LinkedHashMap<RequestMappingInfo, HandlerMethod>();
 
-    private final Map<String, RequestMappingInfo> urlMap = new LinkedHashMap<String, RequestMappingInfo>();
+    private final MultiValueMap<String, RequestMappingInfo> urlMap = new LinkedMultiValueMap();
 
     private final List<MappedInterceptor> mappedInterceptorList = new ArrayList<MappedInterceptor>();
 
@@ -191,7 +188,7 @@ public class HttpHandlerMapping implements ApplicationContextAware, Initializing
      * Created a RequestMappingInfo from a RequestMapping annotation.
      */
     protected RequestMappingInfo createRequestMappingInfo(HttpService annotation) {
-        return new RequestMappingInfo(new PatternsRequestCondition(annotation.value(), pathMatcher, true, true));
+        return new RequestMappingInfo(new PatternsRequestCondition(annotation.value(), pathMatcher, true, true), new RequestMethodsRequestCondition(annotation.method()));
     }
 
     /**
@@ -208,7 +205,7 @@ public class HttpHandlerMapping implements ApplicationContextAware, Initializing
         HandlerMethod oldHandlerMethod = this.handlerMethods.get(mapping);
         if (oldHandlerMethod != null && !oldHandlerMethod.equals(newHandlerMethod)) {
             StringBuilder msg = new StringBuilder();
-            msg.append("Ambiguous mapping found. Cannot map '")
+            msg.append("Ambiguous(不明确的) mapping found. Cannot map '")
                     .append(newHandlerMethod.getBean())
                     .append("' bean method \n")
                     .append(newHandlerMethod)
@@ -225,11 +222,8 @@ public class HttpHandlerMapping implements ApplicationContextAware, Initializing
         Set<String> patterns = mapping.getPatternsCondition().getPatterns();
         for (String pattern : patterns) {
             if (!pathMatcher.isPattern(pattern)) {
-                if (this.urlMap.containsKey(pattern)) {
-                    logger.warn("警告：配置路径有重复：path={}", pattern);
-                }
                 logger.info("url pattern={}, mapping={}", pattern, mapping.toString());
-                this.urlMap.put(pattern, mapping);
+                this.urlMap.add(pattern, mapping);
             }
         }
     }
@@ -276,9 +270,9 @@ public class HttpHandlerMapping implements ApplicationContextAware, Initializing
         String lookupPath = request.getLookupPath();
         HandlerMethod handlerMethod = lookupHandlerMethod(lookupPath, request);
         if (handlerMethod != null) {
-            logger.info("Returning handler method [" + handlerMethod + "]");
+            logger.info("Returning handler method [{}]", handlerMethod);
         } else {
-            logger.info("Did not find handler method for [" + lookupPath + "]");
+            logger.info("Did not find handler method for [{}][{}]", lookupPath, request.getMethod());
         }
         return (handlerMethod != null ? handlerMethod.createWithResolvedBean() : null);
     }
@@ -295,10 +289,8 @@ public class HttpHandlerMapping implements ApplicationContextAware, Initializing
      */
     protected HandlerMethod lookupHandlerMethod(String lookupPath, HttpRequest request) throws Exception {
         List<Match> matches = new ArrayList<Match>();
-        List<RequestMappingInfo> directPathMatches = new ArrayList<RequestMappingInfo>();
-        RequestMappingInfo mapping = this.urlMap.get(lookupPath);
-        if (mapping != null) {
-            directPathMatches.add(mapping);
+        List<RequestMappingInfo> directPathMatches = this.urlMap.get(lookupPath);
+        if (directPathMatches != null) {
             addMatchingMappings(directPathMatches, matches, request);
         }
         if (matches.isEmpty()) {
@@ -308,6 +300,7 @@ public class HttpHandlerMapping implements ApplicationContextAware, Initializing
         if (!matches.isEmpty()) {
             Comparator<Match> comparator = new MatchComparator(getMappingComparator(request));
             Collections.sort(matches, comparator);
+            logger.info("Found {} matching mapping(s) for [{}] : {}", matches.size(), lookupPath, matches);
             Match bestMatch = matches.get(0);
             if (matches.size() > 1) {
                 Match secondBestMatch = matches.get(1);

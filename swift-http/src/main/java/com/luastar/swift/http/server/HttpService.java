@@ -1,5 +1,7 @@
 package com.luastar.swift.http.server;
 
+import com.luastar.swift.http.route.RequestMethod;
+
 import java.lang.annotation.*;
 
 @Documented
@@ -21,5 +23,16 @@ public @interface HttpService {
      * this primary mapping, narrowing it for a specific handler method.
      */
     String[] value() default {};
+
+    /**
+     * The HTTP request methods to map to, narrowing the primary mapping:
+     * GET, POST, HEAD, OPTIONS, PUT, PATCH, DELETE, TRACE.
+     * <p><b>Supported at the type level as well as at the method level!</b>
+     * When used at the type level, all method-level mappings inherit
+     * this HTTP method restriction (i.e. the type-level restriction
+     * gets checked before the handler method is even resolved).
+     * <p>Supported for Servlet environments as well as Portlet 2.0 environments.
+     */
+    RequestMethod[] method() default {};
 
 }

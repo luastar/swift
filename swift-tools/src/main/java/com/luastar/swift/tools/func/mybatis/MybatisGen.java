@@ -191,9 +191,6 @@ public class MybatisGen {
     public void gen() {
         try {
             Configuration configuration = new Configuration();
-            // classpath
-//            String connectorLibPath = null;
-//            configuration.addClasspathEntry(connectorLibPath);
             // context
             Context context = new Context(ModelType.CONDITIONAL);
             context.setId(dbType);

@@ -1,6 +1,7 @@
 package com.luastar.swift.demo.http.server;
 
 import com.luastar.swift.base.json.JsonUtils;
+import com.luastar.swift.http.route.RequestMethod;
 import com.luastar.swift.http.server.HttpRequest;
 import com.luastar.swift.http.server.HttpResponse;
 import com.luastar.swift.http.server.HttpService;
@@ -51,7 +52,7 @@ public class HelloService {
             throw new RuntimeException("业务异常");
         }
         // response
-        response.setResponseContentTypeJson();
+        response.setResponseContentTypePlain();
         response.setResult("TestCtrl[index] OK !");
     }
 
@@ -65,7 +66,7 @@ public class HelloService {
         }
         logger.info("TestCtrl[redis] result:{}", result);
         // response
-        response.setResponseContentTypeJson();
+        response.setResponseContentTypePlain();
         response.setResult(result);
     }
 
@@ -85,7 +86,40 @@ public class HelloService {
         }
         logger.info("request body is : {}", request.getBody());
         // response
+        response.setResponseContentTypePlain();
         response.setResult("TestCtrl[hello] OK !");
+    }
+
+    @HttpService(value = "/getpost", method = RequestMethod.GET)
+    public void get(HttpRequest request, HttpResponse response) {
+        logger.info("----------come into TestCtrl[get]");
+        // response
+        response.setResponseContentTypePlain();
+        response.setResult("TestCtrl[get] OK !");
+    }
+
+    @HttpService(value = "/getpost", method = RequestMethod.POST)
+    public void post(HttpRequest request, HttpResponse response) {
+        logger.info("----------come into TestCtrl[post]");
+        // response
+        response.setResponseContentTypePlain();
+        response.setResult("TestCtrl[post] OK !");
+    }
+
+    @HttpService(value = "/getpost")
+    public void getpost(HttpRequest request, HttpResponse response) {
+        logger.info("----------come into TestCtrl[getpost]");
+        // response
+        response.setResponseContentTypePlain();
+        response.setResult("TestCtrl[getpost] OK !");
+    }
+
+    @HttpService(value = "/get_or_post", method = {RequestMethod.GET, RequestMethod.POST})
+    public void getOrPost(HttpRequest request, HttpResponse response) {
+        logger.info("----------come into TestCtrl[get_or_post]");
+        // response
+        response.setResponseContentTypePlain();
+        response.setResult("TestCtrl[get_or_post] OK !");
     }
 
     @HttpService("/upload")
@@ -101,6 +135,7 @@ public class HelloService {
             }
         }
         // response
+        response.setResponseContentTypePlain();
         response.setResult("TestCtrl[upload] OK !");
     }
 
