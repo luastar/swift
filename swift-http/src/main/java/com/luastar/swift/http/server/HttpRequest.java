@@ -1,6 +1,7 @@
 package com.luastar.swift.http.server;
 
 import com.google.common.collect.Maps;
+import com.luastar.swift.base.utils.ObjUtils;
 import com.luastar.swift.http.constant.HttpConstant;
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.http.FullHttpRequest;
@@ -21,6 +22,7 @@ import org.springframework.beans.propertyeditors.CustomDateEditor;
 import org.springframework.validation.DataBinder;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -172,8 +174,20 @@ public class HttpRequest {
         return parameterMap.get(key);
     }
 
-    public void setParameter(String key, String value) {
-        parameterMap.put(key, value);
+    public Integer getIntParameter(String key){
+        return ObjUtils.toInteger(getParameter(key));
+    }
+
+    public Long getLongParameter(String key){
+        return ObjUtils.toLong(getParameter(key));
+    }
+
+    public BigDecimal getBigDecimalParameter(String key){
+        return ObjUtils.toBigDecimal(getParameter(key));
+    }
+
+    public Boolean getBooleanParameter(String key){
+        return ObjUtils.toBoolean(getParameter(key));
     }
 
     public Map<String, FileUpload> getFileMap() {

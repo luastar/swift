@@ -1,6 +1,5 @@
-package com.luastar.swift.tools.model.db;
+package com.luastar.swift.tools.model;
 
-import com.luastar.swift.tools.model.PropBaseVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

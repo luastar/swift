@@ -1,9 +1,9 @@
 package com.luastar.swift.tools.utils;
 
 import com.luastar.swift.base.utils.StrUtils;
-import com.luastar.swift.tools.model.db.ColAndRsVO;
-import com.luastar.swift.tools.model.db.ColumnVO;
-import com.luastar.swift.tools.model.db.TableVO;
+import com.luastar.swift.tools.model.ColAndRsVO;
+import com.luastar.swift.tools.model.ColumnVO;
+import com.luastar.swift.tools.model.TableVO;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.apache.commons.dbutils.DbUtils;

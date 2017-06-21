@@ -1,8 +1,8 @@
 package com.luastar.swift.tools.func.mybatis;
 
 import com.luastar.swift.base.utils.StrUtils;
-import com.luastar.swift.tools.model.db.ColumnVO;
-import com.luastar.swift.tools.model.db.TableVO;
+import com.luastar.swift.tools.model.ColumnVO;
+import com.luastar.swift.tools.model.TableVO;
 import com.luastar.swift.tools.utils.BeetlUtils;
 import com.luastar.swift.tools.utils.DataBaseUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -13,44 +13,41 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 
-public class GenMybatis {
+public class MybatisGenSwift {
 
-    private static final Logger logger = LoggerFactory.getLogger(GenMybatis.class);
+    private static final Logger logger = LoggerFactory.getLogger(MybatisGenSwift.class);
 
-    public static final String DB_POSTGRESQL = "postgresql";
-    public static final String DB_MYSQL = "mysql";
-
-    private static final String TEMP_MODEL = "/temp/mybatis/model.txt";
-    private static final String TEMP_MAPPER = "/temp/mybatis/mapper.txt";
-    private static final String TEMP_DAO = "/temp/mybatis/dao.txt";
+    private static final String TEMP_MODEL = "/mybatis/template/model.txt";
+    private static final String TEMP_MAPPER = "/mybatis/template/mapper.txt";
+    private static final String TEMP_DAO = "/mybatis/template/dao.txt";
 
     private String outDir;
-    private String[] tableNames;
+    private String[] tableNameArray;
     private String modelPackageName;
     private String daoPackageName;
     private String mybatisRepPackageName;
     private boolean needSchema;
-    private String dbName;
+    private String dbType;
     private DataBaseUtils dbUtils;
     private BeetlUtils beetlUtils;
 
-    public GenMybatis(String outDir,
-                      String[] tableNames,
-                      String modelPackageName,
-                      String daoPackageName,
-                      String mybatisRepPackageName,
-                      String dbName,
-                      String dbDriver,
-                      String dbUrl,
-                      String dbUsername,
-                      String dbPassword) {
+    public MybatisGenSwift(String outDir,
+                           String[] tableNameArray,
+                           String modelPackageName,
+                           String daoPackageName,
+                           String mybatisRepPackageName,
+                           String dbType,
+                           String dbDriver,
+                           String dbUrl,
+                           String dbUsername,
+                           String dbPassword) {
 
         this.outDir = outDir;
-        this.tableNames = tableNames;
+        this.tableNameArray = tableNameArray;
         this.modelPackageName = modelPackageName;
         this.daoPackageName = daoPackageName;
         this.mybatisRepPackageName = mybatisRepPackageName;
-        this.dbName = dbName;
+        this.dbType = dbType;
         this.dbUtils = new DataBaseUtils(dbDriver, dbUrl, dbUsername, dbPassword);
         this.beetlUtils = new BeetlUtils();
     }
@@ -60,7 +57,7 @@ public class GenMybatis {
     }
 
     public void gen() {
-        if (ArrayUtils.isEmpty(tableNames)) {
+        if (ArrayUtils.isEmpty(tableNameArray)) {
             logger.error("表不能为空！");
             return;
         }
@@ -72,10 +69,10 @@ public class GenMybatis {
             logger.error("daoPackageName不能为空！");
             return;
         }
-        for (int i = 0; i < tableNames.length; i++) {
-            gen_model(tableNames[i]);
-            gen_dao(tableNames[i]);
-            gen_xml(tableNames[i]);
+        for (int i = 0; i < tableNameArray.length; i++) {
+            gen_model(tableNameArray[i]);
+            gen_dao(tableNameArray[i]);
+            gen_xml(tableNameArray[i]);
         }
     }
 
@@ -108,7 +105,7 @@ public class GenMybatis {
         TableVO tableVO = dbUtils.getDbTableInfo(tableName, needSchema);
         String className = getClassName(tableName);
         beetlUtils.setTemplate(TEMP_MAPPER);
-        if (DB_POSTGRESQL.equals(dbName)) {
+        if (MybatisConstant.DB_TYPE_POSTGRESQL.equals(dbType)) {
             beetlUtils.binding("limit", "limit #{limit} offset #{start}");
         } else {
             beetlUtils.binding("limit", "limit #{start},#{limit}");

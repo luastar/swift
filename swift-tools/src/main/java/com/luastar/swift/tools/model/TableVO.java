@@ -1,7 +1,5 @@
-package com.luastar.swift.tools.model.db;
+package com.luastar.swift.tools.model;
 
-
-import com.luastar.swift.tools.model.PropBaseVO;
 
 import java.util.HashMap;
 import java.util.List;
