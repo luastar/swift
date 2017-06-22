@@ -100,7 +100,7 @@ public class MybatisLimitPlugin extends PluginAdapter {
         if (DB_POSTGRESQL.equals(dbType)){
             ifOffsetNotNullElement.addElement(new TextElement("limit ${offset}, ${limit}"));
         } else {
-            ifOffsetNotNullElement.addElement(new TextElement("limit ${limit}, ${offset}"));
+            ifOffsetNotNullElement.addElement(new TextElement("limit ${limit} offset ${offset}"));
         }
         ifLimitNotNullElement.addElement(ifOffsetNotNullElement);
         // 添加判断语句
