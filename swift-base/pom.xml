@@ -117,6 +117,13 @@
             <version>${jackson.version}</version>
         </dependency>
         <!-- json end -->
+        <!-- bson begin -->
+        <dependency>
+            <groupId>org.mongodb</groupId>
+            <artifactId>bson</artifactId>
+            <version>3.4.2</version>
+        </dependency>
+        <!-- bson begin -->
         <!-- 模板引擎 ibeetl begin -->
         <dependency>
             <groupId>com.ibeetl</groupId>

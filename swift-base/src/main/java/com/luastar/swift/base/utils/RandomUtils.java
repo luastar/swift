@@ -5,6 +5,8 @@
  */
 package com.luastar.swift.base.utils;
 
+import org.bson.types.ObjectId;
+
 import java.security.SecureRandom;
 import java.util.UUID;
 
@@ -32,6 +34,14 @@ public class RandomUtils {
      */
     public static String uuid2() {
         return UUID.randomUUID().toString().replaceAll("-", "");
+    }
+
+    /**
+     * 生成bson id
+     * @return
+     */
+    public static String bsonId(){
+        return new ObjectId().toHexString();
     }
 
     /**
