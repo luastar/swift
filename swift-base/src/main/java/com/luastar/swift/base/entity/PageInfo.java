@@ -30,14 +30,20 @@ public class PageInfo {
         this.pageNum = pageNum;
         this.pageSize = pageSize;
         this.total = total;
-        // 设置默认值
+
+    }
+
+    public PageInfo(int pageNum, int pageSize, long total) {
+        this.pageNum = pageNum;
         if (this.pageNum <= 0) {
             this.pageNum = 1;
         }
+        this.pageSize = pageSize;
         if (this.pageSize <= 0) {
             this.pageSize = 20;
         }
-        startRow = (pageNum - 1) * pageSize;
+        setTotal(total);
+        startRow = (this.pageNum - 1) * this.pageSize;
     }
 
     public int getPageNum() {
@@ -55,12 +61,10 @@ public class PageInfo {
     public void setTotal(long total) {
         this.total = total;
         if (total <= 0) {
+            this.total = 0;
             pages = 1;
         } else {
-            pages = (int) (total / pageSize + ((total % pageSize == 0) ? 0 : 1));
-        }
-        if (pageNum > pages){
-            pageNum = pages;
+            pages = (int) (this.total / pageSize + ((this.total % pageSize == 0) ? 0 : 1));
         }
     }
 
