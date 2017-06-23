@@ -68,7 +68,7 @@ public class JsonMapper {
         try {
             return mapper.writeValueAsString(object);
         } catch (IOException e) {
-            logger.warn("write to json string error:" + object, e);
+            logger.error("write to json string error:" + object, e);
             return null;
         }
     }
@@ -86,7 +86,7 @@ public class JsonMapper {
         try {
             return mapper.readValue(jsonString, clazz);
         } catch (IOException e) {
-            logger.warn("parse json string error:" + jsonString, e);
+            logger.error("parse json string error:" + jsonString, e);
             return null;
         }
     }
@@ -101,7 +101,7 @@ public class JsonMapper {
         try {
             return (T) mapper.readValue(jsonString, javaType);
         } catch (IOException e) {
-            logger.warn("parse json string error:" + jsonString, e);
+            logger.error("parse json string error:" + jsonString, e);
             return null;
         }
     }
@@ -120,7 +120,7 @@ public class JsonMapper {
             Object obj = mapper.readValue(jsonString, Object.class);
             return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(obj);
         } catch (Exception e) {
-            logger.warn("format json string error:" + jsonString, e);
+            logger.error("format json string error:" + jsonString, e);
             return jsonString;
         }
     }
@@ -149,9 +149,9 @@ public class JsonMapper {
         try {
             mapper.readerForUpdating(object).readValue(jsonString);
         } catch (JsonProcessingException e) {
-            logger.warn("update json string:" + jsonString + " to object:" + object + " error.", e);
+            logger.error("update json string:" + jsonString + " to object:" + object + " error.", e);
         } catch (IOException e) {
-            logger.warn("update json string:" + jsonString + " to object:" + object + " error.", e);
+            logger.error("update json string:" + jsonString + " to object:" + object + " error.", e);
         }
     }
 

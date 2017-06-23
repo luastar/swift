@@ -174,20 +174,44 @@ public class HttpRequest {
         return parameterMap.get(key);
     }
 
-    public Integer getIntParameter(String key){
+    public String getParameter(String key, String defaultValue) {
+        String value = getParameter(key);
+        if (StringUtils.isEmpty(value)) {
+            return defaultValue;
+        }
+        return value;
+    }
+
+    public Integer getIntParameter(String key) {
         return ObjUtils.toInteger(getParameter(key));
     }
 
-    public Long getLongParameter(String key){
+    public Integer getIntParameter(String key, Integer defaultValue) {
+        return ObjUtils.toInteger(getParameter(key), defaultValue);
+    }
+
+    public Long getLongParameter(String key) {
         return ObjUtils.toLong(getParameter(key));
     }
 
-    public BigDecimal getBigDecimalParameter(String key){
+    public Long getLongParameter(String key, Long defaultValue) {
+        return ObjUtils.toLong(getParameter(key), defaultValue);
+    }
+
+    public BigDecimal getBigDecimalParameter(String key) {
         return ObjUtils.toBigDecimal(getParameter(key));
     }
 
-    public Boolean getBooleanParameter(String key){
+    public BigDecimal getBigDecimalParameter(String key, BigDecimal defaultValue) {
+        return ObjUtils.toBigDecimal(getParameter(key), defaultValue);
+    }
+
+    public Boolean getBooleanParameter(String key) {
         return ObjUtils.toBoolean(getParameter(key));
+    }
+
+    public Boolean getBooleanParameter(String key, Boolean defaultValue) {
+        return ObjUtils.toBoolean(getParameter(key), defaultValue);
     }
 
     public Map<String, FileUpload> getFileMap() {
@@ -212,6 +236,14 @@ public class HttpRequest {
             return null;
         }
         return uriVariables.get(key);
+    }
+
+    public Integer getIntPathValue(String key) {
+        return ObjUtils.toInteger(getPathValue(key));
+    }
+
+    public Long getLongPathValue(String key) {
+        return ObjUtils.toLong(getPathValue(key));
     }
 
     public String getBody() {
