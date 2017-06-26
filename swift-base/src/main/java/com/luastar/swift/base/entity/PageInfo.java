@@ -14,6 +14,10 @@ public class PageInfo {
      */
     private int pageSize;
     /**
+     * 每页最大记录数
+     */
+    private int maxPageSize;
+    /**
      * 总数
      */
     private long total;
@@ -29,21 +33,52 @@ public class PageInfo {
     public PageInfo(int pageNum, int pageSize) {
         this.pageNum = pageNum;
         this.pageSize = pageSize;
-        this.total = total;
+        this.maxPageSize = Integer.MAX_VALUE;
+        this.total = 0;
+        calculate();
+    }
 
+    public PageInfo(int pageNum, int pageSize, int maxPageSize) {
+        this.pageNum = pageNum;
+        this.pageSize = pageSize;
+        this.maxPageSize = maxPageSize;
+        this.total = 0;
+        calculate();
     }
 
     public PageInfo(int pageNum, int pageSize, long total) {
         this.pageNum = pageNum;
-        if (this.pageNum <= 0) {
-            this.pageNum = 1;
-        }
         this.pageSize = pageSize;
-        if (this.pageSize <= 0) {
-            this.pageSize = 20;
+        this.maxPageSize = Integer.MAX_VALUE;
+        this.total = total;
+        calculate();
+    }
+
+    public PageInfo(int pageNum, int pageSize, int maxPageSize, long total) {
+        this.pageNum = pageNum;
+        this.pageSize = pageSize;
+        this.maxPageSize = maxPageSize;
+        this.total = total;
+        calculate();
+    }
+
+    private void calculate() {
+        if (pageNum <= 0) {
+            pageNum = 1;
         }
-        setTotal(total);
-        startRow = (this.pageNum - 1) * this.pageSize;
+        if (pageSize <= 0) {
+            pageSize = 20;
+        }
+        if (pageSize > maxPageSize) {
+            pageSize = maxPageSize;
+        }
+        if (total <= 0) {
+            total = 0;
+            pages = 1;
+        } else {
+            pages = (int) (total / pageSize + ((total % pageSize == 0) ? 0 : 1));
+        }
+        startRow = (pageNum - 1) * pageSize;
     }
 
     public int getPageNum() {
@@ -54,18 +89,22 @@ public class PageInfo {
         return pageSize;
     }
 
+    public int getMaxPageSize() {
+        return maxPageSize;
+    }
+
+    public void setMaxPageSize(int maxPageSize) {
+        this.maxPageSize = maxPageSize;
+        calculate();
+    }
+
     public long getTotal() {
         return total;
     }
 
     public void setTotal(long total) {
         this.total = total;
-        if (total <= 0) {
-            this.total = 0;
-            pages = 1;
-        } else {
-            pages = (int) (this.total / pageSize + ((this.total % pageSize == 0) ? 0 : 1));
-        }
+        calculate();
     }
 
     public int getPages() {
