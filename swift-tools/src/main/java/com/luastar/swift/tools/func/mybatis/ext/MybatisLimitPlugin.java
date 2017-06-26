@@ -98,9 +98,9 @@ public class MybatisLimitPlugin extends PluginAdapter {
         XmlElement ifOffsetNotNullElement = new XmlElement("if");
         ifOffsetNotNullElement.addAttribute(new Attribute("test", "offset != null"));
         if (DB_POSTGRESQL.equals(dbType)){
-            ifOffsetNotNullElement.addElement(new TextElement("limit ${offset}, ${limit}"));
-        } else {
             ifOffsetNotNullElement.addElement(new TextElement("limit ${limit} offset ${offset}"));
+        } else {
+            ifOffsetNotNullElement.addElement(new TextElement("limit ${offset}, ${limit}"));
         }
         ifLimitNotNullElement.addElement(ifOffsetNotNullElement);
         // 添加判断语句
