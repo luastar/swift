@@ -481,11 +481,11 @@ public class HttpClientUtils {
     }
 
     public static String postBody(String url, String requestBody) {
-        return postBody(url, requestBody, DEFAULT_TIMEOUT);
+        return postBody(url, requestBody, null);
     }
 
-    public static String postBody(String url, String requestBody, int timeout) {
-        return postBody(url, requestBody, timeout, DEFAULT_CHARSET, null);
+    public static String postBody(String url, String requestBody, Map<String, String> headMap) {
+        return postBody(url, requestBody, DEFAULT_TIMEOUT, DEFAULT_CHARSET, headMap);
     }
 
     public static String postBody(String url,
