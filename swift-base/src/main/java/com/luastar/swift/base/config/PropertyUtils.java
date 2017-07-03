@@ -1,13 +1,14 @@
 package com.luastar.swift.base.config;
 
 import com.luastar.swift.base.utils.StrUtils;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.Map;
 
 public class PropertyUtils {
 
     private static final ItfConfig cfg = ConfigFactory.getConfig();
+
+    public static final String MSG_PREFIX = "msg.";
 
     private PropertyUtils() {
     }
@@ -52,8 +53,16 @@ public class PropertyUtils {
         return cfg.getDouble(key, defaultVal);
     }
 
+    public static String getMessage(int code) {
+        return getString(MSG_PREFIX + code, "");
+    }
+
+    public static String getMessage(int code, Map<String, Object> args) {
+        return StrUtils.formatString(getMessage(code), args);
+    }
+
     public static String getMessage(String key, Map<String, Object> args) {
-        return StrUtils.formatString(cfg.getString(key), args);
+        return StrUtils.formatString(getString(key, ""), args);
     }
 
 }

@@ -1,8 +1,12 @@
 package com.luastar.swift.tools.func.mybatis;
 
 import com.google.common.collect.Lists;
+import com.luastar.swift.base.utils.CollectionUtils;
 import com.luastar.swift.tools.func.mybatis.ext.JavaTypeResolverImpl;
 import com.luastar.swift.tools.func.mybatis.ext.MybatisLimitPlugin;
+import com.luastar.swift.tools.model.ColumnVO;
+import com.luastar.swift.tools.model.TableVO;
+import com.luastar.swift.tools.utils.DataBaseUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.mybatis.generator.api.MyBatisGenerator;
@@ -15,6 +19,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class MybatisGen {
 
@@ -32,6 +37,8 @@ public class MybatisGen {
     private String xmlPackage;
 
     private String[] tableNameArray;
+
+    private DataBaseUtils dataBaseUtils;
 
     public MybatisGen(String dbType,
                       String driverClass,
@@ -65,6 +72,7 @@ public class MybatisGen {
         this.daoPackage = daoPackage;
         this.xmlPackage = xmlPackage;
         this.tableNameArray = tableNameArray;
+        this.dataBaseUtils = new DataBaseUtils(this.driverClass, this.connectionURL, this.userId, this.password);
     }
 
     /**
@@ -183,6 +191,25 @@ public class MybatisGen {
             tableConfig.addProperty("modelOnly", "false");
             // 如果设置为true，生成的model类会直接使用column本身的名字，而不会再使用驼峰命名方法，比如BORN_DATE，生成的属性名字就是BORN_DATE,而不会是bornDate
             tableConfig.addProperty("useActualColumnNames", "false");
+            // 表信息
+            TableVO tableVO = dataBaseUtils.getDbTableInfo(tableName, false);
+            // 自增插入时返回主键值
+            ColumnVO primaryKey = tableVO.getPrimaryKey();
+            if (primaryKey != null) {
+                GeneratedKey generatedKey = new GeneratedKey(primaryKey.getDbColumnName(), "JDBC", true, "pre");
+                tableConfig.setGeneratedKey(generatedKey);
+            }
+            // 属性覆盖
+            List<ColumnVO> columnVOList = tableVO.getColumns();
+            if (CollectionUtils.isNotEmpty(columnVOList)) {
+                columnVOList.stream().filter(columnVO ->
+                        columnVO.getColumnType().toUpperCase().contains("TEXT")
+                ).map(columnVO -> {
+                    ColumnOverride overrideConfig = new ColumnOverride(columnVO.getDbColumnName());
+                    overrideConfig.setJdbcType("VARCHAR");
+                    return overrideConfig;
+                }).collect(Collectors.toList()).forEach(override -> tableConfig.addColumnOverride(override));
+            }
             tableConfigurationList.add(tableConfig);
         }
         return tableConfigurationList;

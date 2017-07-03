@@ -16,6 +16,7 @@ import io.netty.handler.codec.http.cookie.ServerCookieEncoder;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.util.CharsetUtil;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -23,7 +24,6 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.util.ReflectionUtils;
 
-import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
 import java.util.Map;
@@ -152,12 +152,13 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<HttpObject> 
             response.headers().add(resHeader.getKey(), resHeader.getValue());
         }
         // 处理cookie
-        if (!httpResponse.getCookieSet().isEmpty()) {
+        if (CollectionUtils.isNotEmpty(httpResponse.getCookieSet())) {
             for (Cookie cookie : httpResponse.getCookieSet()) {
                 response.headers().add(HttpHeaderNames.SET_COOKIE, ServerCookieEncoder.STRICT.encode(cookie));
             }
         }
         // 输出返回结果
+        /*
         boolean keepAlive = HttpUtil.isKeepAlive(httpRequest.getFullHttpRequest());
         if (keepAlive) {
             response.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
@@ -166,6 +167,10 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<HttpObject> 
             HttpUtil.setContentLength(response, contentLength);
             ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
         }
+        */
+        // 不处理keepAlive，直接返回结果
+        HttpUtil.setContentLength(response, contentLength);
+        ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
     }
 
     /**
