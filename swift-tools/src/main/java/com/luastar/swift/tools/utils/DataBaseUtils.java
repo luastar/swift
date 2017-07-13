@@ -63,11 +63,11 @@ public class DataBaseUtils {
         config.setJdbcUrl(this.dbUrl);
         config.setUsername(this.dbUsername);
         config.setPassword(this.dbPassword);
-        config.addDataSourceProperty("cachePrepStmts", "true");
-        config.addDataSourceProperty("prepStmtCacheSize", "250");
-        config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
-        config.setMinimumIdle(10);
-        config.setMaximumPoolSize(50);
+        config.setConnectionTimeout(30000);
+        config.setIdleTimeout(600000);
+        config.setMaxLifetime(1800000);
+        config.setMinimumIdle(20);
+        config.setMaximumPoolSize(100);
         config.setAutoCommit(true);
         dataSource = new HikariDataSource(config);
     }

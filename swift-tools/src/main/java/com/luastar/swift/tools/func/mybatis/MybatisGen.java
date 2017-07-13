@@ -38,6 +38,8 @@ public class MybatisGen {
 
     private String[] tableNameArray;
 
+    private String useActualColumnNames = "false";
+
     private DataBaseUtils dataBaseUtils;
 
     public MybatisGen(String dbType,
@@ -49,7 +51,8 @@ public class MybatisGen {
                       String modelPackage,
                       String daoPackage,
                       String xmlPackage,
-                      String[] tableNameArray) {
+                      String[] tableNameArray,
+                      String useActualColumnNames) {
         if (StringUtils.isEmpty(dbType)
                 || StringUtils.isEmpty(driverClass)
                 || StringUtils.isEmpty(connectionURL)
@@ -72,6 +75,7 @@ public class MybatisGen {
         this.daoPackage = daoPackage;
         this.xmlPackage = xmlPackage;
         this.tableNameArray = tableNameArray;
+        this.useActualColumnNames = useActualColumnNames;
         this.dataBaseUtils = new DataBaseUtils(this.driverClass, this.connectionURL, this.userId, this.password);
     }
 
@@ -190,13 +194,13 @@ public class MybatisGen {
             // 指定是否只生成domain类，如果设置为true，只生成domain类，如果还配置了sqlMapGenerator，那么在mapper XML文件中，只生成resultMap元素
             tableConfig.addProperty("modelOnly", "false");
             // 如果设置为true，生成的model类会直接使用column本身的名字，而不会再使用驼峰命名方法，比如BORN_DATE，生成的属性名字就是BORN_DATE,而不会是bornDate
-            tableConfig.addProperty("useActualColumnNames", "false");
+            tableConfig.addProperty("useActualColumnNames", useActualColumnNames);
             // 表信息
             TableVO tableVO = dataBaseUtils.getDbTableInfo(tableName, false);
             // 自增插入时返回主键值
             ColumnVO primaryKey = tableVO.getPrimaryKey();
             if (primaryKey != null) {
-                GeneratedKey generatedKey = new GeneratedKey(primaryKey.getDbColumnName(), "JDBC", true, "pre");
+                GeneratedKey generatedKey = new GeneratedKey(primaryKey.getDbColumnName(), "JDBC", true, "post");
                 tableConfig.setGeneratedKey(generatedKey);
             }
             // 属性覆盖
@@ -219,7 +223,7 @@ public class MybatisGen {
         try {
             Configuration configuration = new Configuration();
             // context
-            Context context = new Context(ModelType.CONDITIONAL);
+            Context context = new Context(ModelType.FLAT);
             context.setId(dbType);
             /*
                 MyBatis3：默认的值，生成基于MyBatis3.x以上版本的内容，包括XXXBySample；

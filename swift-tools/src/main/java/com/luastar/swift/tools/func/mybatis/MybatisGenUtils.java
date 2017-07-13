@@ -2,6 +2,7 @@ package com.luastar.swift.tools.func.mybatis;
 
 import com.luastar.swift.base.config.ConfigImpl;
 import com.luastar.swift.base.config.ItfConfig;
+import com.luastar.swift.base.utils.ObjUtils;
 
 public class MybatisGenUtils {
 
@@ -18,6 +19,7 @@ public class MybatisGenUtils {
         String daoPackage = itfConfig.getString("mybatis.gen.daoPackage");
         String xmlPackage = itfConfig.getString("mybatis.gen.xmlPackage");
         String[] tableNameArray = itfConfig.getStringArray("mybatis.gen.tableName");
+        String useActualColumnNames = itfConfig.getString("mybatis.gen.useActualColumnNames", "false");
         MybatisGen mybatisGen = new MybatisGen(dbType,
                 driverClass,
                 connectionURL,
@@ -27,7 +29,8 @@ public class MybatisGenUtils {
                 modelPackage,
                 daoPackage,
                 xmlPackage,
-                tableNameArray);
+                tableNameArray,
+                useActualColumnNames);
         mybatisGen.gen();
     }
 
