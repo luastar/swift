@@ -2,7 +2,8 @@ package com.luastar.swift.base.utils;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.dozer.DozerBeanMapperSingletonWrapper;
+import org.dozer.DozerBeanMapper;
+import org.dozer.Mapper;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -11,6 +12,8 @@ import java.util.List;
 public class ObjUtils {
 
     private static final String REGEXP_FORMAT_STRING = "(\\{\\d\\})";
+
+    private static Mapper mapper;
 
     public static <T> T ifNull(T object, T defaultValue) {
         return object != null ? object : defaultValue;
@@ -157,12 +160,23 @@ public class ObjUtils {
         return defaultValue;
     }
 
+    public static Mapper getMapper() {
+        if (mapper == null) {
+            synchronized (ObjUtils.class) {
+                if (mapper == null) {
+                    mapper = new DozerBeanMapper();
+                }
+            }
+        }
+        return mapper;
+    }
+
     public static void map(Object source, Object destination) {
-        DozerBeanMapperSingletonWrapper.getInstance().map(source, destination);
+        getMapper().map(source, destination);
     }
 
     public static <T> T map(Object source, Class<T> destinationClass) {
-        return DozerBeanMapperSingletonWrapper.getInstance().map(source, destinationClass);
+        return getMapper().map(source, destinationClass);
     }
 
     public static Integer[] string2IntAry(String str, String separatorChars, Integer defaultValue) {
