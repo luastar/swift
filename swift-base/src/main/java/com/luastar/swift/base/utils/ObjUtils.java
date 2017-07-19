@@ -2,11 +2,11 @@ package com.luastar.swift.base.utils;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.dozer.DozerBeanMapperSingletonWrapper;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Pattern;
 
 public class ObjUtils {
 
@@ -155,6 +155,14 @@ public class ObjUtils {
         } catch (Exception e) {
         }
         return defaultValue;
+    }
+
+    public static void map(Object source, Object destination) {
+        DozerBeanMapperSingletonWrapper.getInstance().map(source, destination);
+    }
+
+    public static <T> T map(Object source, Class<T> destinationClass) {
+        return DozerBeanMapperSingletonWrapper.getInstance().map(source, destinationClass);
     }
 
     public static Integer[] string2IntAry(String str, String separatorChars, Integer defaultValue) {
