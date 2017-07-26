@@ -3,22 +3,39 @@ package com.luastar.swift.base.utils;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.EncodedResource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.core.io.support.PropertiesLoaderUtils;
+import org.springframework.core.io.support.ResourcePatternResolver;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Properties;
 
 public class ClassLoaderUtils {
 
     private static final Logger logger = LoggerFactory.getLogger(ClassLoaderUtils.class);
 
-    private static final Properties EMPTY_PROPERTIES = new Properties();
-
     private static ClassLoader classLoader;
+
+    private static ResourcePatternResolver resourcePatternResolver;
+
+    public static ClassLoader getClassLoader() {
+        if (classLoader == null) {
+            classLoader = Thread.currentThread().getContextClassLoader();
+        }
+        return classLoader;
+    }
+
+    public static ResourcePatternResolver getResourcePatternResolver() {
+        if (resourcePatternResolver == null) {
+            resourcePatternResolver = new PathMatchingResourcePatternResolver();
+        }
+        return resourcePatternResolver;
+    }
 
     /**
      * 创建指定类的实例
@@ -28,7 +45,10 @@ public class ClassLoaderUtils {
      */
     public static Object getInstance(String clazzName) {
         try {
-            return loadClass(clazzName).newInstance();
+            Class clazz = loadClass(clazzName);
+            if (clazz != null) {
+                return clazz.newInstance();
+            }
         } catch (InstantiationException e) {
             logger.error(e.getMessage(), e);
         } catch (IllegalAccessException e) {
@@ -43,7 +63,7 @@ public class ClassLoaderUtils {
      * @param clazz 类
      * @return
      */
-    public static <T>T getInstance(Class<T> clazz) {
+    public static <T> T getInstance(Class<T> clazz) {
         try {
             return clazz.newInstance();
         } catch (InstantiationException e) {
@@ -69,26 +89,19 @@ public class ClassLoaderUtils {
         return null;
     }
 
-    public static ClassLoader getClassLoader() {
-        if (classLoader != null) {
-            return classLoader;
-        }
-        classLoader = Thread.currentThread().getContextClassLoader();
-        return classLoader;
-    }
-
     /**
-     * 获得资源真实文件路径
+     * 将资源文件加载到输入流中
      *
-     * @param resource 资源
+     * @param resource 资源文件
      * @return
      */
-    public static String getPath(String resource) {
-        return getClassLoader().getResource(resource).getPath();
+    public static InputStream getInputStream(String resource) {
+        return getClassLoader().getResourceAsStream(resource);
     }
 
     /**
      * 将资源文件转化为Properties对象
+     * 基于classloader实现
      *
      * @param resource 资源文件
      * @return
@@ -96,52 +109,54 @@ public class ClassLoaderUtils {
     public static Properties getProperties(String resource) {
         try {
             Properties properties = new Properties();
-            InputStream is = getStream(resource);
-            if (is == null) {
-                return EMPTY_PROPERTIES;
+            InputStream is = getInputStream(resource);
+            if (is != null) {
+                properties.load(new BufferedReader(new InputStreamReader(is)));
             }
-            properties.load(new BufferedReader(new InputStreamReader(is)));
             return properties;
         } catch (IOException e) {
-            return EMPTY_PROPERTIES;
+            return new Properties();
         }
     }
 
     /**
-     * 将资源文件加载到输入流中
+     * 将资源文件转化为Properties对象
+     * 基于spring实现
      *
      * @param resource 资源文件
      * @return
      */
-    public static InputStream getStream(String resource) {
-        return getClassLoader().getResourceAsStream(resource);
+    public static Properties getProperties(String... resource) {
+        Properties properties = new Properties();
+        if (resource == null || resource.length == 0) {
+            return properties;
+        }
+        for (String resPath : resource) {
+            try {
+                Resource[] resourceArray = getResourcePatternResolver().getResources(resPath);
+                if (resourceArray != null) {
+                    for (Resource res : resourceArray) {
+                        logger.info("加载配置文件：{}", res.getDescription());
+                        PropertiesLoaderUtils.fillProperties(properties, new EncodedResource(res, "UTF-8"));
+                    }
+                }
+            } catch (IOException e) {
+                logger.error(e.getMessage(), e);
+            }
+        }
+        return properties;
     }
 
-    /**
-     * 将资源文件的内容转化为List实例
-     *
-     * @param resource 资源文件
-     * @return
-     */
-    public static List<String> getList(String resource) {
-        List<String> list = new ArrayList<String>();
-        InputStream is = getStream(resource);
-        if (is == null) {
-            return list;
-        }
-        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+    public static String getJson(String path) {
         try {
-            String line = null;
-            while ((line = reader.readLine()) != null) {
-                list.add(line);
+            Resource[] resourceArray = getResourcePatternResolver().getResources(path);
+            if (resourceArray != null) {
+                return IOUtils.toString(resourceArray[0].getInputStream(), "UTF-8");
             }
         } catch (IOException e) {
             logger.error(e.getMessage(), e);
-        } finally {
-            IOUtils.closeQuietly(reader);
-            IOUtils.closeQuietly(is);
         }
-        return list;
+        return null;
     }
 
 }

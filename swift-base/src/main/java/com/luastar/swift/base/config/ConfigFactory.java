@@ -9,7 +9,6 @@ import org.w3c.dom.NodeList;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathFactory;
@@ -50,9 +49,9 @@ public class ConfigFactory {
             factory.setValidating(false);
             factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
             DocumentBuilder builder = factory.newDocumentBuilder();
-            InputStream is = ClassLoaderUtils.getStream(DEFAULT_CFG_FILE);
+            InputStream is = ClassLoaderUtils.getInputStream(DEFAULT_CFG_FILE);
             if (is == null) {
-                logger.warn("没有默认资源配置文件：" + DEFAULT_CFG_FILE);
+                logger.warn("没有默认资源配置文件：{}", DEFAULT_CFG_FILE);
                 return null;
             }
             Document xmlDoc = builder.parse(is);

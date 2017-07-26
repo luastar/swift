@@ -1,16 +1,11 @@
 package com.luastar.swift.base.config;
 
+import com.luastar.swift.base.utils.ClassLoaderUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.support.EncodedResource;
-import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
-import org.springframework.core.io.support.PropertiesLoaderUtils;
-import org.springframework.core.io.support.ResourcePatternResolver;
 
-import java.io.IOException;
 import java.util.Properties;
 import java.util.regex.Matcher;
 
@@ -18,26 +13,10 @@ public class ConfigImpl implements ItfConfig {
 
     private static final Logger logger = LoggerFactory.getLogger(ConfigImpl.class);
 
-    protected Properties properties = new Properties();
-    protected ResourcePatternResolver resourceResolver;
+    protected Properties properties;
 
     public ConfigImpl(String[] propFiles) {
-        if (propFiles == null || propFiles.length == 0) {
-            return;
-        }
-        resourceResolver = new PathMatchingResourcePatternResolver();
-        for (int i = 0; i < propFiles.length; i++) {
-            try {
-                Resource[] resourceArray = resourceResolver.getResources(propFiles[i]);
-                if (resourceArray != null) {
-                    for (Resource resource : resourceArray) {
-                        PropertiesLoaderUtils.fillProperties(properties, new EncodedResource(resource, "UTF-8"));
-                    }
-                }
-            } catch (IOException e) {
-                logger.error(e.getMessage(), e);
-            }
-        }
+        properties = ClassLoaderUtils.getProperties(propFiles);
     }
 
     public boolean containsKey(String key) {
