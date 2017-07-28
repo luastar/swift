@@ -77,22 +77,15 @@ public class EncodeUtils {
     /**
      * Base64编码.
      */
-    public static String encodeBase64(byte[] input) {
-        return Base64.encodeBase64String(input);
-    }
-
-    /**
-     * Base64编码, URL安全(将Base64中的URL非法字符'+'和'/'转为'-'和'_', 见RFC3548).
-     */
-    public static String encodeUrlSafeBase64(byte[] input) {
-        return Base64.encodeBase64URLSafeString(input);
+    public static String encodeBase64(String input) {
+        return Base64.encodeBase64String(org.apache.commons.codec.binary.StringUtils.getBytesUtf8(input));
     }
 
     /**
      * Base64解码.
      */
-    public static byte[] decodeBase64(String input) {
-        return Base64.decodeBase64(input);
+    public static String decodeBase64(String input) {
+        return org.apache.commons.codec.binary.StringUtils.newStringUtf8(Base64.decodeBase64(input));
     }
 
     /**

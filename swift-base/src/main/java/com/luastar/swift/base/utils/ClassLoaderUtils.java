@@ -106,6 +106,7 @@ public class ClassLoaderUtils {
      * @param resource 资源文件
      * @return
      */
+    /*
     public static Properties getProperties(String resource) {
         try {
             Properties properties = new Properties();
@@ -118,6 +119,7 @@ public class ClassLoaderUtils {
             return new Properties();
         }
     }
+    */
 
     /**
      * 将资源文件转化为Properties对象
