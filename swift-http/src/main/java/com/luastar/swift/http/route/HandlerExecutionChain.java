@@ -17,7 +17,7 @@ public class HandlerExecutionChain {
 
     private static final Logger logger = LoggerFactory.getLogger(HandlerExecutionChain.class);
 
-    private final HandlerMethod handler;
+    private final Object handler;
 
     private List<HandlerInterceptor> interceptorList;
 
@@ -26,7 +26,7 @@ public class HandlerExecutionChain {
      *
      * @param handler the handler object to execute
      */
-    public HandlerExecutionChain(HandlerMethod handler) {
+    public HandlerExecutionChain(Object handler) {
         this(handler, null);
     }
 
@@ -37,7 +37,7 @@ public class HandlerExecutionChain {
      * @param interceptorList the arraylist of interceptors to apply
      *                        (in the given order) before the handler itself executes
      */
-    public HandlerExecutionChain(HandlerMethod handler, List<HandlerInterceptor> interceptorList) {
+    public HandlerExecutionChain(Object handler, List<HandlerInterceptor> interceptorList) {
         this.handler = handler;
         this.interceptorList = interceptorList;
     }
@@ -47,7 +47,7 @@ public class HandlerExecutionChain {
      *
      * @return the handler object
      */
-    public HandlerMethod getHandler() {
+    public Object getHandler() {
         return this.handler;
     }
 

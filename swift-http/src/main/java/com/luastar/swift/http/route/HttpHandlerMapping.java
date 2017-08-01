@@ -29,6 +29,8 @@ public class HttpHandlerMapping implements ApplicationContextAware, Initializing
 
     private ApplicationContext applicationContext;
 
+    private HttpRequestHandler defaultHandler;
+
     private HttpExceptionHandler exceptionHandler;
 
     private PathMatcher pathMatcher = new AntPathMatcher();
@@ -41,6 +43,10 @@ public class HttpHandlerMapping implements ApplicationContextAware, Initializing
 
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;
+    }
+
+    public void setDefaultHandler(HttpRequestHandler defaultHandler) {
+        this.defaultHandler = defaultHandler;
     }
 
     public void setExceptionHandler(HttpExceptionHandler exceptionHandler) {
@@ -247,8 +253,11 @@ public class HttpHandlerMapping implements ApplicationContextAware, Initializing
     }
 
     public HandlerExecutionChain getHandler(HttpRequest request) throws Exception {
-        HandlerMethod handler = getHandlerInternal(request);
+        Object handler = getHandlerInternal(request);
         if (handler == null) {
+            handler = defaultHandler;
+        }
+        if (handler == null){
             return null;
         }
         return getHandlerExecutionChain(handler, request);
@@ -400,7 +409,7 @@ public class HttpHandlerMapping implements ApplicationContextAware, Initializing
      * @param request current HTTP request
      * @return the HandlerExecutionChain (never {@code null})
      */
-    protected HandlerExecutionChain getHandlerExecutionChain(HandlerMethod handler, HttpRequest request) {
+    protected HandlerExecutionChain getHandlerExecutionChain(Object handler, HttpRequest request) {
         HandlerExecutionChain chain = new HandlerExecutionChain(handler);
         String lookupPath = request.getLookupPath();
         for (MappedInterceptor mappedInterceptor : this.mappedInterceptorList) {

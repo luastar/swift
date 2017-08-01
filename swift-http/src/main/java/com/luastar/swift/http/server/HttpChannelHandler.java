@@ -5,6 +5,7 @@ import com.luastar.swift.http.constant.HttpMediaType;
 import com.luastar.swift.http.route.HandlerExecutionChain;
 import com.luastar.swift.http.route.HandlerMethod;
 import com.luastar.swift.http.route.HttpHandlerMapping;
+import com.luastar.swift.http.route.HttpRequestHandler;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
@@ -83,11 +84,19 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<HttpObject> 
                 return;
             }
             // 执行方法
-            HandlerMethod handlerMethod = mappedHandler.getHandler();
-            Method method = handlerMethod.getMethod();
-            Object[] args = new Object[]{httpRequest, httpResponse};
-            ReflectionUtils.makeAccessible(method);
-            method.invoke(handlerMethod.getBean(), args);
+            Object handler = mappedHandler.getHandler();
+            if (handler instanceof HttpRequestHandler) {
+                HttpRequestHandler requestHandler = (HttpRequestHandler) handler;
+                requestHandler.handleRequest(httpRequest, httpResponse);
+            } else if (handler instanceof HandlerMethod) {
+                HandlerMethod handlerMethod = (HandlerMethod) handler;
+                Method method = handlerMethod.getMethod();
+                Object[] args = new Object[]{httpRequest, httpResponse};
+                ReflectionUtils.makeAccessible(method);
+                method.invoke(handlerMethod.getBean(), args);
+            } else {
+                logger.warn("not support handler : {}", handler);
+            }
             // 拦截器处理后
             mappedHandler.applyPostHandle(httpRequest, httpResponse);
             // 返回处理结果
