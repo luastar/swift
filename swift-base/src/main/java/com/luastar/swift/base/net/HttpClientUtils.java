@@ -36,6 +36,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 public class HttpClientUtils {
 
     private static Logger logger = LoggerFactory.getLogger(HttpClientUtils.class);
@@ -236,7 +238,15 @@ public class HttpClientUtils {
 
     public static String post(String url,
                               Map<String, String> params,
-                              int timeout, String charset,
+                              Map<String, String> headMap,
+                              int timeout) {
+        return post(url, params, timeout, DEFAULT_CHARSET, headMap);
+    }
+
+    public static String post(String url,
+                              Map<String, String> params,
+                              int timeout,
+                              String charset,
                               Map<String, String> headMap) {
         CloseableHttpClient httpclient = null;
         CloseableHttpResponse response = null;
@@ -260,7 +270,7 @@ public class HttpClientUtils {
                 for (Map.Entry<String, String> entry : params.entrySet()) {
                     nvps.add(new BasicNameValuePair(entry.getKey(), entry.getValue()));
                 }
-                httpPost.setEntity(new UrlEncodedFormEntity(nvps));
+                httpPost.setEntity(new UrlEncodedFormEntity(nvps, charset));
             }
             httpclient = createHttpClient(url);
             long start = System.currentTimeMillis();
@@ -288,18 +298,26 @@ public class HttpClientUtils {
     public static HttpResult postHttpResult(String url,
                                             Map<String, String> params,
                                             Map<String, String> headMap) {
-        return postHttpResult(url, params, DEFAULT_TIMEOUT, headMap);
+        return postHttpResult(url, params, DEFAULT_TIMEOUT, DEFAULT_CHARSET, headMap);
     }
 
     public static HttpResult postHttpResult(String url,
                                             Map<String, String> params,
                                             int timeout) {
-        return postHttpResult(url, params, timeout, null);
+        return postHttpResult(url, params, timeout, DEFAULT_CHARSET, null);
+    }
+
+    public static HttpResult postHttpResult(String url,
+                                            Map<String, String> params,
+                                            Map<String, String> headMap,
+                                            int timeout) {
+        return postHttpResult(url, params, timeout, DEFAULT_CHARSET, headMap);
     }
 
     public static HttpResult postHttpResult(String url,
                                             Map<String, String> params,
                                             int timeout,
+                                            String charset,
                                             Map<String, String> headMap) {
         CloseableHttpClient httpclient = null;
         CloseableHttpResponse response = null;
@@ -324,7 +342,7 @@ public class HttpClientUtils {
                 for (Map.Entry<String, String> entry : params.entrySet()) {
                     nvps.add(new BasicNameValuePair(entry.getKey(), entry.getValue()));
                 }
-                httpPost.setEntity(new UrlEncodedFormEntity(nvps));
+                httpPost.setEntity(new UrlEncodedFormEntity(nvps, charset));
             }
             httpclient = createHttpClient(url);
             long start = System.currentTimeMillis();
@@ -392,6 +410,7 @@ public class HttpClientUtils {
                     builder.addBinaryBody(entry.getKey(), getByte(entry.getValue()));
                 }
             }
+            builder.setCharset(UTF_8);
             httpPost.setEntity(builder.build());
             httpclient = createHttpClient(url);
             long start = System.currentTimeMillis();
@@ -450,6 +469,7 @@ public class HttpClientUtils {
                     builder.addBinaryBody(entry.getKey(), getByte(entry.getValue()));
                 }
             }
+            builder.setCharset(UTF_8);
             httpPost.setEntity(builder.build());
             httpclient = createHttpClient(url);
             long start = System.currentTimeMillis();
