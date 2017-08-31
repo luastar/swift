@@ -48,6 +48,7 @@ public class HttpServer {
      * 初始化handlerMapping
      */
     protected void initHandlerMapping() {
+        logger.info("启动端口号:{}", port);
         logger.info("spring配置文件路径:{}", HttpConstant.SWIFT_CONFIG_LOCATION);
         logger.info("超时时间:{}秒", HttpConstant.SWIFT_TIMEOUT);
         logger.info("最大包大小:{}MB", HttpConstant.SWIFT_MAX_CONTENT_LENGTH / 1024 / 1024);
