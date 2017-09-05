@@ -1,4 +1,4 @@
-package com.luastar.swift.demo.rpc.api;
+package com.luastar.swift.demo.rpc.entity;
 
 import java.io.Serializable;
 

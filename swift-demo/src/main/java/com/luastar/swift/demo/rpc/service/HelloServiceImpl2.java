@@ -1,8 +1,8 @@
-package com.luastar.swift.demo.rpc.server;
+package com.luastar.swift.demo.rpc.service;
 
 
 import com.luastar.swift.demo.rpc.api.HelloService;
-import com.luastar.swift.demo.rpc.api.Person;
+import com.luastar.swift.demo.rpc.entity.Person;
 import com.luastar.swift.rpc.server.RpcService;
 import org.apache.commons.io.FileUtils;
 

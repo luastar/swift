@@ -1,4 +1,4 @@
-package com.luastar.swift.demo.http.server;
+package com.luastar.swift.demo.http.entity;
 
 import java.util.Date;
 

@@ -23,21 +23,21 @@
         <context:include-filter type="annotation" expression="com.luastar.swift.rpc.server.RpcService"/>
     </context:component-scan>
 
-    <bean id="loginInterceptor" class="com.luastar.swift.demo.http.handler.HelloInterceptor"/>
-
     <!-- http 拦截器 可以配置多个 -->
     <bean class="com.luastar.swift.http.route.MappedInterceptor">
         <property name="includePatterns">
             <list>
-                <value>/*</value>
+                <value>/**/*</value>
             </list>
         </property>
-        <!--<property name="excludePatterns">-->
-        <!--<list>-->
-        <!--<value>/test</value>-->
-        <!--</list>-->
-        <!--</property>-->
-        <property name="interceptor" ref="loginInterceptor"/>
+        <property name="excludePatterns">
+            <list>
+                <value>/test</value>
+            </list>
+        </property>
+        <property name="interceptor">
+            <bean class="com.luastar.swift.demo.http.interceptor.TestInterceptor"/>
+        </property>
     </bean>
 
     <!-- http 路由 -->

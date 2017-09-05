@@ -1,7 +1,7 @@
 package com.luastar.swift.demo.rpc.client;
 
 import com.luastar.swift.demo.rpc.api.HelloService;
-import com.luastar.swift.demo.rpc.api.Person;
+import com.luastar.swift.demo.rpc.entity.Person;
 import com.luastar.swift.rpc.client.RpcReference;
 import org.apache.commons.io.FileUtils;
 import org.springframework.stereotype.Component;

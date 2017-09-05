@@ -63,9 +63,25 @@ public interface HttpConstant {
      */
     String PRODUCIBLE_MEDIA_TYPES_ATTRIBUTE = HttpConstant.class.getName() + ".producibleMediaTypes";
 
-
+    /**
+     * 启动spring配置文件地址
+     */
     String SWIFT_CONFIG_LOCATION = PropertyUtils.getString("swift.config.location", "spring-swift.xml");
+    /**
+     * 链接超时时间
+     */
     int SWIFT_TIMEOUT = PropertyUtils.getInt("swift.timeout", 10);
+    /**
+     * 请求体最大值
+     */
     int SWIFT_MAX_CONTENT_LENGTH = PropertyUtils.getInt("swift.maxContentLength", 1024 * 1024);
+    /**
+     * 分发线程数，如果只有一个端口，建议设置成1
+     */
+    int SWIFT_BOSS_THREADS = PropertyUtils.getInt("swift.bossThreads", 1);
+    /**
+     * 工作线程数，如果设置成0，默认为cpu个数 * 2
+     */
+    int SWIFT_WORKER_THREADS = PropertyUtils.getInt("swift.workerThreads", 0);
 
 }

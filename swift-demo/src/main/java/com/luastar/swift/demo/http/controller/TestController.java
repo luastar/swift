@@ -1,6 +1,7 @@
-package com.luastar.swift.demo.http.server;
+package com.luastar.swift.demo.http.controller;
 
 import com.luastar.swift.base.json.JsonUtils;
+import com.luastar.swift.demo.http.entity.User;
 import com.luastar.swift.http.route.RequestMethod;
 import com.luastar.swift.http.server.HttpRequest;
 import com.luastar.swift.http.server.HttpResponse;
@@ -24,9 +25,9 @@ import java.io.IOException;
 import java.util.Map;
 
 @HttpService("/test")
-public class HelloService {
+public class TestController {
 
-    private static final Logger logger = LoggerFactory.getLogger(HelloService.class);
+    private static final Logger logger = LoggerFactory.getLogger(TestController.class);
 
     @Autowired
     private RedisTemplate redisTemplate;

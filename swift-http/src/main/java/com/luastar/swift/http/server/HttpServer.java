@@ -52,6 +52,7 @@ public class HttpServer {
         logger.info("spring配置文件路径:{}", HttpConstant.SWIFT_CONFIG_LOCATION);
         logger.info("超时时间:{}秒", HttpConstant.SWIFT_TIMEOUT);
         logger.info("最大包大小:{}MB", HttpConstant.SWIFT_MAX_CONTENT_LENGTH / 1024 / 1024);
+        logger.info("boss线程数:{}，worker线程数:{}", HttpConstant.SWIFT_BOSS_THREADS, HttpConstant.SWIFT_WORKER_THREADS);
         ApplicationContext applicationContext = new ClassPathXmlApplicationContext(HttpConstant.SWIFT_CONFIG_LOCATION);
         SpringUtils.setApplicationContext(applicationContext);
         this.handlerMapping = applicationContext.getBean(HttpHandlerMapping.class);
@@ -61,8 +62,8 @@ public class HttpServer {
     }
 
     public void start() {
-        EventLoopGroup bossGroup = new NioEventLoopGroup(1);
-        EventLoopGroup workerGroup = new NioEventLoopGroup();
+        EventLoopGroup bossGroup = new NioEventLoopGroup(HttpConstant.SWIFT_BOSS_THREADS);
+        EventLoopGroup workerGroup = new NioEventLoopGroup(HttpConstant.SWIFT_WORKER_THREADS);
         try {
             ServerBootstrap bootstrap = new ServerBootstrap();
             bootstrap.group(bossGroup, workerGroup)
