@@ -77,8 +77,22 @@ public class EncodeUtils {
     /**
      * Base64编码.
      */
+    public static String encodeBase64(byte[] input) {
+        return Base64.encodeBase64String(input);
+    }
+
+    /**
+     * Base64编码.
+     */
     public static String encodeBase64(String input) {
         return Base64.encodeBase64String(org.apache.commons.codec.binary.StringUtils.getBytesUtf8(input));
+    }
+
+    /**
+     * Base64解码.
+     */
+    public static byte[] decodeBase64_byte(String input) {
+        return Base64.decodeBase64(input);
     }
 
     /**

@@ -23,6 +23,7 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -119,7 +120,12 @@ public class ExcelUtils {
                     sheet.addValidationData(validation);
                 }
                 // 获取列值
-                Object valueObj = PropertyUtils.getProperty(data, column.getProp());
+                Object valueObj;
+                if (data instanceof Map) {
+                    valueObj = ((Map) data).get(column.getProp());
+                } else {
+                    valueObj = PropertyUtils.getProperty(data, column.getProp());
+                }
                 if (valueObj == null) {
                     logger.info("获取不到对象{}的属性{}值", JsonUtils.toJson(data), column.getProp());
                     continue;
@@ -206,7 +212,12 @@ public class ExcelUtils {
                     sheet.addValidationData(dataValidation);
                 }
                 // 获取列值
-                Object valueObj = PropertyUtils.getProperty(data, column.getProp());
+                Object valueObj;
+                if (data instanceof Map) {
+                    valueObj = ((Map) data).get(column.getProp());
+                } else {
+                    valueObj = PropertyUtils.getProperty(data, column.getProp());
+                }
                 if (valueObj == null) {
                     logger.info("获取不到对象{}的属性{}值", JsonUtils.toJson(data), column.getProp());
                     continue;
