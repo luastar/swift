@@ -144,7 +144,7 @@ public class MybatisGen {
         // 自动为每一个生成的类创建一个构造方法，构造方法包含了所有的field；而不是使用setter；
         javaModelGeneratorConfiguration.addProperty("constructorBased", "false");
         // 在targetPackage的基础上，根据数据库的schema再生成一层package，最终生成的类放在这个package下，默认为false
-        javaModelGeneratorConfiguration.addProperty("enableSubPackages", "true");
+        javaModelGeneratorConfiguration.addProperty("enableSubPackages", "false");
         // 是否创建一个不可变的类，如果为true， 那么MBG会创建一个没有setter方法的类，取而代之的是类似constructorBased的类
         javaModelGeneratorConfiguration.addProperty("immutable", "false");
         // 设置是否在getter方法中，对String类型字段调用trim()方法
@@ -161,8 +161,7 @@ public class MybatisGen {
         SqlMapGeneratorConfiguration sqlMapGeneratorConfiguration = new SqlMapGeneratorConfiguration();
         sqlMapGeneratorConfiguration.setTargetPackage(xmlPackage);
         sqlMapGeneratorConfiguration.setTargetProject(output);
-        // 在targetPackage的基础上，根据数据库的schema再生成一层package，最终生成的类放在这个package下，默认为false
-        sqlMapGeneratorConfiguration.addProperty("enableSubPackages", "true");
+        sqlMapGeneratorConfiguration.addProperty("enableSubPackages", "false");
         return sqlMapGeneratorConfiguration;
     }
 
@@ -174,7 +173,7 @@ public class MybatisGen {
         javaClientGeneratorConfiguration.setTargetPackage(daoPackage);
         javaClientGeneratorConfiguration.setTargetProject(output);
         javaClientGeneratorConfiguration.setConfigurationType("XMLMAPPER");
-        javaClientGeneratorConfiguration.addProperty("enableSubPackages", "true");
+        javaClientGeneratorConfiguration.addProperty("enableSubPackages", "false");
         return javaClientGeneratorConfiguration;
     }
 
