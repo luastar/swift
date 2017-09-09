@@ -130,7 +130,11 @@ public class TestController {
             logger.info("request parameter : {}={}", file.getKey(), file.getValue().getFilename());
             try {
                 File saveFile = new File("/Users/zhuminghua/Downloads/docs/" + file.getValue().getFilename());
-                FileUtils.writeByteArrayToFile(saveFile, file.getValue().content().array());
+                if (file.getValue().isInMemory()){
+                    FileUtils.writeByteArrayToFile(saveFile, file.getValue().content().array());
+                } else {
+                    FileUtils.copyFile(saveFile, file.getValue().getFile());
+                }
             } catch (IOException e) {
                 logger.error(e.getMessage(), e);
             }

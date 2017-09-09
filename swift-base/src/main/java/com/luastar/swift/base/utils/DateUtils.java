@@ -22,6 +22,8 @@ public abstract class DateUtils {
     public static final String FORMAT_TIME_NO_BAR = "yyyyMMddHHmmss";
     public static final String FORMAT_MONTH = "yyyyMM";
 
+    public static final SimpleDateFormat NORMAL_FORMAT = new SimpleDateFormat(FORMAT_TIME_WITH_BAR);
+
     /**
      * 格式化成：yyyy-MM-dd HH:mm:ss
      *
@@ -32,7 +34,7 @@ public abstract class DateUtils {
         if (date == null) {
             return null;
         }
-        return DateFormatUtils.format(date, FORMAT_TIME_WITH_BAR);
+        return NORMAL_FORMAT.format(date);
     }
 
     /**
@@ -45,7 +47,27 @@ public abstract class DateUtils {
         if (date == null) {
             return null;
         }
-        return DateFormatUtils.format(date, pattern);
+        // 该方法存在时区的问题，格式化会有误差
+        // return DateFormatUtils.format(date, pattern);
+        return new SimpleDateFormat(pattern).format(date);
+    }
+
+    /**
+     * 匹配：yyyy-MM-dd HH:mm:ss
+     *
+     * @param str
+     * @return
+     */
+    public static Date parse(String str) {
+        try {
+            if (StringUtils.isEmpty(str)) {
+                return null;
+            }
+            return NORMAL_FORMAT.parse(str);
+        } catch (ParseException e) {
+            logger.error(e.getMessage(), e);
+            return null;
+        }
     }
 
     /**
@@ -106,7 +128,7 @@ public abstract class DateUtils {
                 .append("MM")
                 .append(File.separator)
                 .append("dd");
-        return new SimpleDateFormat(sb.toString()).format(date);
+        return format(date, sb.toString());
     }
 
 }
