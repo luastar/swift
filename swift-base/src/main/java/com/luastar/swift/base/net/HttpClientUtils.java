@@ -15,6 +15,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.TrustStrategy;
+import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -384,7 +385,8 @@ public class HttpClientUtils {
      */
     public static String postMultipartForm(String url,
                                            Map<String, Object> paramMap,
-                                           Map<String, String> urlParamMap) {
+                                           Map<String, String> urlParamMap,
+                                           Map<String, String> fileNameMap) {
         CloseableHttpClient httpclient = null;
         CloseableHttpResponse response = null;
         try {
@@ -397,9 +399,17 @@ public class HttpClientUtils {
                     if (value instanceof File) {
                         builder.addBinaryBody(entry.getKey(), (File) value);
                     } else if (value instanceof InputStream) {
-                        builder.addBinaryBody(entry.getKey(), (InputStream) value);
+                        String fileName = null;
+                        if (fileNameMap != null) {
+                            fileName = fileNameMap.get(entry.getKey());
+                        }
+                        builder.addBinaryBody(entry.getKey(), (InputStream) value, ContentType.DEFAULT_BINARY, fileName);
                     } else if (value instanceof byte[]) {
-                        builder.addBinaryBody(entry.getKey(), (byte[]) value);
+                        String fileName = null;
+                        if (fileNameMap != null) {
+                            fileName = fileNameMap.get(entry.getKey());
+                        }
+                        builder.addBinaryBody(entry.getKey(), (byte[]) value, ContentType.DEFAULT_BINARY, fileName);
                     } else {
                         builder.addTextBody(entry.getKey(), ObjUtils.toString(entry.getValue()));
                     }
@@ -407,7 +417,11 @@ public class HttpClientUtils {
             }
             if (urlParamMap != null && !urlParamMap.isEmpty()) {
                 for (Map.Entry<String, String> entry : urlParamMap.entrySet()) {
-                    builder.addBinaryBody(entry.getKey(), getByte(entry.getValue()));
+                    String fileName = null;
+                    if (fileNameMap != null) {
+                        fileName = fileNameMap.get(entry.getKey());
+                    }
+                    builder.addBinaryBody(entry.getKey(), getByte(entry.getValue()), ContentType.DEFAULT_BINARY, fileName);
                 }
             }
             builder.setCharset(UTF_8);
@@ -442,7 +456,8 @@ public class HttpClientUtils {
      */
     public static HttpResult postMultipartFormHttpResult(String url,
                                                          Map<String, Object> paramMap,
-                                                         Map<String, String> urlParamMap) {
+                                                         Map<String, String> urlParamMap,
+                                                         Map<String, String> fileNameMap) {
         CloseableHttpClient httpclient = null;
         CloseableHttpResponse response = null;
         HttpResult result = new HttpResult();
@@ -456,9 +471,17 @@ public class HttpClientUtils {
                     if (value instanceof File) {
                         builder.addBinaryBody(entry.getKey(), (File) value);
                     } else if (value instanceof InputStream) {
-                        builder.addBinaryBody(entry.getKey(), (InputStream) value);
+                        String fileName = null;
+                        if (fileNameMap != null) {
+                            fileName = fileNameMap.get(entry.getKey());
+                        }
+                        builder.addBinaryBody(entry.getKey(), (InputStream) value, ContentType.DEFAULT_BINARY, fileName);
                     } else if (value instanceof byte[]) {
-                        builder.addBinaryBody(entry.getKey(), (byte[]) value);
+                        String fileName = null;
+                        if (fileNameMap != null) {
+                            fileName = fileNameMap.get(entry.getKey());
+                        }
+                        builder.addBinaryBody(entry.getKey(), (byte[]) value, ContentType.DEFAULT_BINARY, fileName);
                     } else {
                         builder.addTextBody(entry.getKey(), ObjUtils.toString(entry.getValue()));
                     }
@@ -466,7 +489,11 @@ public class HttpClientUtils {
             }
             if (urlParamMap != null && !urlParamMap.isEmpty()) {
                 for (Map.Entry<String, String> entry : urlParamMap.entrySet()) {
-                    builder.addBinaryBody(entry.getKey(), getByte(entry.getValue()));
+                    String fileName = null;
+                    if (fileNameMap != null) {
+                        fileName = fileNameMap.get(entry.getKey());
+                    }
+                    builder.addBinaryBody(entry.getKey(), getByte(entry.getValue()), ContentType.DEFAULT_BINARY, fileName);
                 }
             }
             builder.setCharset(UTF_8);
