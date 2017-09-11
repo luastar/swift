@@ -1,5 +1,7 @@
 package com.luastar.swift.base.net;
 
+import com.google.common.collect.Maps;
+import com.luastar.swift.base.json.JsonUtils;
 import com.luastar.swift.base.utils.ObjUtils;
 import com.luastar.swift.base.utils.RandomUtils;
 import org.apache.commons.io.FileUtils;
@@ -45,6 +47,7 @@ public class HttpClientUtils {
 
     public static final int DEFAULT_TIMEOUT = 6000;
     public static final String DEFAULT_CHARSET = "UTF-8";
+    public static final ContentType TEXT_PLAIN_UTF8 = ContentType.create("text/plain", UTF_8);
 
     /**
      * 创建支持https的调用
@@ -392,6 +395,7 @@ public class HttpClientUtils {
         try {
             HttpPost httpPost = new HttpPost(url);
             MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+            builder.setCharset(UTF_8);
             // 参数设置
             if (paramMap != null && !paramMap.isEmpty()) {
                 for (Map.Entry<String, Object> entry : paramMap.entrySet()) {
@@ -411,7 +415,7 @@ public class HttpClientUtils {
                         }
                         builder.addBinaryBody(entry.getKey(), (byte[]) value, ContentType.DEFAULT_BINARY, fileName);
                     } else {
-                        builder.addTextBody(entry.getKey(), ObjUtils.toString(entry.getValue()));
+                        builder.addTextBody(entry.getKey(), ObjUtils.toString(entry.getValue()), TEXT_PLAIN_UTF8);
                     }
                 }
             }
@@ -424,7 +428,6 @@ public class HttpClientUtils {
                     builder.addBinaryBody(entry.getKey(), getByte(entry.getValue()), ContentType.DEFAULT_BINARY, fileName);
                 }
             }
-            builder.setCharset(UTF_8);
             httpPost.setEntity(builder.build());
             httpclient = createHttpClient(url);
             long start = System.currentTimeMillis();
@@ -464,6 +467,7 @@ public class HttpClientUtils {
         try {
             HttpPost httpPost = new HttpPost(url);
             MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+            builder.setCharset(UTF_8);
             // 参数设置
             if (paramMap != null && !paramMap.isEmpty()) {
                 for (Map.Entry<String, Object> entry : paramMap.entrySet()) {
@@ -483,7 +487,7 @@ public class HttpClientUtils {
                         }
                         builder.addBinaryBody(entry.getKey(), (byte[]) value, ContentType.DEFAULT_BINARY, fileName);
                     } else {
-                        builder.addTextBody(entry.getKey(), ObjUtils.toString(entry.getValue()));
+                        builder.addTextBody(entry.getKey(), ObjUtils.toString(entry.getValue()), TEXT_PLAIN_UTF8);
                     }
                 }
             }
@@ -496,7 +500,6 @@ public class HttpClientUtils {
                     builder.addBinaryBody(entry.getKey(), getByte(entry.getValue()), ContentType.DEFAULT_BINARY, fileName);
                 }
             }
-            builder.setCharset(UTF_8);
             httpPost.setEntity(builder.build());
             httpclient = createHttpClient(url);
             long start = System.currentTimeMillis();
@@ -726,8 +729,12 @@ public class HttpClientUtils {
     }
 
     public static void main(String[] args) throws Exception {
-        String url = "https://pay.heepay.com/Payment/Index.aspx";
-        String result = getRedirectUrl(url, null);
+        String url = "http://172.16.0.2:9031/harmony/mail";
+        Map<String, Object> dataMap = Maps.newHashMap();
+        dataMap.put("subject", "中文的啊，不要团队的成功");
+        Map<String, Object> paramMap = Maps.newHashMap();
+        paramMap.put("data", JsonUtils.toJson(dataMap));
+        HttpResult result = postMultipartFormHttpResult(url, paramMap, null, null);
         System.out.println(result);
     }
 
