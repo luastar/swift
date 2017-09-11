@@ -85,6 +85,11 @@ public class PageInfo {
         return pageNum;
     }
 
+    public void setPageNum(int pageNum) {
+        this.pageNum = pageNum;
+        calculate();
+    }
+
     public int getPageSize() {
         return pageSize;
     }
