@@ -729,13 +729,11 @@ public class HttpClientUtils {
     }
 
     public static void main(String[] args) throws Exception {
-        String url = "http://172.16.0.2:9031/harmony/mail";
-        Map<String, Object> dataMap = Maps.newHashMap();
-        dataMap.put("subject", "中文的啊，不要团队的成功");
+        String url = "http://172.16.0.2:9031/harmony/mail/attachment";
         Map<String, Object> paramMap = Maps.newHashMap();
-        paramMap.put("data", JsonUtils.toJson(dataMap));
+        paramMap.put("data", "{\"subject\":\"【分贝通】【月结账单】北京分贝金服科技有限公司_20170904-20170902\",\"customerId\":\"spacex\",\"ccList\":[],\"bccList\":[],\"html\":{\"data\":{\"beginDate\":\"2017年09月04日\",\"totalAmount\":\"￥2304.71\",\"period\":\"2017/09/04-2017/09/02\",\"unpaidAmount\":\"￥0.00\",\"endDate\":\"2017年09月02日\",\"author\":\"刘维中\",\"companyName\":\"北京分贝金服科技有限公司\",\"paidAmount\":\"￥0.00\",\"deadLine\":\"2017年09月15日\",\"lastDate\":\"2017年09月15日\"},\"templateId\":\"bill_send.html\"},\"toList\":[\"zhijun.zhang@fenbeitong.com\"],\"serverId\":\"spacex.billing\"}");
         HttpResult result = postMultipartFormHttpResult(url, paramMap, null, null);
-        System.out.println(result);
+        System.out.println(result.getResult());
     }
 
 }
