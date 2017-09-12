@@ -198,7 +198,10 @@ public class MybatisGen {
             TableVO tableVO = dataBaseUtils.getDbTableInfo(tableName, false);
             // 自增插入时返回主键值
             ColumnVO primaryKey = tableVO.getPrimaryKey();
-            if (primaryKey != null) {
+            if (primaryKey != null
+                    && (ColumnVO.JAVA_INT.equalsIgnoreCase(primaryKey.getJavaType()) || ColumnVO.JAVA_LONG.equalsIgnoreCase(primaryKey.getJavaType()))
+                    ) {
+                // int或long型主键设置自增值
                 GeneratedKey generatedKey = new GeneratedKey(primaryKey.getDbColumnName(), "JDBC", true, "post");
                 tableConfig.setGeneratedKey(generatedKey);
             }
