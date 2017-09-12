@@ -9,7 +9,6 @@ public class MybatisGenUtils {
     public static void mybatisGen(String config) {
         // 从配置文件中获取
         ItfConfig itfConfig = new ConfigImpl(new String[]{config});
-        String dbType = itfConfig.getString("mybatis.gen.dbType");
         String driverClass = itfConfig.getString("mybatis.gen.driverClass");
         String connectionURL = itfConfig.getString("mybatis.gen.connectionURL");
         String userId = itfConfig.getString("mybatis.gen.userId");
@@ -20,8 +19,7 @@ public class MybatisGenUtils {
         String xmlPackage = itfConfig.getString("mybatis.gen.xmlPackage");
         String[] tableNameArray = itfConfig.getStringArray("mybatis.gen.tableName");
         String useActualColumnNames = itfConfig.getString("mybatis.gen.useActualColumnNames", "false");
-        MybatisGen mybatisGen = new MybatisGen(dbType,
-                driverClass,
+        MybatisGen mybatisGen = new MybatisGen(driverClass,
                 connectionURL,
                 userId,
                 password,
@@ -41,7 +39,6 @@ public class MybatisGenUtils {
         String modelPackage = itfConfig.getString("mybatis.gen.modelPackage");
         String daoPackage = itfConfig.getString("mybatis.gen.daoPackage");
         String mybatisRepPackage = itfConfig.getString("mybatis.gen.mybatisRepPackage");
-        String dbType = itfConfig.getString("mybatis.gen.dbType");
         String dbDriver = itfConfig.getString("mybatis.gen.dbDriver");
         String dbUrl = itfConfig.getString("mybatis.gen.dbUrl");
         String dbUsername = itfConfig.getString("mybatis.gen.dbUsername");
@@ -52,7 +49,6 @@ public class MybatisGenUtils {
                 modelPackage,
                 daoPackage,
                 mybatisRepPackage,
-                dbType,
                 dbDriver,
                 dbUrl,
                 dbUsername,

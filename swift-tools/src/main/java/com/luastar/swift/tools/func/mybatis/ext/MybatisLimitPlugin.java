@@ -1,5 +1,6 @@
 package com.luastar.swift.tools.func.mybatis.ext;
 
+import com.luastar.swift.tools.func.mybatis.MybatisConstant;
 import org.mybatis.generator.api.IntrospectedTable;
 import org.mybatis.generator.api.PluginAdapter;
 import org.mybatis.generator.api.dom.java.*;
@@ -14,10 +15,7 @@ import java.util.List;
  */
 public class MybatisLimitPlugin extends PluginAdapter {
 
-    private static final String DB_MYSQL = "mysql";
-    private static final String DB_POSTGRESQL = "postgresql";
-
-    private String dbType = DB_MYSQL;
+    private String dbType = MybatisConstant.DB_TYPE_MYSQL;
 
     public void setDbType(String dbType) {
         this.dbType = dbType;
@@ -97,7 +95,7 @@ public class MybatisLimitPlugin extends PluginAdapter {
         // limit 和 offset 都不为空
         XmlElement ifOffsetNotNullElement = new XmlElement("if");
         ifOffsetNotNullElement.addAttribute(new Attribute("test", "offset != null"));
-        if (DB_POSTGRESQL.equals(dbType)){
+        if (MybatisConstant.DB_TYPE_POSTGRESQL.equalsIgnoreCase(dbType)){
             ifOffsetNotNullElement.addElement(new TextElement("limit ${limit} offset ${offset}"));
         } else {
             ifOffsetNotNullElement.addElement(new TextElement("limit ${offset}, ${limit}"));

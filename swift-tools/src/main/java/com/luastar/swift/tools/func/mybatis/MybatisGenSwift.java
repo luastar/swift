@@ -26,8 +26,8 @@ public class MybatisGenSwift {
     private String modelPackageName;
     private String daoPackageName;
     private String mybatisRepPackageName;
+    private String dbDriver;
     private boolean needSchema;
-    private String dbType;
     private DataBaseUtils dbUtils;
     private BeetlUtils beetlUtils;
 
@@ -36,18 +36,26 @@ public class MybatisGenSwift {
                            String modelPackageName,
                            String daoPackageName,
                            String mybatisRepPackageName,
-                           String dbType,
                            String dbDriver,
                            String dbUrl,
                            String dbUsername,
                            String dbPassword) {
-
+        if (StringUtils.isEmpty(outDir)
+                || ArrayUtils.isEmpty(tableNameArray)
+                || StringUtils.isEmpty(modelPackageName)
+                || StringUtils.isEmpty(daoPackageName)
+                || StringUtils.isEmpty(mybatisRepPackageName)
+                || StringUtils.isEmpty(dbDriver)
+                || StringUtils.isEmpty(dbUsername)) {
+            logger.warn("参数不能为空！");
+            throw new IllegalArgumentException("参数不能为空！");
+        }
         this.outDir = outDir;
         this.tableNameArray = tableNameArray;
         this.modelPackageName = modelPackageName;
         this.daoPackageName = daoPackageName;
         this.mybatisRepPackageName = mybatisRepPackageName;
-        this.dbType = dbType;
+        this.dbDriver = dbDriver;
         this.dbUtils = new DataBaseUtils(dbDriver, dbUrl, dbUsername, dbPassword);
         this.beetlUtils = new BeetlUtils();
     }
@@ -105,7 +113,7 @@ public class MybatisGenSwift {
         TableVO tableVO = dbUtils.getDbTableInfo(tableName, needSchema);
         String className = getClassName(tableName);
         beetlUtils.setTemplate(TEMP_MAPPER);
-        if (MybatisConstant.DB_TYPE_POSTGRESQL.equals(dbType)) {
+        if (dbDriver.contains(MybatisConstant.DB_TYPE_POSTGRESQL)) {
             beetlUtils.binding("limit", "limit #{limit} offset #{start}");
         } else {
             beetlUtils.binding("limit", "limit #{start},#{limit}");

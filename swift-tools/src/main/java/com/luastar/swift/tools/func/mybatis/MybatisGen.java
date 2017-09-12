@@ -2,6 +2,7 @@ package com.luastar.swift.tools.func.mybatis;
 
 import com.google.common.collect.Lists;
 import com.luastar.swift.base.utils.CollectionUtils;
+import com.luastar.swift.base.utils.RandomUtils;
 import com.luastar.swift.tools.func.mybatis.ext.JavaTypeResolverImpl;
 import com.luastar.swift.tools.func.mybatis.ext.MybatisLimitPlugin;
 import com.luastar.swift.tools.model.ColumnVO;
@@ -25,7 +26,6 @@ public class MybatisGen {
 
     private static final Logger logger = LoggerFactory.getLogger(MybatisGen.class);
 
-    private String dbType;
     private String driverClass;
     private String connectionURL;
     private String userId;
@@ -42,8 +42,7 @@ public class MybatisGen {
 
     private DataBaseUtils dataBaseUtils;
 
-    public MybatisGen(String dbType,
-                      String driverClass,
+    public MybatisGen(String driverClass,
                       String connectionURL,
                       String userId,
                       String password,
@@ -53,8 +52,7 @@ public class MybatisGen {
                       String xmlPackage,
                       String[] tableNameArray,
                       String useActualColumnNames) {
-        if (StringUtils.isEmpty(dbType)
-                || StringUtils.isEmpty(driverClass)
+        if (StringUtils.isEmpty(driverClass)
                 || StringUtils.isEmpty(connectionURL)
                 || StringUtils.isEmpty(userId)
                 || StringUtils.isEmpty(output)
@@ -65,7 +63,6 @@ public class MybatisGen {
             logger.warn("参数不能为空！");
             throw new IllegalArgumentException("参数不能为空！");
         }
-        this.dbType = dbType;
         this.driverClass = driverClass;
         this.connectionURL = connectionURL;
         this.userId = userId;
@@ -89,7 +86,11 @@ public class MybatisGen {
         // limit plugin
         PluginConfiguration limitPlugin = new PluginConfiguration();
         limitPlugin.setConfigurationType(MybatisLimitPlugin.class.getName());
-        limitPlugin.addProperty("dbType", dbType);
+        if (driverClass.contains(MybatisConstant.DB_TYPE_POSTGRESQL)) {
+            limitPlugin.addProperty("dbType", MybatisConstant.DB_TYPE_POSTGRESQL);
+        } else {
+            limitPlugin.addProperty("dbType", MybatisConstant.DB_TYPE_MYSQL);
+        }
         pluginConfigurationList.add(limitPlugin);
         return pluginConfigurationList;
     }
@@ -197,9 +198,9 @@ public class MybatisGen {
             // 自增插入时返回主键值
             TableVO tableVO = dataBaseUtils.getDbTableInfo(tableName, false);
             ColumnVO primaryKey = tableVO.getPrimaryKey();
-            if (primaryKey != null){
+            if (primaryKey != null) {
                 if (ColumnVO.JAVA_INT.equalsIgnoreCase(primaryKey.getJavaType())
-                        || ColumnVO.JAVA_LONG.equalsIgnoreCase(primaryKey.getJavaType())){
+                        || ColumnVO.JAVA_LONG.equalsIgnoreCase(primaryKey.getJavaType())) {
                     GeneratedKey generatedKey = new GeneratedKey(primaryKey.getDbColumnName(), "JDBC", true, "post");
                     tableConfig.setGeneratedKey(generatedKey);
                 }
@@ -225,7 +226,7 @@ public class MybatisGen {
             Configuration configuration = new Configuration();
             // context
             Context context = new Context(ModelType.FLAT);
-            context.setId(dbType);
+            context.setId(RandomUtils.bsonId());
             /*
                 MyBatis3：默认的值，生成基于MyBatis3.x以上版本的内容，包括XXXBySample；
                 MyBatis3Simple：类似MyBatis3，只是不生成XXXBySample；
