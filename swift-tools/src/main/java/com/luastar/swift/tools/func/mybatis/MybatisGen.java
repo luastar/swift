@@ -194,16 +194,15 @@ public class MybatisGen {
             tableConfig.addProperty("modelOnly", "false");
             // 如果设置为true，生成的model类会直接使用column本身的名字，而不会再使用驼峰命名方法，比如BORN_DATE，生成的属性名字就是BORN_DATE,而不会是bornDate
             tableConfig.addProperty("useActualColumnNames", useActualColumnNames);
-            // 表信息
-            TableVO tableVO = dataBaseUtils.getDbTableInfo(tableName, false);
             // 自增插入时返回主键值
+            TableVO tableVO = dataBaseUtils.getDbTableInfo(tableName, false);
             ColumnVO primaryKey = tableVO.getPrimaryKey();
-            if (primaryKey != null
-                    && (ColumnVO.JAVA_INT.equalsIgnoreCase(primaryKey.getJavaType()) || ColumnVO.JAVA_LONG.equalsIgnoreCase(primaryKey.getJavaType()))
-                    ) {
-                // int或long型主键设置自增值
-                GeneratedKey generatedKey = new GeneratedKey(primaryKey.getDbColumnName(), "JDBC", true, "post");
-                tableConfig.setGeneratedKey(generatedKey);
+            if (primaryKey != null){
+                if (ColumnVO.JAVA_INT.equalsIgnoreCase(primaryKey.getJavaType())
+                        || ColumnVO.JAVA_LONG.equalsIgnoreCase(primaryKey.getJavaType())){
+                    GeneratedKey generatedKey = new GeneratedKey(primaryKey.getDbColumnName(), "JDBC", true, "post");
+                    tableConfig.setGeneratedKey(generatedKey);
+                }
             }
             // 属性覆盖
             List<ColumnVO> columnVOList = tableVO.getColumns();

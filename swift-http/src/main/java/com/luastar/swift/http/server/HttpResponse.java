@@ -34,12 +34,16 @@ public class HttpResponse {
         setResponseContentTypeJson();
     }
 
+    public void setResponseContentTypePlain() {
+        setHeader(HttpHeaderNames.CONTENT_TYPE.toString(), HttpMediaType.TEXT_PLAIN_UTF_8);
+    }
+
     public void setResponseContentTypeJson() {
         setHeader(HttpHeaderNames.CONTENT_TYPE.toString(), HttpMediaType.JSON_UTF_8);
     }
 
-    public void setResponseContentTypePlain() {
-        setHeader(HttpHeaderNames.CONTENT_TYPE.toString(), HttpMediaType.TEXT_PLAIN_UTF_8);
+    public void setResponseContentTypeHtml() {
+        setHeader(HttpHeaderNames.CONTENT_TYPE.toString(), HttpMediaType.TEXT_HTML_UTF_8);
     }
 
     public void setResponseContentTypeStream(String fileName) {
