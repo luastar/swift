@@ -27,6 +27,9 @@ public class MybatisGenSwift {
     private String daoPackageName;
     private String mybatisRepPackageName;
     private String dbDriver;
+    private String dbUrl;
+    private String dbUsername;
+    private String dbPassword;
     private boolean needSchema;
     private DataBaseUtils dbUtils;
     private BeetlUtils beetlUtils;
@@ -56,6 +59,9 @@ public class MybatisGenSwift {
         this.daoPackageName = daoPackageName;
         this.mybatisRepPackageName = mybatisRepPackageName;
         this.dbDriver = dbDriver;
+        this.dbUrl = dbUrl;
+        this.dbUsername = dbUsername;
+        this.dbPassword = dbPassword;
         this.dbUtils = new DataBaseUtils(dbDriver, dbUrl, dbUsername, dbPassword);
         this.beetlUtils = new BeetlUtils();
     }
@@ -116,7 +122,7 @@ public class MybatisGenSwift {
         if (dbDriver.contains(MybatisConstant.DB_TYPE_POSTGRESQL)) {
             beetlUtils.binding("limit", "limit #{limit} offset #{start}");
         } else {
-            beetlUtils.binding("limit", "limit #{start},#{limit}");
+            beetlUtils.binding("limit", "limit #{start}, #{limit}");
         }
         beetlUtils.binding("namespace", daoPackageName + "." + className + "Dao");
         beetlUtils.binding("mapName", StrUtils.getFisrtCharLower(className));
