@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import com.luastar.swift.base.utils.CollectionUtils;
 import com.luastar.swift.base.utils.RandomUtils;
 import com.luastar.swift.tools.func.mybatis.ext.JavaTypeResolverImpl;
+import com.luastar.swift.tools.func.mybatis.ext.MybatisDefaultShellCallback;
 import com.luastar.swift.tools.func.mybatis.ext.MybatisLimitPlugin;
 import com.luastar.swift.tools.model.ColumnVO;
 import com.luastar.swift.tools.model.TableVO;
@@ -267,8 +268,8 @@ public class MybatisGen {
             }
             configuration.addContext(context);
             // generate
+            ShellCallback shellCallback = new MybatisDefaultShellCallback(true);
             List<String> warnings = new ArrayList<String>();
-            ShellCallback shellCallback = new DefaultShellCallback(true);
             MyBatisGenerator myBatisGenerator = new MyBatisGenerator(configuration, shellCallback, warnings);
             myBatisGenerator.generate(new NullProgressCallback());
             logger.info("gen success, see {}", output);
