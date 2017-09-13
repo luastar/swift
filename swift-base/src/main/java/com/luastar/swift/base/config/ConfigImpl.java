@@ -6,6 +6,7 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
 import java.util.Properties;
 import java.util.regex.Matcher;
 
@@ -62,7 +63,15 @@ public class ConfigImpl implements ItfConfig {
         if (value == null) {
             return null;
         }
-        return value.split(sep == null ? "," : sep);
+        if (sep == null) {
+            if (value.contains(";")) {
+                sep = ";";
+            } else {
+                sep = ",";
+            }
+        }
+        // 将分隔取到的值trim一下
+        return Arrays.stream(value.split(sep)).map(v -> StringUtils.trim(v)).toArray(String[]::new);
     }
 
     public int getInt(String key, int defaultValue) {
