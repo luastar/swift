@@ -1,6 +1,5 @@
 package com.luastar.swift.base.net;
 
-import com.google.common.collect.Maps;
 import com.luastar.swift.base.utils.ObjUtils;
 import com.luastar.swift.base.utils.RandomUtils;
 import org.apache.commons.io.FileUtils;
@@ -18,6 +17,7 @@ import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.TrustStrategy;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -47,7 +47,6 @@ public class HttpClientUtils {
     public static final int DEFAULT_TIMEOUT = 6000;
     public static final String DEFAULT_CHARSET = "UTF-8";
 
-    public static final ContentType OCTET_STREAM_UTF8 = ContentType.create("application/octet-stream", UTF_8);
     public static final ContentType TEXT_PLAIN_UTF8 = ContentType.create("text/plain", UTF_8);
 
     /**
@@ -395,8 +394,10 @@ public class HttpClientUtils {
         CloseableHttpResponse response = null;
         try {
             HttpPost httpPost = new HttpPost(url);
-            MultipartEntityBuilder builder = MultipartEntityBuilder.create();
-            builder.setCharset(UTF_8);
+            MultipartEntityBuilder builder = MultipartEntityBuilder
+                    .create()
+                    .setCharset(UTF_8)
+                    .setMode(HttpMultipartMode.RFC6532);
             // 参数设置
             if (paramMap != null && !paramMap.isEmpty()) {
                 for (Map.Entry<String, Object> entry : paramMap.entrySet()) {
@@ -408,13 +409,13 @@ public class HttpClientUtils {
                         if (fileNameMap != null) {
                             fileName = fileNameMap.get(entry.getKey());
                         }
-                        builder.addBinaryBody(entry.getKey(), (InputStream) value, OCTET_STREAM_UTF8, fileName);
+                        builder.addBinaryBody(entry.getKey(), (InputStream) value, ContentType.DEFAULT_BINARY, fileName);
                     } else if (value instanceof byte[]) {
                         String fileName = null;
                         if (fileNameMap != null) {
                             fileName = fileNameMap.get(entry.getKey());
                         }
-                        builder.addBinaryBody(entry.getKey(), (byte[]) value, OCTET_STREAM_UTF8, fileName);
+                        builder.addBinaryBody(entry.getKey(), (byte[]) value, ContentType.DEFAULT_BINARY, fileName);
                     } else {
                         builder.addTextBody(entry.getKey(), ObjUtils.toString(entry.getValue()), TEXT_PLAIN_UTF8);
                     }
@@ -426,7 +427,7 @@ public class HttpClientUtils {
                     if (fileNameMap != null) {
                         fileName = fileNameMap.get(entry.getKey());
                     }
-                    builder.addBinaryBody(entry.getKey(), getByte(entry.getValue()), OCTET_STREAM_UTF8, fileName);
+                    builder.addBinaryBody(entry.getKey(), getByte(entry.getValue()), ContentType.DEFAULT_BINARY, fileName);
                 }
             }
             httpPost.setEntity(builder.build());
@@ -467,8 +468,10 @@ public class HttpClientUtils {
         HttpResult result = new HttpResult();
         try {
             HttpPost httpPost = new HttpPost(url);
-            MultipartEntityBuilder builder = MultipartEntityBuilder.create();
-            builder.setCharset(UTF_8);
+            MultipartEntityBuilder builder = MultipartEntityBuilder
+                    .create()
+                    .setCharset(UTF_8)
+                    .setMode(HttpMultipartMode.RFC6532);
             // 参数设置
             if (paramMap != null && !paramMap.isEmpty()) {
                 for (Map.Entry<String, Object> entry : paramMap.entrySet()) {
@@ -480,13 +483,13 @@ public class HttpClientUtils {
                         if (fileNameMap != null) {
                             fileName = fileNameMap.get(entry.getKey());
                         }
-                        builder.addBinaryBody(entry.getKey(), (InputStream) value, OCTET_STREAM_UTF8, fileName);
+                        builder.addBinaryBody(entry.getKey(), (InputStream) value, ContentType.DEFAULT_BINARY, fileName);
                     } else if (value instanceof byte[]) {
                         String fileName = null;
                         if (fileNameMap != null) {
                             fileName = fileNameMap.get(entry.getKey());
                         }
-                        builder.addBinaryBody(entry.getKey(), (byte[]) value, OCTET_STREAM_UTF8, fileName);
+                        builder.addBinaryBody(entry.getKey(), (byte[]) value, ContentType.DEFAULT_BINARY, fileName);
                     } else {
                         builder.addTextBody(entry.getKey(), ObjUtils.toString(entry.getValue()), TEXT_PLAIN_UTF8);
                     }
@@ -498,7 +501,7 @@ public class HttpClientUtils {
                     if (fileNameMap != null) {
                         fileName = fileNameMap.get(entry.getKey());
                     }
-                    builder.addBinaryBody(entry.getKey(), getByte(entry.getValue()), OCTET_STREAM_UTF8, fileName);
+                    builder.addBinaryBody(entry.getKey(), getByte(entry.getValue()), ContentType.DEFAULT_BINARY, fileName);
                 }
             }
             httpPost.setEntity(builder.build());
@@ -730,11 +733,7 @@ public class HttpClientUtils {
     }
 
     public static void main(String[] args) throws Exception {
-        String url = "http://172.16.0.2:9031/harmony/mail/attachment";
-        Map<String, Object> paramMap = Maps.newHashMap();
-        paramMap.put("data", "{\"subject\":\"【分贝通】【月结账单】北京分贝金服科技有限公司_20170904-20170902\",\"customerId\":\"spacex\",\"ccList\":[],\"bccList\":[],\"html\":{\"data\":{\"beginDate\":\"2017年09月04日\",\"totalAmount\":\"￥2304.71\",\"period\":\"2017/09/04-2017/09/02\",\"unpaidAmount\":\"￥0.00\",\"endDate\":\"2017年09月02日\",\"author\":\"刘维中\",\"companyName\":\"北京分贝金服科技有限公司\",\"paidAmount\":\"￥0.00\",\"deadLine\":\"2017年09月15日\",\"lastDate\":\"2017年09月15日\"},\"templateId\":\"bill_send.html\"},\"toList\":[\"zhijun.zhang@fenbeitong.com\"],\"serverId\":\"spacex.billing\"}");
-        HttpResult result = postMultipartFormHttpResult(url, paramMap, null, null);
-        System.out.println(result.getResult());
+
     }
 
 }
