@@ -1,6 +1,5 @@
 package com.luastar.swift.base.utils;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,10 +9,8 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.PropertiesLoaderUtils;
 import org.springframework.core.io.support.ResourcePatternResolver;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.Properties;
 
 public class ClassLoaderUtils {
@@ -91,13 +88,21 @@ public class ClassLoaderUtils {
     }
 
     /**
-     * 将资源文件加载到输入流中
+     * 获取资源流
      *
-     * @param resource 资源文件
+     * @param resource
      * @return
      */
     public static InputStream getInputStream(String resource) {
-        return getClassLoader().getResourceAsStream(resource);
+        try {
+            Resource[] resourceArray = getResourcePatternResolver().getResources(resource);
+            if (ArrayUtils.isNotEmpty(resourceArray)) {
+                return resourceArray[0].getInputStream();
+            }
+        } catch (IOException e) {
+            logger.error(e.getMessage(), e);
+        }
+        return null;
     }
 
     /**
@@ -111,7 +116,7 @@ public class ClassLoaderUtils {
     public static Properties getProperties(String resource) {
         try {
             Properties properties = new Properties();
-            InputStream is = getInputStream(resource);
+            InputStream is = getClassLoader().getResourceAsStream(resource);
             if (is != null) {
                 properties.load(new BufferedReader(new InputStreamReader(is)));
             }
@@ -148,23 +153,6 @@ public class ClassLoaderUtils {
             }
         }
         return properties;
-    }
-
-    /**
-     * 获取资源流
-     * @param path
-     * @return
-     */
-    public static InputStream readResource(String path) {
-        try {
-            Resource[] resourceArray = getResourcePatternResolver().getResources(path);
-            if (ArrayUtils.isNotEmpty(resourceArray)) {
-                return resourceArray[0].getInputStream();
-            }
-        } catch (IOException e) {
-            logger.error(e.getMessage(), e);
-        }
-        return null;
     }
 
 }

@@ -1,7 +1,6 @@
 package com.luastar.swift.base.net;
 
 import com.google.common.collect.Maps;
-import com.luastar.swift.base.json.JsonUtils;
 import com.luastar.swift.base.utils.ObjUtils;
 import com.luastar.swift.base.utils.RandomUtils;
 import org.apache.commons.io.FileUtils;
@@ -47,6 +46,8 @@ public class HttpClientUtils {
 
     public static final int DEFAULT_TIMEOUT = 6000;
     public static final String DEFAULT_CHARSET = "UTF-8";
+
+    public static final ContentType OCTET_STREAM_UTF8 = ContentType.create("application/octet-stream", UTF_8);
     public static final ContentType TEXT_PLAIN_UTF8 = ContentType.create("text/plain", UTF_8);
 
     /**
@@ -407,13 +408,13 @@ public class HttpClientUtils {
                         if (fileNameMap != null) {
                             fileName = fileNameMap.get(entry.getKey());
                         }
-                        builder.addBinaryBody(entry.getKey(), (InputStream) value, ContentType.DEFAULT_BINARY, fileName);
+                        builder.addBinaryBody(entry.getKey(), (InputStream) value, OCTET_STREAM_UTF8, fileName);
                     } else if (value instanceof byte[]) {
                         String fileName = null;
                         if (fileNameMap != null) {
                             fileName = fileNameMap.get(entry.getKey());
                         }
-                        builder.addBinaryBody(entry.getKey(), (byte[]) value, ContentType.DEFAULT_BINARY, fileName);
+                        builder.addBinaryBody(entry.getKey(), (byte[]) value, OCTET_STREAM_UTF8, fileName);
                     } else {
                         builder.addTextBody(entry.getKey(), ObjUtils.toString(entry.getValue()), TEXT_PLAIN_UTF8);
                     }
@@ -425,7 +426,7 @@ public class HttpClientUtils {
                     if (fileNameMap != null) {
                         fileName = fileNameMap.get(entry.getKey());
                     }
-                    builder.addBinaryBody(entry.getKey(), getByte(entry.getValue()), ContentType.DEFAULT_BINARY, fileName);
+                    builder.addBinaryBody(entry.getKey(), getByte(entry.getValue()), OCTET_STREAM_UTF8, fileName);
                 }
             }
             httpPost.setEntity(builder.build());
@@ -479,13 +480,13 @@ public class HttpClientUtils {
                         if (fileNameMap != null) {
                             fileName = fileNameMap.get(entry.getKey());
                         }
-                        builder.addBinaryBody(entry.getKey(), (InputStream) value, ContentType.DEFAULT_BINARY, fileName);
+                        builder.addBinaryBody(entry.getKey(), (InputStream) value, OCTET_STREAM_UTF8, fileName);
                     } else if (value instanceof byte[]) {
                         String fileName = null;
                         if (fileNameMap != null) {
                             fileName = fileNameMap.get(entry.getKey());
                         }
-                        builder.addBinaryBody(entry.getKey(), (byte[]) value, ContentType.DEFAULT_BINARY, fileName);
+                        builder.addBinaryBody(entry.getKey(), (byte[]) value, OCTET_STREAM_UTF8, fileName);
                     } else {
                         builder.addTextBody(entry.getKey(), ObjUtils.toString(entry.getValue()), TEXT_PLAIN_UTF8);
                     }
@@ -497,7 +498,7 @@ public class HttpClientUtils {
                     if (fileNameMap != null) {
                         fileName = fileNameMap.get(entry.getKey());
                     }
-                    builder.addBinaryBody(entry.getKey(), getByte(entry.getValue()), ContentType.DEFAULT_BINARY, fileName);
+                    builder.addBinaryBody(entry.getKey(), getByte(entry.getValue()), OCTET_STREAM_UTF8, fileName);
                 }
             }
             httpPost.setEntity(builder.build());
