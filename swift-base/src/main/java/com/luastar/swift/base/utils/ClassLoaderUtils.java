@@ -1,6 +1,7 @@
 package com.luastar.swift.base.utils;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
@@ -149,11 +150,16 @@ public class ClassLoaderUtils {
         return properties;
     }
 
-    public static String getJson(String path) {
+    /**
+     * 获取资源流
+     * @param path
+     * @return
+     */
+    public static InputStream readResource(String path) {
         try {
             Resource[] resourceArray = getResourcePatternResolver().getResources(path);
-            if (resourceArray != null) {
-                return IOUtils.toString(resourceArray[0].getInputStream(), "UTF-8");
+            if (ArrayUtils.isNotEmpty(resourceArray)) {
+                return resourceArray[0].getInputStream();
             }
         } catch (IOException e) {
             logger.error(e.getMessage(), e);
