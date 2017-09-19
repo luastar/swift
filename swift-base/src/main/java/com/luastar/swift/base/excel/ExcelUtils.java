@@ -22,6 +22,7 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -616,17 +617,28 @@ public class ExcelUtils {
             if (cell == null || data == null) {
                 return null;
             }
-//            logger.info("给属性【{}】赋值【{}】", column.getTitle(), cell.getStringCellValue());
+            Object cellValue;
+            switch (cell.getCellTypeEnum()) {
+                case NUMERIC:
+                    cellValue = BigDecimal.valueOf(cell.getNumericCellValue());
+                    break;
+                case BOOLEAN:
+                    cellValue = cell.getBooleanCellValue();
+                    break;
+                default:
+                    cellValue = cell.getStringCellValue();
+                    break;
+            }
             if (column.getType() == ExcelDataType.StringValue) {
-                PropertyUtils.setProperty(data, column.getProp(), cell.getStringCellValue());
+                PropertyUtils.setProperty(data, column.getProp(), ObjUtils.toString(cellValue));
             } else if (column.getType() == ExcelDataType.LongValue) {
-                PropertyUtils.setProperty(data, column.getProp(), ObjUtils.toLong(cell.getStringCellValue()));
+                PropertyUtils.setProperty(data, column.getProp(), ObjUtils.toLong(cellValue));
             } else if (column.getType() == ExcelDataType.IntegerValue) {
-                PropertyUtils.setProperty(data, column.getProp(), ObjUtils.toInteger(cell.getStringCellValue()));
+                PropertyUtils.setProperty(data, column.getProp(), ObjUtils.toInteger(cellValue));
             } else if (column.getType() == ExcelDataType.BigDecimalValue) {
-                PropertyUtils.setProperty(data, column.getProp(), ObjUtils.toBigDecimal(cell.getStringCellValue()));
+                PropertyUtils.setProperty(data, column.getProp(), ObjUtils.toBigDecimal(cellValue));
             } else if (column.getType() == ExcelDataType.BooleanValue) {
-                PropertyUtils.setProperty(data, column.getProp(), cell.getBooleanCellValue());
+                PropertyUtils.setProperty(data, column.getProp(), ObjUtils.toBoolean(cellValue));
             } else if (column.getType() == ExcelDataType.DateValue) {
                 PropertyUtils.setProperty(data, column.getProp(), cell.getDateCellValue());
             } else if (column.getType() == ExcelDataType.EnumValue) {
