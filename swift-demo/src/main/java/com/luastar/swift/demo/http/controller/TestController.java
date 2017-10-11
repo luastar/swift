@@ -8,7 +8,6 @@ import com.luastar.swift.http.server.HttpResponse;
 import com.luastar.swift.http.server.HttpService;
 import io.netty.handler.codec.http.multipart.FileUpload;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.CreationHelper;
 import org.apache.poi.ss.usermodel.Row;
@@ -20,7 +19,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -132,7 +130,7 @@ public class TestController {
             logger.info("request parameter : {}={}", file.getKey(), file.getValue().getFilename());
             try {
                 File saveFile = new File("/Users/zhuminghua/Downloads/" + file.getValue().getFilename());
-                if (file.getValue().isInMemory()){
+                if (file.getValue().isInMemory()) {
                     FileUtils.writeByteArrayToFile(saveFile, file.getValue().content().array());
                 } else {
                     FileUtils.copyFile(file.getValue().getFile(), saveFile);
