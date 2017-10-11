@@ -4,10 +4,8 @@ import com.google.common.collect.Maps;
 import com.luastar.swift.base.utils.ObjUtils;
 import com.luastar.swift.http.constant.HttpConstant;
 import io.netty.buffer.ByteBuf;
-import io.netty.handler.codec.http.FullHttpRequest;
-import io.netty.handler.codec.http.HttpHeaderNames;
-import io.netty.handler.codec.http.HttpMethod;
-import io.netty.handler.codec.http.QueryStringDecoder;
+import io.netty.buffer.ByteBufInputStream;
+import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
 import io.netty.handler.codec.http.multipart.*;
@@ -91,6 +89,11 @@ public class HttpRequest {
 
     protected void decodePost() {
         if (!HttpMethod.POST.equals(request.method())) {
+            return;
+        }
+        String contentType = request.headers().get(HttpHeaderNames.CONTENT_TYPE);
+        if (StringUtils.isEmpty(contentType)
+                || !(StringUtils.containsIgnoreCase(contentType, HttpHeaderValues.APPLICATION_X_WWW_FORM_URLENCODED) || StringUtils.containsIgnoreCase(contentType, HttpHeaderValues.MULTIPART_FORM_DATA))) {
             return;
         }
         try {
@@ -252,6 +255,14 @@ public class HttpRequest {
             return content.toString(CharsetUtil.UTF_8);
         }
         return "";
+    }
+
+    public ByteBufInputStream getBodyInputStream(){
+        ByteBuf content = request.content();
+        if (content != null) {
+            return new ByteBufInputStream(content);
+        }
+        return null;
     }
 
     public <T> T bindObj(T obj) {
