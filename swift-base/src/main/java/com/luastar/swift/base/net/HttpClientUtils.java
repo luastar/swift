@@ -44,7 +44,7 @@ public class HttpClientUtils {
 
     private static Logger logger = LoggerFactory.getLogger(HttpClientUtils.class);
 
-    public static final int DEFAULT_TIMEOUT = 6000;
+    public static final int DEFAULT_TIMEOUT = 30000;
     public static final String DEFAULT_CHARSET = "UTF-8";
 
     public static final ContentType TEXT_PLAIN_UTF8 = ContentType.create("text/plain", UTF_8);
