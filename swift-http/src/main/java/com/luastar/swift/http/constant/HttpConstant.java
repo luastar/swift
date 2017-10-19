@@ -82,6 +82,6 @@ public interface HttpConstant {
     /**
      * 工作线程数，如果设置成0，默认为cpu个数 * 2
      */
-    int SWIFT_WORKER_THREADS = PropertyUtils.getInt("swift.workerThreads", 0);
+    int SWIFT_WORKER_THREADS = PropertyUtils.getInt("swift.workerThreads", 16);
 
 }
