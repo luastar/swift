@@ -22,7 +22,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Method;
@@ -32,6 +31,8 @@ import java.util.Map;
 public class HttpChannelHandler extends SimpleChannelInboundHandler<HttpObject> {
 
     private static final Logger logger = LoggerFactory.getLogger(HttpChannelHandler.class);
+
+    private static final String URI_FAVICON_ICO = "/favicon.ico";
 
     private final HttpHandlerMapping handlerMapping;
 
@@ -57,8 +58,8 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<HttpObject> 
                 ctx.write(new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE));
                 return;
             }
-            logger.info("channelRead id={}, uri={}", ctx.channel().id(), fullHttpRequest.uri());
-            if ("/favicon.ico".equals(fullHttpRequest.uri())) {
+            logger.info("channel id : {}, uri : {}", ctx.channel().id(), fullHttpRequest.uri());
+            if (URI_FAVICON_ICO.equals(fullHttpRequest.uri())) {
                 FullHttpResponse fullHttpResponse = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.NOT_FOUND);
                 ctx.writeAndFlush(fullHttpResponse).addListener(ChannelFutureListener.CLOSE);
                 return;
@@ -66,8 +67,6 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<HttpObject> 
             // 初始化HttpRequest
             httpRequest = new HttpRequest(fullHttpRequest);
             httpRequest.setIp(getClientIp(ctx, fullHttpRequest));
-            // 日志上下文中加入requestId
-            MDC.put("requestId", httpRequest.getRequestId());
             // 查找处理类方法
             HandlerExecutionChain mappedHandler = handlerMapping.getHandler(httpRequest);
             if (mappedHandler == null) {
@@ -195,7 +194,6 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<HttpObject> 
             IOUtils.closeQuietly(httpResponse.getOutputStream());
             httpResponse = null;
         }
-        MDC.remove("requestId");
     }
 
     @Override
