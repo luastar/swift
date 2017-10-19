@@ -65,8 +65,7 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<HttpObject> 
                 return;
             }
             // 初始化HttpRequest
-            httpRequest = new HttpRequest(fullHttpRequest);
-            httpRequest.setIp(getClientIp(ctx, fullHttpRequest));
+            httpRequest = new HttpRequest(fullHttpRequest, getClientIp(ctx, fullHttpRequest));
             // 查找处理类方法
             HandlerExecutionChain mappedHandler = handlerMapping.getHandler(httpRequest);
             if (mappedHandler == null) {

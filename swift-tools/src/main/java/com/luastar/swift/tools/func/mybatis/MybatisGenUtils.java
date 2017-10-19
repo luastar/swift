@@ -2,7 +2,6 @@ package com.luastar.swift.tools.func.mybatis;
 
 import com.luastar.swift.base.config.ConfigImpl;
 import com.luastar.swift.base.config.ItfConfig;
-import com.luastar.swift.base.utils.ObjUtils;
 
 public class MybatisGenUtils {
 

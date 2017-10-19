@@ -59,11 +59,11 @@ public class HttpRequest {
     private Map<String, FileUpload> fileMap = Maps.newLinkedHashMap();
     private Map<String, Object> attributeMap = Maps.newLinkedHashMap();
 
-    public HttpRequest(FullHttpRequest request) {
-        this.requestId = RandomStringUtils.random(20, true, true);
-        // 日志上下文中加入requestId
-        MDC.put(MDC_KEY, requestId);
+    public HttpRequest(FullHttpRequest request, String ip) {
         this.request = request;
+        this.ip = ip;
+        this.requestId = RandomStringUtils.random(20, true, true);
+        MDC.put(MDC_KEY, requestId);
         initRequestHeader();
         decodeQueryString();
         decodeBody();
@@ -123,7 +123,7 @@ public class HttpRequest {
     }
 
     public void logRequestInfo() {
-        logger.info("request uri : {}", getUri());
+        logger.info("request ip: {}, uri : {}", ObjUtils.ifNull(getIp(), ""), getUri());
         logger.info("request headers : {}", JSON.toJSONString(getHeaderMap()));
         String body = getBody();
         if (StringUtils.isNotEmpty(body)) {
