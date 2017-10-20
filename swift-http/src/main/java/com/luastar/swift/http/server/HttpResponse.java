@@ -1,18 +1,24 @@
 package com.luastar.swift.http.server;
 
+import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.luastar.swift.base.utils.EncodeUtils;
+import com.luastar.swift.http.constant.HttpConstant;
 import com.luastar.swift.http.constant.HttpMediaType;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.cookie.Cookie;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.util.Map;
 import java.util.Set;
 
 public class HttpResponse {
+
+    private static final Logger logger = LoggerFactory.getLogger(HttpResponse.class);
 
     private String requestId;
 
@@ -49,6 +55,25 @@ public class HttpResponse {
     public void setResponseContentTypeStream(String fileName) {
         setHeader(HttpHeaderNames.CONTENT_TYPE.toString(), HttpMediaType.APPLICATION_OCTET_STREAM_UTF_8);
         setHeader(HttpHeaderNames.CONTENT_DISPOSITION.toString(), "attachment;filename=" + fileName);
+    }
+
+    public void logResponse() {
+        logger.info("response status: {}", getStatus());
+        logger.info("response headers : {}, cookie : {}", JSON.toJSONString(getHeaderMap()), JSON.toJSONString(getCookieSet()));
+        String body = getResult();
+        if (StringUtils.isEmpty(body)) {
+            if (getOutputStream() == null) {
+                logger.info("response body is empty");
+            } else {
+                logger.info("response body is stream");
+            }
+        } else {
+            if (body.length() <= HttpConstant.SWIFT_MAX_LOG_LENGTH) {
+                logger.info("response body : {}", body);
+            } else {
+                logger.info("response body is too long to log out");
+            }
+        }
     }
 
     public String getHeader(String key) {

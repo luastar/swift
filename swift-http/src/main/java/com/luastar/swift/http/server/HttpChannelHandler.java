@@ -19,9 +19,11 @@ import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.util.CharsetUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Method;
@@ -31,6 +33,8 @@ import java.util.Map;
 public class HttpChannelHandler extends SimpleChannelInboundHandler<HttpObject> {
 
     private static final Logger logger = LoggerFactory.getLogger(HttpChannelHandler.class);
+
+    private static final String MDC_KEY = "requestId";
 
     private static final String URI_FAVICON_ICO = "/favicon.ico";
 
@@ -53,19 +57,22 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<HttpObject> 
             if (!(msg instanceof FullHttpRequest)) {
                 return;
             }
+            // requestId
+            String requestId = RandomStringUtils.random(20, true, true);
+            MDC.put(MDC_KEY, requestId);
             FullHttpRequest fullHttpRequest = (FullHttpRequest) msg;
             if (HttpUtil.is100ContinueExpected(fullHttpRequest)) {
                 ctx.write(new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE));
                 return;
             }
-            logger.info("channel id : {}, uri : {}", ctx.channel().id(), fullHttpRequest.uri());
             if (URI_FAVICON_ICO.equals(fullHttpRequest.uri())) {
                 FullHttpResponse fullHttpResponse = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.NOT_FOUND);
                 ctx.writeAndFlush(fullHttpResponse).addListener(ChannelFutureListener.CLOSE);
                 return;
             }
             // 初始化HttpRequest
-            httpRequest = new HttpRequest(fullHttpRequest, getClientIp(ctx, fullHttpRequest));
+            httpRequest = new HttpRequest(fullHttpRequest, requestId, getClientIp(ctx, fullHttpRequest));
+            httpRequest.logRequest();
             // 查找处理类方法
             HandlerExecutionChain mappedHandler = handlerMapping.getHandler(httpRequest);
             if (mappedHandler == null) {
@@ -137,20 +144,24 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<HttpObject> 
      * @param ctx
      */
     protected void handleHttpResponse(ChannelHandlerContext ctx) {
+        // 请求体日志
+        httpResponse.logResponse();
         // 返回值处理
         FullHttpResponse response = null;
         int contentLength = 0;
         if (StringUtils.isEmpty(httpResponse.getResult())) {
-            response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, httpResponse.getStatus());
+            // 输出流
+            if (httpResponse.getOutputStream() == null) {
+                response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, httpResponse.getStatus());
+            } else {
+                // 使用copiedBuffer会导致excel等文档打不开
+                ByteBuf buf = Unpooled.wrappedBuffer(httpResponse.getOutputStream().toByteArray());
+                response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, httpResponse.getStatus(), buf);
+                contentLength = buf.readableBytes();
+            }
         } else {
+            // 输出结果
             ByteBuf buf = Unpooled.copiedBuffer(httpResponse.getResult(), CharsetUtil.UTF_8);
-            response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, httpResponse.getStatus(), buf);
-            contentLength = buf.readableBytes();
-        }
-        // 输出流
-        if (httpResponse.getOutputStream() != null) {
-            // 使用copiedBuffer会导致excel等文档打不开
-            ByteBuf buf = Unpooled.wrappedBuffer(httpResponse.getOutputStream().toByteArray());
             response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, httpResponse.getStatus(), buf);
             contentLength = buf.readableBytes();
         }
@@ -193,6 +204,7 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<HttpObject> 
             IOUtils.closeQuietly(httpResponse.getOutputStream());
             httpResponse = null;
         }
+        MDC.remove(MDC_KEY);
     }
 
     @Override

@@ -70,11 +70,15 @@ public interface HttpConstant {
     /**
      * 链接超时时间
      */
-    int SWIFT_TIMEOUT = PropertyUtils.getInt("swift.timeout", 10);
+    int SWIFT_TIMEOUT = PropertyUtils.getInt("swift.timeout", 30);
     /**
      * 请求体最大值
      */
-    int SWIFT_MAX_CONTENT_LENGTH = PropertyUtils.getInt("swift.maxContentLength", 1024 * 1024);
+    int SWIFT_MAX_CONTENT_LENGTH = PropertyUtils.getInt("swift.maxContentLength", 1024 * 1024 * 10);
+    /**
+     * 输出日志最大值
+     */
+    int SWIFT_MAX_LOG_LENGTH = PropertyUtils.getInt("swift.maxLogLength", 1024 * 1024);
     /**
      * 分发线程数，如果只有一个端口，建议设置成1
      */

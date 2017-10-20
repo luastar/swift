@@ -13,11 +13,9 @@ import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
 import io.netty.handler.codec.http.multipart.*;
 import io.netty.util.CharsetUtil;
 import org.apache.commons.collections4.map.CaseInsensitiveMap;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
 import org.springframework.beans.MutablePropertyValues;
 import org.springframework.beans.propertyeditors.CustomDateEditor;
 import org.springframework.validation.DataBinder;
@@ -32,10 +30,6 @@ import java.util.Set;
 public class HttpRequest {
 
     private static final Logger logger = LoggerFactory.getLogger(HttpRequest.class);
-
-    private static final String MDC_KEY = "requestId";
-
-    private static final long LOG_MAX_BODY_LENGTH = 1024 * 1024;
 
     private static final HttpDataFactory factory = new DefaultHttpDataFactory(DefaultHttpDataFactory.MINSIZE);
 
@@ -59,15 +53,13 @@ public class HttpRequest {
     private Map<String, FileUpload> fileMap = Maps.newLinkedHashMap();
     private Map<String, Object> attributeMap = Maps.newLinkedHashMap();
 
-    public HttpRequest(FullHttpRequest request, String ip) {
+    public HttpRequest(FullHttpRequest request, String requestId, String ip) {
         this.request = request;
+        this.requestId = requestId;
         this.ip = ip;
-        this.requestId = RandomStringUtils.random(20, true, true);
-        MDC.put(MDC_KEY, requestId);
         initRequestHeader();
         decodeQueryString();
         decodeBody();
-        logRequestInfo();
     }
 
     protected void initRequestHeader() {
@@ -122,12 +114,12 @@ public class HttpRequest {
         }
     }
 
-    public void logRequestInfo() {
+    public void logRequest() {
         logger.info("request ip: {}, uri : {}", ObjUtils.ifNull(getIp(), ""), getUri());
         logger.info("request headers : {}", JSON.toJSONString(getHeaderMap()));
         String body = getBody();
         if (StringUtils.isNotEmpty(body)) {
-            if (body.length() <= LOG_MAX_BODY_LENGTH) {
+            if (body.length() <= HttpConstant.SWIFT_MAX_LOG_LENGTH) {
                 logger.info("request body : {}", getBody());
             } else {
                 logger.info("request body is too long to log out");
@@ -314,7 +306,6 @@ public class HttpRequest {
     }
 
     public void destroy() {
-        MDC.remove(MDC_KEY);
         if (postRequestDecoder != null) {
             postRequestDecoder.destroy();
             postRequestDecoder = null;
