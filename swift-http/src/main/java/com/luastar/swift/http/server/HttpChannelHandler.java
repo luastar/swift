@@ -28,6 +28,7 @@ import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.util.Map;
 
 public class HttpChannelHandler extends SimpleChannelInboundHandler<HttpObject> {
@@ -71,7 +72,7 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<HttpObject> 
                 return;
             }
             // 初始化HttpRequest
-            httpRequest = new HttpRequest(fullHttpRequest, requestId, getClientIp(ctx, fullHttpRequest));
+            httpRequest = new HttpRequest(fullHttpRequest, requestId, getSocketAddressIp(ctx));
             httpRequest.logRequest();
             // 查找处理类方法
             HandlerExecutionChain mappedHandler = handlerMapping.getHandler(httpRequest);
@@ -117,25 +118,17 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<HttpObject> 
     }
 
     /**
-     * 获取IP
+     * 获取通讯ip
      *
      * @param ctx
-     * @param request
      * @return
      */
-    protected String getClientIp(ChannelHandlerContext ctx, FullHttpRequest request) {
-        String clientIP = request.headers().get("X-Forwarded-For");
-        if (StringUtils.isBlank(clientIP)) {
-            clientIP = request.headers().get("X-Real-IP");
+    protected String getSocketAddressIp(ChannelHandlerContext ctx) {
+        SocketAddress socketAddress = ctx.channel().remoteAddress();
+        if (socketAddress != null && socketAddress instanceof InetSocketAddress) {
+            return ((InetSocketAddress) socketAddress).getAddress().getHostAddress();
         }
-        if (StringUtils.isBlank(clientIP)) {
-            InetSocketAddress socketAddress = (InetSocketAddress) ctx.channel().remoteAddress();
-            clientIP = socketAddress.getAddress().getHostAddress();
-        }
-        if (StringUtils.isNotBlank(clientIP) && StringUtils.contains(clientIP, ",")) {
-            clientIP = StringUtils.split(clientIP, ",")[0];
-        }
-        return clientIP;
+        return null;
     }
 
     /**

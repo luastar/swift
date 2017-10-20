@@ -41,22 +41,23 @@ public class HttpRequest {
     }
 
     private String requestId;
+    private String socketIp;
     private String ip;
 
     private FullHttpRequest request;
     private QueryStringDecoder queryStringDecoder;
     private HttpPostRequestDecoder postRequestDecoder;
 
-    private Map<String, String> headerMap = new CaseInsensitiveMap<String, String>();
+    private Map<String, String> headerMap = new CaseInsensitiveMap<>();
     private Map<String, Cookie> cookieMap = Maps.newLinkedHashMap();
     private Map<String, String> parameterMap = Maps.newLinkedHashMap();
     private Map<String, FileUpload> fileMap = Maps.newLinkedHashMap();
     private Map<String, Object> attributeMap = Maps.newLinkedHashMap();
 
-    public HttpRequest(FullHttpRequest request, String requestId, String ip) {
+    public HttpRequest(FullHttpRequest request, String requestId, String socketIp) {
         this.request = request;
         this.requestId = requestId;
-        this.ip = ip;
+        this.socketIp = socketIp;
         initRequestHeader();
         decodeQueryString();
         decodeBody();
@@ -73,6 +74,20 @@ public class HttpRequest {
                 cookieMap.put(cookie.name(), cookie);
             }
         }
+    }
+
+    protected void initRequestIp() {
+        String clientIP = request.headers().get("X-Forwarded-For");
+        if (StringUtils.isBlank(clientIP)) {
+            clientIP = request.headers().get("X-Real-IP");
+        }
+        if (StringUtils.isBlank(clientIP)) {
+            clientIP = this.socketIp;
+        }
+        if (StringUtils.isNotBlank(clientIP) && StringUtils.contains(clientIP, ",")) {
+            clientIP = StringUtils.split(clientIP, ",")[0];
+        }
+        this.ip = clientIP;
     }
 
     protected void decodeQueryString() {
@@ -115,7 +130,8 @@ public class HttpRequest {
     }
 
     public void logRequest() {
-        logger.info("request ip: {}, uri : {}", ObjUtils.ifNull(getIp(), ""), getUri());
+        logger.info("request ip : {}, socketIp : {}", getIp(), getSocketIp());
+        logger.info("request method : {}, uri : {}", getMethod(), getUri());
         logger.info("request headers : {}", JSON.toJSONString(getHeaderMap()));
         String body = getBody();
         if (StringUtils.isNotEmpty(body)) {
@@ -147,16 +163,12 @@ public class HttpRequest {
         return requestId;
     }
 
-    public void setRequestId(String requestId) {
-        this.requestId = requestId;
-    }
-
     public String getIp() {
-        return ip;
+        return ObjUtils.ifNull(ip, "");
     }
 
-    public void setIp(String ip) {
-        this.ip = ip;
+    public String getSocketIp() {
+        return socketIp;
     }
 
     public FullHttpRequest getFullHttpRequest() {
