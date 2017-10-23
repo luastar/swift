@@ -140,13 +140,13 @@ public class ExcelUtils {
                 // 设置不同类型的值
                 if (column.getType() == ExcelDataType.EnumValue && valueObj instanceof IExcelEnum) {
                     String value = ((IExcelEnum) valueObj).getValue();
-                    xssfCell.setCellValue(createHelper.createRichTextString(value));
+                    xssfCell.setCellValue(createHelper.createRichTextString(ObjUtils.ifNull(value, "")));
                 } else if (column.getType() == ExcelDataType.LongValue) {
-                    xssfCell.setCellValue(ObjUtils.toLong(valueObj));
+                    xssfCell.setCellValue(ObjUtils.toLong(valueObj, 0L));
                 } else if (column.getType() == ExcelDataType.IntegerValue) {
-                    xssfCell.setCellValue(ObjUtils.toInteger(valueObj));
+                    xssfCell.setCellValue(ObjUtils.toInteger(valueObj, 0));
                 } else if (column.getType() == ExcelDataType.BigDecimalValue) {
-                    xssfCell.setCellValue(ObjUtils.toBigDecimal(valueObj).doubleValue());
+                    xssfCell.setCellValue(ObjUtils.toBigDecimal(valueObj, BigDecimal.ZERO).doubleValue());
                 } else if (column.getType() == ExcelDataType.DateValue) {
                     xssfCell.setCellValue((Date) (valueObj));
                 } else {
@@ -240,13 +240,13 @@ public class ExcelUtils {
                 // 设置不同类型的值
                 if (column.getType() == ExcelDataType.EnumValue && valueObj instanceof IExcelEnum) {
                     String value = ((IExcelEnum) valueObj).getValue();
-                    hssfCell.setCellValue(createHelper.createRichTextString(value));
+                    hssfCell.setCellValue(createHelper.createRichTextString(ObjUtils.ifNull(value, "")));
                 } else if (column.getType() == ExcelDataType.LongValue) {
-                    hssfCell.setCellValue(ObjUtils.toLong(valueObj));
+                    hssfCell.setCellValue(ObjUtils.toLong(valueObj, 0L));
                 } else if (column.getType() == ExcelDataType.IntegerValue) {
-                    hssfCell.setCellValue(ObjUtils.toInteger(valueObj));
+                    hssfCell.setCellValue(ObjUtils.toInteger(valueObj, 0));
                 } else if (column.getType() == ExcelDataType.BigDecimalValue) {
-                    hssfCell.setCellValue(ObjUtils.toBigDecimal(valueObj).doubleValue());
+                    hssfCell.setCellValue(ObjUtils.toBigDecimal(valueObj, BigDecimal.ZERO).doubleValue());
                 } else if (column.getType() == ExcelDataType.DateValue) {
                     hssfCell.setCellValue((Date) (valueObj));
                 } else {
