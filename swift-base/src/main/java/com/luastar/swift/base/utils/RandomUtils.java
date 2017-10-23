@@ -38,10 +38,11 @@ public class RandomUtils {
 
     /**
      * 生成bson id
+     *
      * @return
      */
-    public static String bsonId(){
-        return new ObjectId().toHexString();
+    public static String bsonId() {
+        return ObjectId.get().toString();
     }
 
     /**

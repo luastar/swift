@@ -23,6 +23,7 @@ import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -33,6 +34,8 @@ import java.util.stream.Collectors;
 public class ExcelUtils {
 
     private static Logger logger = LoggerFactory.getLogger(ExcelUtils.class);
+
+    private static final int MAX_COLUMN_WIDTH = 60;
 
     /**
      * 初始化一个XSSFWorkbook（.xlsx文件）
@@ -106,11 +109,12 @@ public class ExcelUtils {
         int rowNum = sheetConfig.getDataList().size();
         for (int i = 0; i < rowNum; i++) {
             XSSFRow row = sheet.createRow(i + 1);
+            logger.info("写入第{}/{}条数据", row.getRowNum(), rowNum);
             Object data = sheetConfig.getDataList().get(i);
             for (int j = 0; j < columnNum; j++) {
                 ExportColumn column = columnList.get(j);
-                XSSFCell cell = row.createCell(j);
-                cell.setCellStyle(ObjUtils.ifNull(column.getRowStyle(), sheetConfig.getRowStyle()));
+                XSSFCell xssfCell = row.createCell(j);
+                xssfCell.setCellStyle(ObjUtils.ifNull(column.getRowStyle(), sheetConfig.getRowStyle()));
                 // 设置下拉框
                 if (i == 0 && column.getType() == ExcelDataType.EnumValue && ArrayUtils.isNotEmpty(column.getValueArray())) {
                     XSSFDataValidationConstraint dvConstraint = (XSSFDataValidationConstraint) dvHelper.createExplicitListConstraint(column.getValueArray());
@@ -128,19 +132,26 @@ public class ExcelUtils {
                     valueObj = PropertyUtils.getProperty(data, column.getProp());
                 }
                 if (valueObj == null) {
-                    logger.info("获取不到对象{}的属性{}值", JsonUtils.toJson(data), column.getProp());
+                    logger.debug("获取不到对象{}的属性{}值", JsonUtils.toJson(data), column.getProp());
                     continue;
                 }
-                String value;
-                if (column.getType() == ExcelDataType.EnumValue && valueObj instanceof IExcelEnum) {
-                    value = ((IExcelEnum) valueObj).getValue();
-                } else {
-                    value = ObjUtils.toString(valueObj);
-                }
-                // 设置列值
-                cell.setCellValue(createHelper.createRichTextString(ObjUtils.ifNull(value, "")));
                 // 设置宽度
-                ExcelUtils.setColumnWidthRow(column, sheet, j, value);
+                ExcelUtils.setColumnWidthRow(column, sheet, j, ObjUtils.toString(valueObj));
+                // 设置不同类型的值
+                if (column.getType() == ExcelDataType.EnumValue && valueObj instanceof IExcelEnum) {
+                    String value = ((IExcelEnum) valueObj).getValue();
+                    xssfCell.setCellValue(createHelper.createRichTextString(value));
+                } else if (column.getType() == ExcelDataType.LongValue) {
+                    xssfCell.setCellValue(ObjUtils.toLong(valueObj));
+                } else if (column.getType() == ExcelDataType.IntegerValue) {
+                    xssfCell.setCellValue(ObjUtils.toInteger(valueObj));
+                } else if (column.getType() == ExcelDataType.BigDecimalValue) {
+                    xssfCell.setCellValue(ObjUtils.toBigDecimal(valueObj).doubleValue());
+                } else if (column.getType() == ExcelDataType.DateValue) {
+                    xssfCell.setCellValue((Date) (valueObj));
+                } else {
+                    xssfCell.setCellValue(createHelper.createRichTextString(ObjUtils.toString(valueObj)));
+                }
             }
         }
     }
@@ -199,11 +210,12 @@ public class ExcelUtils {
         int rowNum = sheetConfig.getDataList().size();
         for (int i = 0; i < rowNum; i++) {
             HSSFRow row = sheet.createRow(i + 1);
+            logger.info("写入第{}/{}条数据", row.getRowNum(), rowNum);
             Object data = sheetConfig.getDataList().get(i);
             for (int j = 0; j < columnNum; j++) {
                 ExportColumn column = columnList.get(j);
-                HSSFCell cell = row.createCell(j);
-                cell.setCellStyle(ObjUtils.ifNull(column.getRowStyle(), sheetConfig.getRowStyle()));
+                HSSFCell hssfCell = row.createCell(j);
+                hssfCell.setCellStyle(ObjUtils.ifNull(column.getRowStyle(), sheetConfig.getRowStyle()));
                 if (i == 0 && column.getType() == ExcelDataType.EnumValue && ArrayUtils.isNotEmpty(column.getValueArray())) {
                     CellRangeAddressList addressList = new CellRangeAddressList(1, rowNum + 1, j, j);
                     DVConstraint dvConstraint = DVConstraint.createExplicitListConstraint(column.getValueArray());
@@ -220,19 +232,26 @@ public class ExcelUtils {
                     valueObj = PropertyUtils.getProperty(data, column.getProp());
                 }
                 if (valueObj == null) {
-                    logger.info("获取不到对象{}的属性{}值", JsonUtils.toJson(data), column.getProp());
+                    logger.debug("获取不到对象{}的属性{}值", JsonUtils.toJson(data), column.getProp());
                     continue;
                 }
-                String value;
-                if (column.getType() == ExcelDataType.EnumValue && valueObj instanceof IExcelEnum) {
-                    value = ((IExcelEnum) valueObj).getValue();
-                } else {
-                    value = ObjUtils.toString(valueObj);
-                }
-                // 设置列值
-                cell.setCellValue(createHelper.createRichTextString(value));
                 // 设置宽度
-                ExcelUtils.setColumnWidthRow(column, sheet, j, value);
+                ExcelUtils.setColumnWidthRow(column, sheet, j, ObjUtils.toString(valueObj));
+                // 设置不同类型的值
+                if (column.getType() == ExcelDataType.EnumValue && valueObj instanceof IExcelEnum) {
+                    String value = ((IExcelEnum) valueObj).getValue();
+                    hssfCell.setCellValue(createHelper.createRichTextString(value));
+                } else if (column.getType() == ExcelDataType.LongValue) {
+                    hssfCell.setCellValue(ObjUtils.toLong(valueObj));
+                } else if (column.getType() == ExcelDataType.IntegerValue) {
+                    hssfCell.setCellValue(ObjUtils.toInteger(valueObj));
+                } else if (column.getType() == ExcelDataType.BigDecimalValue) {
+                    hssfCell.setCellValue(ObjUtils.toBigDecimal(valueObj).doubleValue());
+                } else if (column.getType() == ExcelDataType.DateValue) {
+                    hssfCell.setCellValue((Date) (valueObj));
+                } else {
+                    hssfCell.setCellValue(createHelper.createRichTextString(ObjUtils.toString(valueObj)));
+                }
             }
         }
     }
@@ -559,22 +578,7 @@ public class ExcelUtils {
             column.setAutoWidth(true);
             column.setWidth(sheet.getDefaultColumnWidth());
         }
-        if (column.isAutoWidth()) {
-            if (StringUtils.isNotEmpty(title)) {
-                // 如果比默认值大，则设置更大的值
-                int width = title.getBytes("UTF-8").length * 2; // 直接按2倍算
-                // 最大设置成100，太长了也难看
-                if (width >= 100) {
-                    width = 100;
-                }
-                if (width > column.getWidth()) {
-                    column.setWidth(width);
-                    sheet.setColumnWidth(colIndex, width * 256);
-                }
-            }
-        } else {
-            sheet.setColumnWidth(colIndex, column.getWidth() * 256);
-        }
+        setColumnWidthRow(column, sheet, colIndex, title);
     }
 
     /**
@@ -589,12 +593,13 @@ public class ExcelUtils {
     private static void setColumnWidthRow(ExportColumn column, Sheet sheet, int colIndex, String value) throws UnsupportedEncodingException {
         if (column.isAutoWidth()) {
             if (StringUtils.isNotEmpty(value)) {
-                // 如果比默认值大，则设置更大的值
-                int width = value.getBytes("UTF-8").length + 5; // 前后加点边距
-                // 最大设置成100，太长了也难看
-                if (width >= 100) {
-                    width = 100;
+                // 前后加几个字符的边距，跟字体大小有关，先设置成固定的
+                int width = value.getBytes("UTF-8").length + 2;
+                // 最大设置成最大值，太长了也难看
+                if (width >= MAX_COLUMN_WIDTH) {
+                    width = MAX_COLUMN_WIDTH;
                 }
+                // 如果比默认值大，则设置更大的值
                 if (width > column.getWidth()) {
                     column.setWidth(width);
                     sheet.setColumnWidth(colIndex, width * 256);
