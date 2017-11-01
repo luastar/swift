@@ -3,6 +3,7 @@ package com.luastar.swift.base.utils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.EncodedResource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
@@ -17,15 +18,15 @@ public class ClassLoaderUtils {
 
     private static final Logger logger = LoggerFactory.getLogger(ClassLoaderUtils.class);
 
-    private static ClassLoader classLoader;
+    private static DefaultResourceLoader resourceLoader;
 
     private static ResourcePatternResolver resourcePatternResolver;
 
-    public static ClassLoader getClassLoader() {
-        if (classLoader == null) {
-            classLoader = Thread.currentThread().getContextClassLoader();
+    public static DefaultResourceLoader getDefaultResourceLoader() {
+        if (resourceLoader == null) {
+            resourceLoader = new DefaultResourceLoader();
         }
-        return classLoader;
+        return resourceLoader;
     }
 
     public static ResourcePatternResolver getResourcePatternResolver() {
@@ -33,6 +34,25 @@ public class ClassLoaderUtils {
             resourcePatternResolver = new PathMatchingResourcePatternResolver();
         }
         return resourcePatternResolver;
+    }
+
+    public static ClassLoader getClassLoader() {
+        return getDefaultResourceLoader().getClassLoader();
+    }
+
+    /**
+     * 根据指定的类名加载类
+     *
+     * @param name 类名
+     * @return
+     */
+    public static Class<?> loadClass(String name) {
+        try {
+            return getClassLoader().loadClass(name);
+        } catch (ClassNotFoundException e) {
+            logger.error(e.getMessage(), e);
+        }
+        return null;
     }
 
     /**
@@ -67,39 +87,6 @@ public class ClassLoaderUtils {
         } catch (InstantiationException e) {
             logger.error(e.getMessage(), e);
         } catch (IllegalAccessException e) {
-            logger.error(e.getMessage(), e);
-        }
-        return null;
-    }
-
-    /**
-     * 根据指定的类名加载类
-     *
-     * @param name 类名
-     * @return
-     */
-    public static Class<?> loadClass(String name) {
-        try {
-            return getClassLoader().loadClass(name);
-        } catch (ClassNotFoundException e) {
-            logger.error(e.getMessage(), e);
-        }
-        return null;
-    }
-
-    /**
-     * 获取资源流
-     *
-     * @param resource
-     * @return
-     */
-    public static InputStream getInputStream(String resource) {
-        try {
-            Resource[] resourceArray = getResourcePatternResolver().getResources(resource);
-            if (ArrayUtils.isNotEmpty(resourceArray)) {
-                return resourceArray[0].getInputStream();
-            }
-        } catch (IOException e) {
             logger.error(e.getMessage(), e);
         }
         return null;
@@ -153,6 +140,24 @@ public class ClassLoaderUtils {
             }
         }
         return properties;
+    }
+
+    /**
+     * 获取资源流
+     *
+     * @param resource
+     * @return
+     */
+    public static InputStream getInputStream(String resource) {
+        try {
+            Resource[] resourceArray = getResourcePatternResolver().getResources(resource);
+            if (ArrayUtils.isNotEmpty(resourceArray)) {
+                return resourceArray[0].getInputStream();
+            }
+        } catch (IOException e) {
+            logger.error(e.getMessage(), e);
+        }
+        return null;
     }
 
 }

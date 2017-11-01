@@ -1,4 +1,4 @@
-package com.luastar.swift.http.route;
+package com.luastar.swift.http.route.handlermapping;
 
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.core.BridgeMethodResolver;

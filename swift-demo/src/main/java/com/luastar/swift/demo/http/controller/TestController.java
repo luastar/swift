@@ -3,10 +3,10 @@ package com.luastar.swift.demo.http.controller;
 import com.luastar.swift.base.json.JsonUtils;
 import com.luastar.swift.demo.http.entity.User;
 import com.luastar.swift.http.route.RequestMethod;
+import com.luastar.swift.http.server.HttpFileUpload;
 import com.luastar.swift.http.server.HttpRequest;
 import com.luastar.swift.http.server.HttpResponse;
 import com.luastar.swift.http.server.HttpService;
-import io.netty.handler.codec.http.multipart.FileUpload;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.CreationHelper;
@@ -22,6 +22,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Map;
 
 @HttpService("/test")
@@ -44,7 +45,7 @@ public class TestController {
         for (Map.Entry<String, String> parameter : request.getParameterMap().entrySet()) {
             logger.info("request parameter : {}={}", parameter.getKey(), parameter.getValue());
         }
-        for (Map.Entry<String, FileUpload> file : request.getFileMap().entrySet()) {
+        for (Map.Entry<String, HttpFileUpload> file : request.getFileMap().entrySet()) {
             logger.info("request parameter : {}={}", file.getKey(), file.getValue().getFilename());
         }
         logger.info("request to user : {}", request.bindObj(new User()));
@@ -74,18 +75,6 @@ public class TestController {
     @HttpService("/hello/{p1}")
     public void hello(HttpRequest request, HttpResponse response) {
         logger.info("----------come into TestCtrl[hello][{}]", request.getPathValue("p1"));
-        // request info
-        logger.info("client ip is : {}", request.getIp());
-        for (Map.Entry<String, String> header : request.getHeaderMap().entrySet()) {
-            logger.info("request header : {}={}", header.getKey(), header.getValue());
-        }
-        for (Map.Entry<String, String> parameter : request.getParameterMap().entrySet()) {
-            logger.info("request parameter : {}={}", parameter.getKey(), parameter.getValue());
-        }
-        for (Map.Entry<String, FileUpload> file : request.getFileMap().entrySet()) {
-            logger.info("request parameter : {}={}", file.getKey(), file.getValue().getFilename());
-        }
-        logger.info("request body is : {}", request.getBody());
         // response
         response.setResponseContentTypePlain();
         response.setResult("TestCtrl[hello] OK !");
@@ -126,15 +115,12 @@ public class TestController {
     @HttpService("/upload")
     public void upload(HttpRequest request, HttpResponse response) {
         logger.info("----------come into TestCtrl[upload]");
-        for (Map.Entry<String, FileUpload> file : request.getFileMap().entrySet()) {
-            logger.info("request parameter : {}={}", file.getKey(), file.getValue().getFilename());
+        Collection<HttpFileUpload> fileUploadSet = request.getFileMap().values();
+        for (HttpFileUpload file : fileUploadSet) {
+            logger.info("request parameter : {}={}", file.getName(), file.getFilename());
             try {
-                File saveFile = new File("/Users/zhuminghua/Downloads/" + file.getValue().getFilename());
-                if (file.getValue().isInMemory()) {
-                    FileUtils.writeByteArrayToFile(saveFile, file.getValue().content().array());
-                } else {
-                    FileUtils.copyFile(file.getValue().getFile(), saveFile);
-                }
+                File saveFile = new File("/Users/zhuminghua/Downloads/" + file.getFilename());
+                FileUtils.copyInputStreamToFile(file.getInputStream(), saveFile);
             } catch (IOException e) {
                 logger.error(e.getMessage(), e);
             }

@@ -1,4 +1,4 @@
-package com.luastar.swift.http.route;
+package com.luastar.swift.http.route.interceptor;
 
 import com.luastar.swift.http.server.HttpRequest;
 import com.luastar.swift.http.server.HttpResponse;

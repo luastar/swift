@@ -1,4 +1,4 @@
-package com.luastar.swift.http.route;
+package com.luastar.swift.http.route.handlermapping;
 
 import com.luastar.swift.http.server.HttpRequest;
 

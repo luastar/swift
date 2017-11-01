@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.util.Map;
 import java.util.Set;
 
@@ -23,6 +24,8 @@ public class HttpResponse {
     private String requestId;
 
     private String result;
+
+    private File staticFile;
 
     private ByteArrayOutputStream outputStream;
 
@@ -98,6 +101,14 @@ public class HttpResponse {
 
     public void setResult(String result) {
         this.result = result;
+    }
+
+    public File getStaticFile() {
+        return staticFile;
+    }
+
+    public void setStaticFile(File staticFile) {
+        this.staticFile = staticFile;
     }
 
     public ByteArrayOutputStream getOutputStream() {

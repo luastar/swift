@@ -2,6 +2,13 @@ package com.luastar.swift.http.route;
 
 
 import com.luastar.swift.http.constant.HttpConstant;
+import com.luastar.swift.http.route.interceptor.MappedInterceptor;
+import com.luastar.swift.http.route.condition.PatternsRequestCondition;
+import com.luastar.swift.http.route.condition.RequestMappingInfo;
+import com.luastar.swift.http.route.condition.RequestMethodsRequestCondition;
+import com.luastar.swift.http.route.handlermapping.HandlerExecutionChain;
+import com.luastar.swift.http.route.handlermapping.HandlerMapping;
+import com.luastar.swift.http.route.handlermapping.HandlerMethod;
 import com.luastar.swift.http.server.HttpRequest;
 import com.luastar.swift.http.server.HttpResponse;
 import com.luastar.swift.http.server.HttpService;
@@ -14,6 +21,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.BridgeMethodResolver;
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.core.io.Resource;
 import org.springframework.util.*;
 
 import java.lang.reflect.Method;
@@ -33,6 +41,8 @@ public class HttpHandlerMapping implements ApplicationContextAware, Initializing
 
     private HttpExceptionHandler exceptionHandler;
 
+    private List<Resource> staticLocations;
+
     private PathMatcher pathMatcher = new AntPathMatcher();
 
     private final Map<RequestMappingInfo, HandlerMethod> handlerMethods = new LinkedHashMap<RequestMappingInfo, HandlerMethod>();
@@ -41,6 +51,7 @@ public class HttpHandlerMapping implements ApplicationContextAware, Initializing
 
     private final List<MappedInterceptor> mappedInterceptorList = new ArrayList<MappedInterceptor>();
 
+    @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;
     }
@@ -53,6 +64,12 @@ public class HttpHandlerMapping implements ApplicationContextAware, Initializing
         this.exceptionHandler = exceptionHandler;
     }
 
+    public void setStaticLocations(List<Resource> locations) {
+        Assert.notEmpty(locations, "Locations list must not be empty");
+        this.staticLocations = locations;
+    }
+
+    @Override
     public void afterPropertiesSet() throws Exception {
         initInterceptors();
         initHandlerMethods();
@@ -113,6 +130,7 @@ public class HttpHandlerMapping implements ApplicationContextAware, Initializing
         final Map<Method, RequestMappingInfo> mappings = new IdentityHashMap<Method, RequestMappingInfo>();
         final Class<?> userType = ClassUtils.getUserClass(handlerType);
         Set<Method> methods = selectMethods(userType, new ReflectionUtils.MethodFilter() {
+            @Override
             public boolean matches(Method method) {
                 RequestMappingInfo mapping = getMappingForMethod(method, userType);
                 if (mapping == null) {
@@ -155,6 +173,7 @@ public class HttpHandlerMapping implements ApplicationContextAware, Initializing
         for (Class<?> currentHandlerType : handlerTypes) {
             final Class<?> targetClass = (specificHandlerType != null ? specificHandlerType : currentHandlerType);
             ReflectionUtils.doWithMethods(currentHandlerType, new ReflectionUtils.MethodCallback() {
+                @Override
                 public void doWith(Method method) {
                     Method specificMethod = ClassUtils.getMostSpecificMethod(method, targetClass);
                     Method bridgedMethod = BridgeMethodResolver.findBridgedMethod(specificMethod);
@@ -252,12 +271,13 @@ public class HttpHandlerMapping implements ApplicationContextAware, Initializing
         return handlerMethod;
     }
 
+    @Override
     public HandlerExecutionChain getHandler(HttpRequest request) throws Exception {
         Object handler = getHandlerInternal(request);
         if (handler == null) {
             handler = defaultHandler;
         }
-        if (handler == null){
+        if (handler == null) {
             return null;
         }
         return getHandlerExecutionChain(handler, request);
@@ -350,6 +370,7 @@ public class HttpHandlerMapping implements ApplicationContextAware, Initializing
      */
     protected Comparator<RequestMappingInfo> getMappingComparator(final HttpRequest request) {
         return new Comparator<RequestMappingInfo>() {
+            @Override
             public int compare(RequestMappingInfo info1, RequestMappingInfo info2) {
                 return info1.compareTo(info2, request);
             }
@@ -464,6 +485,7 @@ public class HttpHandlerMapping implements ApplicationContextAware, Initializing
             this.comparator = comparator;
         }
 
+        @Override
         public int compare(Match match1, Match match2) {
             return this.comparator.compare(match1.mapping, match2.mapping);
         }

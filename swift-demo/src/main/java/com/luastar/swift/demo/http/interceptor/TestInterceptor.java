@@ -1,6 +1,6 @@
 package com.luastar.swift.demo.http.interceptor;
 
-import com.luastar.swift.http.route.HandlerInterceptor;
+import com.luastar.swift.http.route.interceptor.HandlerInterceptor;
 import com.luastar.swift.http.server.HttpRequest;
 import com.luastar.swift.http.server.HttpResponse;
 import org.slf4j.Logger;

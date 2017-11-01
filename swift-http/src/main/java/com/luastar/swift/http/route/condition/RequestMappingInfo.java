@@ -1,5 +1,6 @@
-package com.luastar.swift.http.route;
+package com.luastar.swift.http.route.condition;
 
+import com.luastar.swift.http.route.RequestMethod;
 import com.luastar.swift.http.server.HttpRequest;
 
 public final class RequestMappingInfo implements RequestCondition<RequestMappingInfo> {

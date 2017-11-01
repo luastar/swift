@@ -31,14 +31,10 @@ public class HttpRequest {
 
     private static final Logger logger = LoggerFactory.getLogger(HttpRequest.class);
 
-    private static final HttpDataFactory factory = new DefaultHttpDataFactory(DefaultHttpDataFactory.MINSIZE);
-
-    static {
-        DiskFileUpload.deleteOnExitTemporaryFile = true;
-        DiskFileUpload.baseDirectory = null;
-        DiskAttribute.deleteOnExitTemporaryFile = true;
-        DiskAttribute.baseDirectory = null;
-    }
+    /**
+     * 1M以内的文件存在内存里
+     */
+    private static final HttpDataFactory factory = new DefaultHttpDataFactory(1024 * 1024);
 
     private String requestId;
     private String socketIp;
@@ -51,7 +47,7 @@ public class HttpRequest {
     private Map<String, String> headerMap = new CaseInsensitiveMap<>();
     private Map<String, Cookie> cookieMap = Maps.newLinkedHashMap();
     private Map<String, String> parameterMap = Maps.newLinkedHashMap();
-    private Map<String, FileUpload> fileMap = Maps.newLinkedHashMap();
+    private Map<String, HttpFileUpload> fileMap = Maps.newLinkedHashMap();
     private Map<String, Object> attributeMap = Maps.newLinkedHashMap();
 
     public HttpRequest(FullHttpRequest request, String requestId, String socketIp) {
@@ -119,7 +115,7 @@ public class HttpRequest {
                         Attribute attribute = (Attribute) data;
                         parameterMap.put(attribute.getName(), attribute.getValue());
                     } else if (data.getHttpDataType() == InterfaceHttpData.HttpDataType.FileUpload) {
-                        FileUpload fileUpload = (FileUpload) data;
+                        HttpFileUpload fileUpload = new HttpFileUpload((FileUpload) data);
                         fileMap.put(fileUpload.getName(), fileUpload);
                     }
                 }
@@ -247,11 +243,11 @@ public class HttpRequest {
         return ObjUtils.toBoolean(getParameter(key), defaultValue);
     }
 
-    public Map<String, FileUpload> getFileMap() {
+    public Map<String, HttpFileUpload> getFileMap() {
         return fileMap;
     }
 
-    public FileUpload getFile(String key) {
+    public HttpFileUpload getFile(String key) {
         return fileMap.get(key);
     }
 
@@ -296,15 +292,7 @@ public class HttpRequest {
     }
 
     public <T> T bindObj(T obj) {
-        /*
-        try {
-            BeanUtils.populate(obj, parameterMap);
-        } catch (IllegalAccessException e) {
-            logger.error(e.getMessage(),e);
-        } catch (InvocationTargetException e) {
-            logger.error(e.getMessage(),e);
-        }
-        */
+        // BeanUtils.populate(obj, parameterMap);
         DataBinder dataBinder = new DataBinder(obj);
         dataBinder.registerCustomEditor(Date.class, new CustomDateEditor(DateUtils.NORMAL_FORMAT, true));
         dataBinder.bind(new MutablePropertyValues(parameterMap));

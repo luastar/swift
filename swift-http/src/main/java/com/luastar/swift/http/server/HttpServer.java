@@ -79,12 +79,10 @@ public class HttpServer {
                                 pipeline.addLast(sslContext.newHandler(ch.alloc()));
                             }
                             pipeline.addLast(new IdleStateHandler(0, 0, HttpConstant.SWIFT_TIMEOUT));
-                            // 服务端，对请求解码
-                            pipeline.addLast(new HttpRequestDecoder());
+                            // http 服务编解码
+                            pipeline.addLast(new HttpServerCodec());
                             // 聚合器，把多个消息转换为一个单一的FullHttpRequest或是FullHttpResponse
                             pipeline.addLast(new HttpObjectAggregator(HttpConstant.SWIFT_MAX_CONTENT_LENGTH));
-                            // 服务端，对响应编码
-                            pipeline.addLast(new HttpResponseEncoder());
                             // 块写入处理器
                             pipeline.addLast(new ChunkedWriteHandler());
                             // 压缩处理器

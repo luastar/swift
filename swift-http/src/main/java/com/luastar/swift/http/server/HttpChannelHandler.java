@@ -2,8 +2,8 @@ package com.luastar.swift.http.server;
 
 
 import com.luastar.swift.http.constant.HttpMediaType;
-import com.luastar.swift.http.route.HandlerExecutionChain;
-import com.luastar.swift.http.route.HandlerMethod;
+import com.luastar.swift.http.route.handlermapping.HandlerExecutionChain;
+import com.luastar.swift.http.route.handlermapping.HandlerMethod;
 import com.luastar.swift.http.route.HttpHandlerMapping;
 import com.luastar.swift.http.route.HttpRequestHandler;
 import io.netty.buffer.ByteBuf;
@@ -31,7 +31,7 @@ import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.util.Map;
 
-public class HttpChannelHandler extends SimpleChannelInboundHandler<HttpObject> {
+public class HttpChannelHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
 
     private static final Logger logger = LoggerFactory.getLogger(HttpChannelHandler.class);
 
@@ -53,15 +53,14 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<HttpObject> 
     }
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, HttpObject msg) throws Exception {
+    protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest fullHttpRequest) throws Exception {
         try {
-            if (!(msg instanceof FullHttpRequest)) {
+            if (!fullHttpRequest.decoderResult().isSuccess()) {
                 return;
             }
             // requestId
             String requestId = RandomStringUtils.random(20, true, true);
             MDC.put(MDC_KEY, requestId);
-            FullHttpRequest fullHttpRequest = (FullHttpRequest) msg;
             if (HttpUtil.is100ContinueExpected(fullHttpRequest)) {
                 ctx.write(new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE));
                 return;

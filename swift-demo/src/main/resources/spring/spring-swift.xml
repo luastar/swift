@@ -24,7 +24,7 @@
     </context:component-scan>
 
     <!-- http 拦截器 可以配置多个 -->
-    <bean class="com.luastar.swift.http.route.MappedInterceptor">
+    <bean class="com.luastar.swift.http.route.interceptor.MappedInterceptor">
         <property name="includePatterns">
             <list>
                 <value>/**/*</value>
