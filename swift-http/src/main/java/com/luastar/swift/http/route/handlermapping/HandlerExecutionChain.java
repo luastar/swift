@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -57,10 +58,10 @@ public class HandlerExecutionChain {
         this.interceptorList.add(interceptor);
     }
 
-    public void addInterceptorList(List<HandlerInterceptor> interceptorList) {
-        if (interceptorList != null) {
+    public void addInterceptors(HandlerInterceptor[] interceptors) {
+        if (interceptors != null) {
             initInterceptorList();
-            this.interceptorList.addAll(interceptorList);
+            this.interceptorList.addAll(Arrays.asList(interceptors));
         }
     }
 

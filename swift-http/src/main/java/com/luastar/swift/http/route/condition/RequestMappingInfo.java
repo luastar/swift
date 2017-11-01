@@ -21,12 +21,14 @@ public final class RequestMappingInfo implements RequestCondition<RequestMapping
         return this.methodsCondition;
     }
 
+    @Override
     public RequestMappingInfo combine(RequestMappingInfo other) {
         PatternsRequestCondition patterns = this.patternsCondition.combine(other.patternsCondition);
         RequestMethodsRequestCondition methods = this.methodsCondition.combine(other.methodsCondition);
         return new RequestMappingInfo(patterns, methods);
     }
 
+    @Override
     public RequestMappingInfo getMatchingCondition(HttpRequest request) {
         RequestMethodsRequestCondition methods = this.methodsCondition.getMatchingCondition(request);
         if (methods != null) {
@@ -41,6 +43,7 @@ public final class RequestMappingInfo implements RequestCondition<RequestMapping
         }
     }
 
+    @Override
     public int compareTo(RequestMappingInfo other, HttpRequest request) {
         int result = this.patternsCondition.compareTo(other.getPatternsCondition(), request);
         if (result != 0) {
@@ -55,6 +58,7 @@ public final class RequestMappingInfo implements RequestCondition<RequestMapping
         }
     }
 
+    @Override
     public boolean equals(Object obj) {
         if (this == obj) {
             return true;
@@ -66,6 +70,7 @@ public final class RequestMappingInfo implements RequestCondition<RequestMapping
         }
     }
 
+    @Override
     public int hashCode() {
         return this.patternsCondition.hashCode() * 31 + this.methodsCondition.hashCode();
     }

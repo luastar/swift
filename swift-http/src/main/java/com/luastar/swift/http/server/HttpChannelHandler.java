@@ -2,10 +2,10 @@ package com.luastar.swift.http.server;
 
 
 import com.luastar.swift.http.constant.HttpMediaType;
-import com.luastar.swift.http.route.handlermapping.HandlerExecutionChain;
-import com.luastar.swift.http.route.handlermapping.HandlerMethod;
 import com.luastar.swift.http.route.HttpHandlerMapping;
 import com.luastar.swift.http.route.HttpRequestHandler;
+import com.luastar.swift.http.route.handlermapping.HandlerExecutionChain;
+import com.luastar.swift.http.route.handlermapping.HandlerMethod;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelFutureListener;
@@ -112,7 +112,7 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<FullHttpRequ
             // 返回处理结果
             handleHttpResponse(ctx);
         } finally {
-            reset();
+            destroy();
         }
     }
 
@@ -184,10 +184,9 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<FullHttpRequ
     }
 
     /**
-     * 重置变量
+     * 销毁对象
      */
-    protected void reset() {
-        // 清空swiftRequest
+    protected void destroy() {
         if (httpRequest != null) {
             httpRequest.destroy();
             httpRequest = null;
@@ -197,13 +196,6 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<FullHttpRequ
             httpResponse = null;
         }
         MDC.remove(MDC_KEY);
-    }
-
-    @Override
-    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        if (httpRequest != null) {
-            httpRequest.cleanFiles();
-        }
     }
 
     @Override

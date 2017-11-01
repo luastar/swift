@@ -299,12 +299,6 @@ public class HttpRequest {
         return obj;
     }
 
-    public void cleanFiles() {
-        if (postRequestDecoder != null) {
-            postRequestDecoder.cleanFiles();
-        }
-    }
-
     public void destroy() {
         if (postRequestDecoder != null) {
             postRequestDecoder.destroy();

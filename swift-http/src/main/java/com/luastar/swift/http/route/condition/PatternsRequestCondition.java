@@ -105,6 +105,7 @@ public final class PatternsRequestCondition extends AbstractRequestCondition<Pat
         return " || ";
     }
 
+    @Override
     public PatternsRequestCondition combine(PatternsRequestCondition other) {
         Set<String> result = new LinkedHashSet<String>();
         if (!this.patterns.isEmpty() && !other.patterns.isEmpty()) {
@@ -123,6 +124,7 @@ public final class PatternsRequestCondition extends AbstractRequestCondition<Pat
         return new PatternsRequestCondition(result, this.pathMatcher, this.useSuffixPatternMatch, this.useTrailingSlashMatch, this.fileExtensions);
     }
 
+    @Override
     public PatternsRequestCondition getMatchingCondition(HttpRequest request) {
         if (this.patterns.isEmpty()) {
             return this;
@@ -168,6 +170,7 @@ public final class PatternsRequestCondition extends AbstractRequestCondition<Pat
         return null;
     }
 
+    @Override
     public int compareTo(PatternsRequestCondition other, HttpRequest request) {
         String lookupPath = request.getLookupPath();
         Comparator<String> patternComparator = this.pathMatcher.getPatternComparator(lookupPath);

@@ -32,10 +32,12 @@ public class RequestMethodsRequestCondition extends AbstractRequestCondition<Req
         return this.methods;
     }
 
+    @Override
     protected Collection<RequestMethod> getContent() {
         return this.methods;
     }
 
+    @Override
     protected String getToStringInfix() {
         return " || ";
     }
@@ -72,6 +74,7 @@ public class RequestMethodsRequestCondition extends AbstractRequestCondition<Req
         }
     }
 
+    @Override
     public int compareTo(RequestMethodsRequestCondition other, HttpRequest request) {
         return other.methods.size() - this.methods.size();
     }
