@@ -100,7 +100,7 @@ public class RequestMappingHandlerMapping extends AbstractHandlerMethodMapping<R
         if (patternMatches.isEmpty()) {
             return null;
         } else if (patternAndMethodMatches.isEmpty() && !allowedMethods.isEmpty()) {
-            logger.warn("Http Request Method Not Supported : method={}, allowedMethods={}", request.getMethod(), JsonUtils.toJson(allowedMethods));
+            logger.error("Http Request Method Not Supported : method={}, allowedMethods={}", request.getMethod(), JsonUtils.toJson(allowedMethods));
         }
         return null;
     }

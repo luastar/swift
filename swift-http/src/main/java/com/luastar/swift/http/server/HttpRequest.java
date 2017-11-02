@@ -12,7 +12,6 @@ import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
 import io.netty.handler.codec.http.multipart.*;
 import io.netty.util.CharsetUtil;
-import org.apache.commons.collections4.map.CaseInsensitiveMap;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +43,7 @@ public class HttpRequest {
     private QueryStringDecoder queryStringDecoder;
     private HttpPostRequestDecoder postRequestDecoder;
 
-    private Map<String, String> headerMap = new CaseInsensitiveMap<>();
+    private HttpHeaders headers;
     private Map<String, Cookie> cookieMap = Maps.newLinkedHashMap();
     private Map<String, String> parameterMap = Maps.newLinkedHashMap();
     private Map<String, HttpFileUpload> fileMap = Maps.newLinkedHashMap();
@@ -60,10 +59,8 @@ public class HttpRequest {
     }
 
     protected void initRequestHeader() {
-        for (Map.Entry<String, String> entry : request.headers()) {
-            headerMap.put(entry.getKey(), entry.getValue());
-        }
-        String cookieString = request.headers().get(HttpHeaderNames.COOKIE);
+        this.headers = request.headers();
+        String cookieString = this.headers.get(HttpHeaderNames.COOKIE);
         if (StringUtils.isNotEmpty(cookieString)) {
             Set<Cookie> cookieSet = ServerCookieDecoder.STRICT.decode(cookieString);
             for (Cookie cookie : cookieSet) {
@@ -128,7 +125,7 @@ public class HttpRequest {
     public void logRequest() {
         logger.info("request ip : {}, socketIp : {}", getIp(), getSocketIp());
         logger.info("request method : {}, uri : {}", getMethod(), getUri());
-        logger.info("request headers : {}", JSON.toJSONString(getHeaderMap()));
+        logger.info("request headers : {}", JSON.toJSONString(getHeaders()));
         String body = getBody();
         if (StringUtils.isNotEmpty(body)) {
             if (body.length() <= HttpConstant.SWIFT_MAX_LOG_LENGTH) {
@@ -171,16 +168,20 @@ public class HttpRequest {
         return request;
     }
 
-    public Map<String, String> getHeaderMap() {
-        return headerMap;
+    public HttpHeaders getHeaders() {
+        return this.headers;
     }
 
     public String getHeader(String key) {
-        return headerMap.get(key);
+        return this.headers.get(key);
     }
 
-    public void setHeader(String key, String value) {
-        headerMap.put(key, value);
+    public void setHeader(String key, Object value) {
+        this.headers.set(key, value);
+    }
+
+    public void addHeader(String key, Object value) {
+        this.headers.add(key, value);
     }
 
     public Map<String, Cookie> getCookieMap() {

@@ -7,9 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactoryUtils;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
-import org.springframework.context.ApplicationContextException;
+import org.springframework.context.support.ApplicationObjectSupport;
 import org.springframework.core.Ordered;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.Assert;
@@ -23,11 +21,9 @@ import java.util.Map;
 /**
  *
  */
-public abstract class AbstractHandlerMapping implements ApplicationContextAware, HandlerMapping, Ordered {
+public abstract class AbstractHandlerMapping extends ApplicationObjectSupport implements HandlerMapping, Ordered {
 
     protected final Logger logger = LoggerFactory.getLogger(getClass());
-
-    private ApplicationContext applicationContext;
 
     private int order = Integer.MAX_VALUE;  // default: same as non-Ordered
 
@@ -41,42 +37,10 @@ public abstract class AbstractHandlerMapping implements ApplicationContextAware,
 
     private final List<MappedInterceptor> mappedInterceptors = new ArrayList<MappedInterceptor>();
 
-    public final ApplicationContext getApplicationContext() throws IllegalStateException {
-        return this.applicationContext;
-    }
-
-    @Override
-    public final void setApplicationContext(ApplicationContext context) throws BeansException {
-        this.applicationContext = context;
-        initApplicationContext(context);
-    }
-
-    /**
-     * Subclasses can override this for custom initialization behavior.
-     * Gets called by {@code setApplicationContext} after setting the context instance.
-     * <p>Note: Does </i>not</i> get called on reinitialization of the context
-     * but rather just on first initialization of this object's context reference.
-     * <p>The default implementation calls the overloaded {@link #initApplicationContext()}
-     * method without ApplicationContext reference.
-     *
-     * @param context the containing ApplicationContext
-     * @throws ApplicationContextException in case of initialization errors
-     * @throws BeansException              if thrown by ApplicationContext methods
-     * @see #setApplicationContext
-     */
-    protected void initApplicationContext(ApplicationContext context) throws BeansException {
-        initApplicationContext();
-    }
-
-    protected void initApplicationContext() throws BeansException {
-        extendInterceptors(this.interceptors);
-        detectMappedInterceptors(this.mappedInterceptors);
-        initInterceptors();
-    }
-
     /**
      * Specify the order value for this HandlerMapping bean.
      * <p>Default value is {@code Integer.MAX_VALUE}, meaning that it's non-ordered.
+     *
      * @see org.springframework.core.Ordered#getOrder()
      */
     public final void setOrder(int order) {
@@ -115,6 +79,13 @@ public abstract class AbstractHandlerMapping implements ApplicationContextAware,
      */
     public void setInterceptors(Object[] interceptors) {
         this.interceptors.addAll(Arrays.asList(interceptors));
+    }
+
+    @Override
+    protected void initApplicationContext() throws BeansException {
+        extendInterceptors(this.interceptors);
+        detectMappedInterceptors(this.mappedInterceptors);
+        initInterceptors();
     }
 
     /**

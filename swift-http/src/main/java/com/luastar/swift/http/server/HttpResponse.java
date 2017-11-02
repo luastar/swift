@@ -1,21 +1,20 @@
 package com.luastar.swift.http.server;
 
 import com.alibaba.fastjson.JSON;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import com.luastar.swift.http.constant.HttpConstant;
 import com.luastar.swift.http.constant.HttpMediaType;
-import io.netty.handler.codec.http.HttpHeaderNames;
-import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.cookie.Cookie;
+import io.netty.handler.codec.http.cookie.ServerCookieEncoder;
+import io.netty.util.CharsetUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.io.Resource;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.util.Map;
-import java.util.Set;
 
 public class HttpResponse {
 
@@ -23,23 +22,19 @@ public class HttpResponse {
 
     private String requestId;
 
-    private String result;
+    private FullHttpResponse fullHttpResponse;
 
-    private File staticFile;
+    private String result;
 
     private ByteArrayOutputStream outputStream;
 
-    private Map<String, String> headerMap;
+    private Resource resource;
 
-    private Set<Cookie> cookieSet;
-
-    private HttpResponseStatus status;
+    private long contentLength = 0;
 
     public HttpResponse(String requestId) {
         this.requestId = requestId;
-        this.status = HttpResponseStatus.OK;
-        this.headerMap = Maps.newLinkedHashMap();
-        this.cookieSet = Sets.newLinkedHashSet();
+        this.fullHttpResponse = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
         setResponseContentTypeJson();
     }
 
@@ -62,7 +57,7 @@ public class HttpResponse {
 
     public void logResponse() {
         logger.info("response status: {}", getStatus());
-        logger.info("response headers : {}, cookie : {}", JSON.toJSONString(getHeaderMap()), JSON.toJSONString(getCookieSet()));
+        logger.info("response headers : {}", JSON.toJSONString(getHeaders()));
         String body = getResult();
         if (StringUtils.isEmpty(body)) {
             if (getOutputStream() == null) {
@@ -79,20 +74,40 @@ public class HttpResponse {
         }
     }
 
-    public String getHeader(String key) {
-        return headerMap.get(key);
-    }
-
-    public void setHeader(String key, String value) {
-        headerMap.put(key, value);
-    }
-
     public String getRequestId() {
         return requestId;
     }
 
     public void setRequestId(String requestId) {
         this.requestId = requestId;
+    }
+
+    public HttpResponseStatus getStatus() {
+        return fullHttpResponse.status();
+    }
+
+    public void setStatus(HttpResponseStatus status) {
+        fullHttpResponse.setStatus(status);
+    }
+
+    public HttpHeaders getHeaders() {
+        return fullHttpResponse.headers();
+    }
+
+    public String getHeader(String key) {
+        return fullHttpResponse.headers().get(key);
+    }
+
+    public void setHeader(String key, Object value) {
+        fullHttpResponse.headers().set(key, value);
+    }
+
+    public void addHeader(String key, Object value) {
+        fullHttpResponse.headers().add(key, value);
+    }
+
+    public void addCookie(Cookie cookie) {
+        fullHttpResponse.headers().add(HttpHeaderNames.SET_COOKIE, ServerCookieEncoder.STRICT.encode(cookie));
     }
 
     public String getResult() {
@@ -103,14 +118,6 @@ public class HttpResponse {
         this.result = result;
     }
 
-    public File getStaticFile() {
-        return staticFile;
-    }
-
-    public void setStaticFile(File staticFile) {
-        this.staticFile = staticFile;
-    }
-
     public ByteArrayOutputStream getOutputStream() {
         return outputStream;
     }
@@ -119,32 +126,30 @@ public class HttpResponse {
         this.outputStream = outputStream;
     }
 
-    public Map<String, String> getHeaderMap() {
-        return headerMap;
+    public Resource getResource() {
+        return resource;
     }
 
-    public void setHeaderMap(Map<String, String> headerMap) {
-        this.headerMap = headerMap;
+    public void setResource(Resource resource) {
+        this.resource = resource;
     }
 
-    public Set<Cookie> getCookieSet() {
-        return cookieSet;
+    public long getContentLength() {
+        return contentLength;
     }
 
-    public void setCookieSet(Set<Cookie> cookieSet) {
-        this.cookieSet = cookieSet;
-    }
-
-    public void addCookie(Cookie cookie) {
-        this.cookieSet.add(cookie);
-    }
-
-    public HttpResponseStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(HttpResponseStatus status) {
-        this.status = status;
+    public FullHttpResponse getFullHttpResponse() {
+        if (getOutputStream() != null) {
+            // 此处使用copiedBuffer会导致excel等文档有问题
+            ByteBuf buf = Unpooled.wrappedBuffer(getOutputStream().toByteArray());
+            fullHttpResponse = fullHttpResponse.replace(buf);
+            this.contentLength = buf.readableBytes();
+        } else if (StringUtils.isNotEmpty(getResult())) {
+            ByteBuf buf = Unpooled.copiedBuffer(getResult(), CharsetUtil.UTF_8);
+            fullHttpResponse = fullHttpResponse.replace(buf);
+            this.contentLength = buf.readableBytes();
+        }
+        return fullHttpResponse;
     }
 
 }

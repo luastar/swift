@@ -12,15 +12,11 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.*;
-import io.netty.handler.codec.http.cookie.Cookie;
-import io.netty.handler.codec.http.cookie.ServerCookieEncoder;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.util.CharsetUtil;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -29,15 +25,12 @@ import org.springframework.util.ReflectionUtils;
 import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
-import java.util.Map;
 
 public class HttpChannelHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
 
     private static final Logger logger = LoggerFactory.getLogger(HttpChannelHandler.class);
 
     private static final String MDC_KEY = "requestId";
-
-    private static final String URI_FAVICON_ICO = "/favicon.ico";
 
     private final HttpHandlerMapping handlerMapping;
 
@@ -63,11 +56,6 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<FullHttpRequ
             MDC.put(MDC_KEY, requestId);
             if (HttpUtil.is100ContinueExpected(fullHttpRequest)) {
                 ctx.write(new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE));
-                return;
-            }
-            if (URI_FAVICON_ICO.equals(fullHttpRequest.uri())) {
-                FullHttpResponse fullHttpResponse = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.NOT_FOUND);
-                ctx.writeAndFlush(fullHttpResponse).addListener(ChannelFutureListener.CLOSE);
                 return;
             }
             // 初始化HttpRequest
@@ -108,7 +96,9 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<FullHttpRequ
             handleHttpResponse(ctx);
         } catch (Exception exception) {
             // 处理异常
-            handlerMapping.exceptionHandler(httpRequest, httpResponse, exception);
+            if (handlerMapping.getExceptionHandler() != null) {
+                handlerMapping.getExceptionHandler().exceptionHandle(httpRequest, httpResponse, exception);
+            }
             // 返回处理结果
             handleHttpResponse(ctx);
         } finally {
@@ -139,34 +129,7 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<FullHttpRequ
         // 请求体日志
         httpResponse.logResponse();
         // 返回值处理
-        FullHttpResponse response = null;
-        int contentLength = 0;
-        if (StringUtils.isEmpty(httpResponse.getResult())) {
-            // 输出流
-            if (httpResponse.getOutputStream() == null) {
-                response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, httpResponse.getStatus());
-            } else {
-                // 使用copiedBuffer会导致excel等文档打不开
-                ByteBuf buf = Unpooled.wrappedBuffer(httpResponse.getOutputStream().toByteArray());
-                response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, httpResponse.getStatus(), buf);
-                contentLength = buf.readableBytes();
-            }
-        } else {
-            // 输出结果
-            ByteBuf buf = Unpooled.copiedBuffer(httpResponse.getResult(), CharsetUtil.UTF_8);
-            response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, httpResponse.getStatus(), buf);
-            contentLength = buf.readableBytes();
-        }
-        // 处理返回头信息
-        for (Map.Entry<String, String> resHeader : httpResponse.getHeaderMap().entrySet()) {
-            response.headers().add(resHeader.getKey(), resHeader.getValue());
-        }
-        // 处理cookie
-        if (CollectionUtils.isNotEmpty(httpResponse.getCookieSet())) {
-            for (Cookie cookie : httpResponse.getCookieSet()) {
-                response.headers().add(HttpHeaderNames.SET_COOKIE, ServerCookieEncoder.STRICT.encode(cookie));
-            }
-        }
+        FullHttpResponse fullHttpResponse = httpResponse.getFullHttpResponse();
         // 输出返回结果
         /*
         boolean keepAlive = HttpUtil.isKeepAlive(httpRequest.getFullHttpRequest());
@@ -179,8 +142,8 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<FullHttpRequ
         }
         */
         // 不处理keepAlive，直接返回结果
-        HttpUtil.setContentLength(response, contentLength);
-        ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
+        HttpUtil.setContentLength(fullHttpResponse, httpResponse.getContentLength());
+        ctx.writeAndFlush(fullHttpResponse).addListener(ChannelFutureListener.CLOSE);
     }
 
     /**
