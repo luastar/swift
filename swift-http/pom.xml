@@ -12,7 +12,7 @@
     <artifactId>swift-http</artifactId>
 
     <properties>
-        <netty.version>4.1.4.Final</netty.version>
+        <netty.version>4.1.16.Final</netty.version>
     </properties>
 
     <dependencies>

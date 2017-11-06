@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<beans xmlns="http://www.springframework.org/schema/beans"
-       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:context="http://www.springframework.org/schema/context"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans
-       http://www.springframework.org/schema/beans/spring-beans.xsd
-       http://www.springframework.org/schema/context
-       http://www.springframework.org/schema/context/spring-context.xsd">
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd"
+       default-lazy-init="true">
 
     <!-- 配置文件 -->
     <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
@@ -18,10 +18,13 @@
     </bean>
 
     <!-- 服务发现 -->
-    <context:component-scan base-package="com.luastar.swift.demo" use-default-filters="false">
+    <context:component-scan base-package="com.luastar.swift.demo" use-default-filters="true">
         <context:include-filter type="annotation" expression="com.luastar.swift.http.server.HttpService"/>
         <context:include-filter type="annotation" expression="com.luastar.swift.rpc.server.RpcService"/>
     </context:component-scan>
+
+    <!-- 服务发现 -->
+    <!--<context:component-scan base-package="com.luastar.swift.demo"/>-->
 
     <!-- http 拦截器 可以配置多个 -->
     <bean class="com.luastar.swift.http.route.interceptor.MappedInterceptor">
@@ -42,10 +45,18 @@
 
     <!-- http 路由 -->
     <bean class="com.luastar.swift.http.route.HttpHandlerMapping">
+        <property name="simpleUrlHandlerMappingList">
+            <bean class="com.luastar.swift.http.route.handlermapping.SimpleUrlHandlerMapping">
+                <property name="mapping" value="/static/**"/>
+                <property name="locations" value="classpath:/assets/"/>
+            </bean>
+        </property>
         <property name="exceptionHandler">
             <bean class="com.luastar.swift.demo.http.handler.DefaultHttpExceptionHandler"/>
         </property>
     </bean>
+
+    <bean id="scheduler" class="org.springframework.scheduling.quartz.SchedulerFactoryBean"/>
 
     <!-- Reference注解装配 -->
     <bean class="com.luastar.swift.rpc.client.RpcReferenceBean"/>

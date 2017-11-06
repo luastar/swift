@@ -44,6 +44,12 @@
                 </exclusion>
             </exclusions>
         </dependency>
+        <!-- quartz -->
+        <dependency>
+            <groupId>org.quartz-scheduler</groupId>
+            <artifactId>quartz</artifactId>
+            <version>2.3.0</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -84,8 +90,8 @@
                 <directory>src/main/resources</directory>
                 <includes>
                     <include>spring/*</include>
+                    <include>assets/**/*</include>
                     <include>*.xml</include>
-                    <include>log4j.properties</include>
                 </includes>
                 <filtering>false</filtering>
             </resource>
@@ -94,6 +100,7 @@
                 <directory>src/main/resources</directory>
                 <includes>
                     <include>props/*</include>
+                    <include>log4j.properties</include>
                 </includes>
                 <filtering>true</filtering>
             </resource>

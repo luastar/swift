@@ -127,7 +127,7 @@ public class AbstractUrlHandlerMapping extends AbstractHandlerMapping {
         Comparator<String> patternComparator = getPathMatcher().getPatternComparator(urlPath);
         if (!matchingPatterns.isEmpty()) {
             Collections.sort(matchingPatterns, patternComparator);
-            logger.info("Matching patterns for request [{}] are {}", urlPath, matchingPatterns);
+            logger.debug("Matching patterns for request [{}] are {}", urlPath, matchingPatterns);
             bestPatternMatch = matchingPatterns.get(0);
         }
         if (bestPatternMatch != null) {
@@ -149,7 +149,7 @@ public class AbstractUrlHandlerMapping extends AbstractHandlerMapping {
                     uriTemplateVariables.putAll(vars);
                 }
             }
-            logger.info("URI Template variables for request [{}] are {}", urlPath, uriTemplateVariables);
+            logger.debug("URI Template variables for request [{}] are {}", urlPath, uriTemplateVariables);
             return buildPathExposingHandler(handler, bestPatternMatch, pathWithinMapping, uriTemplateVariables);
         }
         // No handler found...

@@ -14,6 +14,7 @@ import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
+import io.netty.handler.ssl.SslProvider;
 import io.netty.handler.ssl.util.SelfSignedCertificate;
 import io.netty.handler.stream.ChunkedWriteHandler;
 import io.netty.handler.timeout.IdleStateHandler;
@@ -75,7 +76,7 @@ public class HttpServer {
                             ChannelPipeline pipeline = ch.pipeline();
                             if (ssl) {
                                 SelfSignedCertificate ssc = new SelfSignedCertificate();
-                                SslContext sslContext = SslContextBuilder.forServer(ssc.certificate(), ssc.privateKey()).build();
+                                SslContext sslContext = SslContextBuilder.forServer(ssc.certificate(), ssc.privateKey()).sslProvider(SslProvider.JDK).build();
                                 pipeline.addLast(sslContext.newHandler(ch.alloc()));
                             }
                             pipeline.addLast(new IdleStateHandler(0, 0, HttpConstant.SWIFT_TIMEOUT));

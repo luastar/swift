@@ -172,15 +172,15 @@ public class HttpRequest {
         return this.headers;
     }
 
-    public String getHeader(String key) {
+    public String getHeader(CharSequence key) {
         return this.headers.get(key);
     }
 
-    public void setHeader(String key, Object value) {
+    public void setHeader(CharSequence key, Object value) {
         this.headers.set(key, value);
     }
 
-    public void addHeader(String key, Object value) {
+    public void addHeader(CharSequence key, Object value) {
         this.headers.add(key, value);
     }
 

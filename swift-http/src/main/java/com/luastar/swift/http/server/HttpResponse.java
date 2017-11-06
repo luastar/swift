@@ -12,7 +12,6 @@ import io.netty.util.CharsetUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.io.Resource;
 
 import java.io.ByteArrayOutputStream;
 
@@ -28,10 +27,6 @@ public class HttpResponse {
 
     private ByteArrayOutputStream outputStream;
 
-    private Resource resource;
-
-    private long contentLength = 0;
-
     public HttpResponse(String requestId) {
         this.requestId = requestId;
         this.fullHttpResponse = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
@@ -39,20 +34,20 @@ public class HttpResponse {
     }
 
     public void setResponseContentTypePlain() {
-        setHeader(HttpHeaderNames.CONTENT_TYPE.toString(), HttpMediaType.TEXT_PLAIN_UTF_8);
+        setHeader(HttpHeaderNames.CONTENT_TYPE, HttpMediaType.TEXT_PLAIN_UTF_8);
     }
 
     public void setResponseContentTypeJson() {
-        setHeader(HttpHeaderNames.CONTENT_TYPE.toString(), HttpMediaType.JSON_UTF_8);
+        setHeader(HttpHeaderNames.CONTENT_TYPE, HttpMediaType.JSON_UTF_8);
     }
 
     public void setResponseContentTypeHtml() {
-        setHeader(HttpHeaderNames.CONTENT_TYPE.toString(), HttpMediaType.TEXT_HTML_UTF_8);
+        setHeader(HttpHeaderNames.CONTENT_TYPE, HttpMediaType.TEXT_HTML_UTF_8);
     }
 
     public void setResponseContentTypeStream(String fileName) {
-        setHeader(HttpHeaderNames.CONTENT_TYPE.toString(), HttpMediaType.APPLICATION_OCTET_STREAM_UTF_8);
-        setHeader(HttpHeaderNames.CONTENT_DISPOSITION.toString(), "attachment;filename=" + fileName);
+        setHeader(HttpHeaderNames.CONTENT_TYPE, HttpMediaType.APPLICATION_OCTET_STREAM_UTF_8);
+        setHeader(HttpHeaderNames.CONTENT_DISPOSITION, "attachment;filename=" + fileName);
     }
 
     public void logResponse() {
@@ -94,20 +89,25 @@ public class HttpResponse {
         return fullHttpResponse.headers();
     }
 
-    public String getHeader(String key) {
+    public String getHeader(CharSequence key) {
         return fullHttpResponse.headers().get(key);
     }
 
-    public void setHeader(String key, Object value) {
+    public void setHeader(CharSequence key, Object value) {
         fullHttpResponse.headers().set(key, value);
     }
 
-    public void addHeader(String key, Object value) {
+    public void addHeader(CharSequence key, Object value) {
         fullHttpResponse.headers().add(key, value);
     }
 
     public void addCookie(Cookie cookie) {
-        fullHttpResponse.headers().add(HttpHeaderNames.SET_COOKIE, ServerCookieEncoder.STRICT.encode(cookie));
+        addHeader(HttpHeaderNames.SET_COOKIE, ServerCookieEncoder.STRICT.encode(cookie));
+    }
+
+    public void sendRedirect(String uri) {
+        setStatus(HttpResponseStatus.FOUND);
+        setHeader(HttpHeaderNames.LOCATION, uri);
     }
 
     public String getResult() {
@@ -126,29 +126,19 @@ public class HttpResponse {
         this.outputStream = outputStream;
     }
 
-    public Resource getResource() {
-        return resource;
-    }
-
-    public void setResource(Resource resource) {
-        this.resource = resource;
-    }
-
-    public long getContentLength() {
-        return contentLength;
-    }
-
     public FullHttpResponse getFullHttpResponse() {
+        long contentLength = 0;
         if (getOutputStream() != null) {
             // 此处使用copiedBuffer会导致excel等文档有问题
             ByteBuf buf = Unpooled.wrappedBuffer(getOutputStream().toByteArray());
             fullHttpResponse = fullHttpResponse.replace(buf);
-            this.contentLength = buf.readableBytes();
+            contentLength = buf.readableBytes();
         } else if (StringUtils.isNotEmpty(getResult())) {
             ByteBuf buf = Unpooled.copiedBuffer(getResult(), CharsetUtil.UTF_8);
             fullHttpResponse = fullHttpResponse.replace(buf);
-            this.contentLength = buf.readableBytes();
+            contentLength = buf.readableBytes();
         }
+        HttpUtil.setContentLength(fullHttpResponse, contentLength);
         return fullHttpResponse;
     }
 

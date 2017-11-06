@@ -1,51 +1,49 @@
 package com.luastar.swift.http.route;
 
 
-import com.google.common.collect.Lists;
+import com.luastar.swift.base.utils.CollectionUtils;
 import com.luastar.swift.http.route.handlermapping.HandlerExecutionChain;
 import com.luastar.swift.http.route.handlermapping.HandlerMapping;
 import com.luastar.swift.http.route.handlermapping.RequestMappingHandlerMapping;
 import com.luastar.swift.http.route.handlermapping.SimpleUrlHandlerMapping;
 import com.luastar.swift.http.server.HttpRequest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
 /**
  * 参考 spring mvc 实现的路由处理
  */
-public class HttpHandlerMapping {
-
-    protected final Logger logger = LoggerFactory.getLogger(getClass());
-
-    private List<HandlerMapping> handlerMappings;
+public class HttpHandlerMapping extends RequestMappingHandlerMapping {
 
     private HttpExceptionHandler exceptionHandler;
 
-    public HttpHandlerMapping() {
-        handlerMappings = Lists.newArrayList();
-        handlerMappings.add(new RequestMappingHandlerMapping());
-        handlerMappings.add(new SimpleUrlHandlerMapping());
+    private List<SimpleUrlHandlerMapping> simpleUrlHandlerMappingList;
+
+    public void setExceptionHandler(HttpExceptionHandler exceptionHandler) {
+        this.exceptionHandler = exceptionHandler;
     }
 
     public HttpExceptionHandler getExceptionHandler() {
         return exceptionHandler;
     }
 
-    public void setExceptionHandler(HttpExceptionHandler exceptionHandler) {
-        this.exceptionHandler = exceptionHandler;
+    public void setSimpleUrlHandlerMappingList(List<SimpleUrlHandlerMapping> simpleUrlHandlerMappingList) {
+        this.simpleUrlHandlerMappingList = simpleUrlHandlerMappingList;
     }
 
-    /**
-     * @param request
-     * @return
-     */
-    public HandlerExecutionChain getHandler(HttpRequest request) throws Exception {
-        for (HandlerMapping hm : this.handlerMappings) {
-            HandlerExecutionChain handler = hm.getHandler(request);
-            if (handler != null) {
-                return handler;
+    public HandlerExecutionChain getActualHandler(HttpRequest request) throws Exception {
+        // 先使用默认方法匹配
+        HandlerExecutionChain handler = getHandler(request);
+        if (handler != null) {
+            return handler;
+        }
+        // 再使用静态资源匹配
+        if (CollectionUtils.isNotEmpty(simpleUrlHandlerMappingList)) {
+            for (HandlerMapping handlerMapping : this.simpleUrlHandlerMappingList) {
+                handler = handlerMapping.getHandler(request);
+                if (handler != null) {
+                    return handler;
+                }
             }
         }
         return null;

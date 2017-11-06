@@ -1,6 +1,5 @@
 package com.luastar.swift.http.route.handlermapping;
 
-import com.luastar.swift.base.json.JsonUtils;
 import com.luastar.swift.http.constant.HttpConstant;
 import com.luastar.swift.http.route.RequestMethod;
 import com.luastar.swift.http.route.condition.PatternsRequestCondition;
@@ -100,7 +99,7 @@ public class RequestMappingHandlerMapping extends AbstractHandlerMethodMapping<R
         if (patternMatches.isEmpty()) {
             return null;
         } else if (patternAndMethodMatches.isEmpty() && !allowedMethods.isEmpty()) {
-            logger.error("Http Request Method Not Supported : method={}, allowedMethods={}", request.getMethod(), JsonUtils.toJson(allowedMethods));
+            logger.warn("HttpRequestMethodNotSupportedException : method={}, allowedMethods={}", request.getMethod(), allowedMethods);
         }
         return null;
     }

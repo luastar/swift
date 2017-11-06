@@ -1,31 +1,31 @@
 package com.luastar.swift.http.route.handlermapping;
 
+import com.luastar.swift.http.route.resource.CacheControl;
+import com.luastar.swift.http.route.resource.ResourceHttpRequestHandler;
 import org.springframework.beans.BeansException;
-import org.springframework.util.CollectionUtils;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.core.io.Resource;
+import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
 /**
  *
  */
-public class SimpleUrlHandlerMapping extends AbstractUrlHandlerMapping {
+public class SimpleUrlHandlerMapping extends AbstractUrlHandlerMapping implements InitializingBean {
 
     private final Map<String, Object> urlMap = new HashMap<String, Object>();
 
     /**
-     * Map URL paths to handler bean names.
-     * This is the typical way of configuring this HandlerMapping.
-     * <p>Supports direct URL matches and Ant-style pattern matches. For syntax
-     * details, see the {@link org.springframework.util.AntPathMatcher} javadoc.
-     *
-     * @param mappings properties with URLs as keys and bean names as values
-     * @see #setUrlMap
+     * 新增的映射配置
      */
-    public void setMappings(Properties mappings) {
-        CollectionUtils.mergePropertiesIntoMap(mappings, this.urlMap);
-    }
+    private String mapping;
+    private String locations;
+    private CacheControl cacheControl;
 
     /**
      * Set a Map with URL paths as keys and handler beans (or handler bean names)
@@ -34,7 +34,6 @@ public class SimpleUrlHandlerMapping extends AbstractUrlHandlerMapping {
      * details, see the {@link org.springframework.util.AntPathMatcher} javadoc.
      *
      * @param urlMap map with URLs as keys and beans as values
-     * @see #setMappings
      */
     public void setUrlMap(Map<String, ?> urlMap) {
         this.urlMap.putAll(urlMap);
@@ -51,14 +50,35 @@ public class SimpleUrlHandlerMapping extends AbstractUrlHandlerMapping {
         return this.urlMap;
     }
 
+    public void setMapping(String mapping) {
+        this.mapping = mapping;
+    }
 
-    /**
-     * Calls the {@link #registerHandlers} method in addition to the
-     * superclass's initialization.
-     */
+    public void setLocations(String locations) {
+        this.locations = locations;
+    }
+
+    public void setCacheControl(CacheControl cacheControl) {
+        this.cacheControl = cacheControl;
+    }
+
     @Override
-    public void initApplicationContext() throws BeansException {
-        super.initApplicationContext();
+    public void afterPropertiesSet() throws Exception {
+        if (!StringUtils.isEmpty(this.mapping) && !StringUtils.isEmpty(this.locations)) {
+            ResourceHttpRequestHandler handler = new ResourceHttpRequestHandler();
+            String[] locationAry = StringUtils.commaDelimitedListToStringArray(this.locations);
+            List<Resource> locations = new ArrayList<Resource>();
+            for (String location : locationAry) {
+                locations.add(getApplicationContext().getResource(location));
+            }
+            handler.setLocations(locations);
+            if (this.cacheControl != null) {
+                handler.setCacheControl(this.cacheControl);
+            } else {
+                handler.setCacheControl(CacheControl.maxAge(60, TimeUnit.SECONDS).cachePrivate());
+            }
+            urlMap.put(this.mapping, handler);
+        }
         registerHandlers(this.urlMap);
     }
 
@@ -72,20 +92,20 @@ public class SimpleUrlHandlerMapping extends AbstractUrlHandlerMapping {
     protected void registerHandlers(Map<String, Object> urlMap) throws BeansException {
         if (urlMap.isEmpty()) {
             logger.warn("Neither 'urlMap' nor 'mappings' set on SimpleUrlHandlerMapping");
-        } else {
-            for (Map.Entry<String, Object> entry : urlMap.entrySet()) {
-                String url = entry.getKey();
-                Object handler = entry.getValue();
-                // Prepend with slash if not already present.
-                if (!url.startsWith("/")) {
-                    url = "/" + url;
-                }
-                // Remove whitespace from handler bean name.
-                if (handler instanceof String) {
-                    handler = ((String) handler).trim();
-                }
-                registerHandler(url, handler);
+            return;
+        }
+        for (Map.Entry<String, Object> entry : urlMap.entrySet()) {
+            String url = entry.getKey();
+            Object handler = entry.getValue();
+            // Prepend with slash if not already present.
+            if (!url.startsWith("/")) {
+                url = "/" + url;
             }
+            // Remove whitespace from handler bean name.
+            if (handler instanceof String) {
+                handler = ((String) handler).trim();
+            }
+            registerHandler(url, handler);
         }
     }
 

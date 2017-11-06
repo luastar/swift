@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title>分贝通定时任务管理</title>
+    <link rel="stylesheet" href="../layui/css/layui.css">
+    <style type="text/css">
+        .margin-top-10 {
+            margin-top: 10px;
+        }
+
+        .margin-top-15 {
+            margin-top: 15px;
+        }
+
+        .margin-left-10 {
+            margin-left: 10px;
+        }
+
+        .margin-15 {
+            margin: 15px 15px;
+        }
+    </style>
+</head>
+<body>
+<div class="layui-layout layui-layout-admin">
+    <!-- 头部区域 -->
+    <div class="layui-header">
+        <div class="layui-logo">分贝通定时任务管理</div>
+        <!--
+        <ul class="layui-nav layui-layout-left">
+            <li class="layui-nav-item"><a href="javascript:;"></a></li>
+            <li class="layui-nav-item">
+                <a href="javascript:;">更多</a>
+                <dl class="layui-nav-child">
+                    <dd><a href="javascript:;">功能1</a></dd>
+                    <dd><a href="javascript:;">功能2</a></dd>
+                    <dd><a href="javascript:;">功能3</a></dd>
+                </dl>
+            </li>
+        </ul>
+        -->
+        <ul class="layui-nav layui-layout-right">
+            <li class="layui-nav-item"><a href="javascript:;">控制台</a></li>
+            <li class="layui-nav-item">
+                <a href="javascript:;">
+                    <img src="http://t.cn/RCzsdCq" class="layui-nav-img">乖，别哭
+                </a>
+                <dl class="layui-nav-child">
+                    <dd><a href="javascript:;">基本资料</a></dd>
+                    <dd><a href="javascript:;">退出系统</a></dd>
+                </dl>
+            </li>
+        </ul>
+    </div>
+    <!-- 左侧导航区域 -->
+    <div class="layui-side layui-bg-black">
+        <div class="layui-side-scroll">
+            <ul class="layui-nav layui-nav-tree">
+                <li class="layui-nav-item"><a href="javascript:;">任务管理</a></li>
+                <!--
+                <li class="layui-nav-item layui-nav-itemed">
+                    <a class="" href="javascript:;">功能列表</a>
+                    <dl class="layui-nav-child">
+                        <dd><a href="javascript:;">列表一</a></dd>
+                        <dd><a href="javascript:;">列表二</a></dd>
+                        <dd><a href="javascript:;">列表三</a></dd>
+                    </dl>
+                </li>
+                -->
+            </ul>
+        </div>
+    </div>
+    <!-- 内容主体区域 -->
+    <div class="layui-body">
+        <div class="layui-fluid">
+            <div class="layui-row">
+                <div class="layui-col-md12">
+                    <div class="layui-form margin-top-15">
+                        <div class="layui-inline">
+                            <div class="layui-input-inline">
+                                <input type="text" class="layui-input" name="jobDesc" placeholder="任务名"
+                                       autocomplete="off">
+                            </div>
+                        </div>
+                        <div class="layui-inline">
+                            <div class="layui-input-inline">
+                                <button class="layui-btn" lay-submit lay-filter="btn_query">查询</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="layui-row">
+                <div class="layui-col-md12">
+                    <div class="layui-btn-group margin-top-10">
+                        <button class="layui-btn" id="btn_add">增加</button>
+                        <button class="layui-btn" id="btn_import">导入</button>
+                        <button class="layui-btn" id="btn_export">导出</button>
+                    </div>
+                </div>
+            </div>
+            <div class="layui-row">
+                <div class="layui-col-md12">
+                    <table id="table_job" lay-filter="event_table_job"></table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- 底部固定区域 -->
+    <div class="layui-footer">
+        © fenbeitong.com - 分贝通
+    </div>
+</div>
+<script src="../layui/layui.js"></script>
+<script type="text/html" id="table_toolbar">
+    <a class="layui-btn layui-btn-mini" lay-event="trigger">执行</a>
+    {{# if(d.jobStatus == 'NORMAL'){ }}
+    <a class="layui-btn layui-btn-mini" lay-event="pause">暂停</a>
+    {{# }else{ }}
+    <a class="layui-btn layui-btn-mini" lay-event="resume">恢复</a>
+    {{# } }}
+    <a class="layui-btn layui-btn-mini" lay-event="log">日志</a>
+    <a class="layui-btn layui-btn-mini" lay-event="edit">编辑</a>
+    {{# if(d.concurrent){ }}
+    <a class="layui-btn layui-btn-mini" lay-event="unlock">解锁</a>
+    {{# } }}
+    <a class="layui-btn layui-btn-danger layui-btn-mini" lay-event="delete">删除</a>
+</script>
+<script type="text/html" id="from_job">
+    <form id="form_job" class="layui-form layui-form-pane margin-15" action="">
+        <div class="layui-form-item">
+            <label class="layui-form-label">任务序号</label>
+            <div class="layui-input-block">
+                <input type="hidden" class="layui-input" name="jobCode" value="{{d.jobCode}}">
+                <input type="text" class="layui-input" name="jobIndex" value="{{d.jobIndex}}"
+                       placeholder="倒序排列，不填系统自动生成">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">任务名称</label>
+            <div class="layui-input-block">
+                <input type="text" class="layui-input" name="jobDesc" required="任务名称必填" lay-verify="required"
+                       placeholder="请输入任务名称" autocomplete="off" value="{{d.jobDesc}}">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">任务表达式</label>
+            <div class="layui-input-block">
+                <input type="text" class="layui-input" name="cronExpression" required="任务表达式必填" lay-verify="required"
+                       placeholder="请输入任务表达式" autocomplete="off" value="{{d.cronExpression}}">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">任务状态</label>
+            <div class="layui-input-block">
+                <input type="text" class="layui-input" name="jobStatus" value="{{d.jobStatus}}" readonly>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">是否同步</label>
+            <div class="layui-input-inline">
+                {{# if(d.concurrent){ }}
+                <input type="radio" name="concurrent" value="true" title="是" checked>
+                <input type="radio" name="concurrent" value="false" title="否">
+                {{# }else{ }}
+                <input type="radio" name="concurrent" value="true" title="是">
+                <input type="radio" name="concurrent" value="false" title="否" checked>
+                {{# } }}
+            </div>
+            <div class="layui-form-mid margin-left-10"><span id="tips_concurrent" class="layui-badge">?</span></div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">远程地址</label>
+            <div class="layui-input-block">
+                <input type="text" class="layui-input" name="remoteUrl" required="远程地址必填" lay-verify="required"
+                       placeholder="请输入远程地址" autocomplete="off" value="{{d.remoteUrl}}">
+            </div>
+        </div>
+        <div class="layui-form-item layui-form-text">
+            <label class="layui-form-label">远程参数（POST JSON 格式）</label>
+            <div class="layui-input-block">
+                <textarea class="layui-textarea" name="remoteConfig" placeholder="请输入远程参数">{{d.remoteConfig}}</textarea>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button class="layui-btn" lay-submit lay-filter="btn_save">保存</button>
+                <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+            </div>
+        </div>
+    </form>
+</script>
+<script type="text/html" id="from_job_info">
+    <form class="layui-form layui-form-pane margin-15" action="">
+        <div class="layui-form-item layui-form-text">
+            <div class="layui-input-block">
+                <textarea class="layui-textarea" rows="20" id="jobInfo" name="jobInfo"
+                          placeholder="">{{d.jobInfo}}</textarea>
+            </div>
+        </div>
+        {{# if(d.btnFilter){ }}
+        <div class="layui-input-block">
+            <button class="layui-btn" lay-submit lay-filter="{{d.btnFilter}}">{{d.btnName}}</button>
+        </div>
+        {{# } }}
+    </form>
+</script>
+<script>
+    layui.config({
+        version: true, //一般用于更新模块缓存，默认不开启。设为true即让浏览器不缓存。也可以设为一个固定的值，如：201610
+        debug: true //用于开启调试模式，默认false，如果设为true，则JS模块的节点会保留在页面
+    });
+    layui.use(['form', 'table', 'layer', 'laytpl'], function () {
+        // layui 模块
+        var $ = layui.jquery, form = layui.form, table = layui.table, layer = layui.layer, laytpl = layui.laytpl;
+        // 表格渲染
+        var tableObj = table.render({
+            elem: '#table_job',
+            url: '/job/list',
+            // height: 300,
+            cols: [[
+                {field: 'jobIndex', title: '序号', width: 160, align: 'center'},
+                {field: 'jobDesc', title: '名称', width: 300},
+                {field: 'cronExpression', title: '表达式', width: 200, align: 'center'},
+                {field: 'jobStatus', title: '状态', width: 100, align: 'center'},
+                {field: 'concurrent', title: '是否同步', width: 100, align: 'center'},
+                {title: '操作', width: 300, align: 'center', fixed: 'right', toolbar: '#table_toolbar'}
+            ]]
+        });
+
+        // 查询事件
+        form.on('submit(btn_query)', function (data) {
+            // 当前容器的全部表单字段，名值对形式：{name: value}
+            console.log(data.field);
+            tableObj.reload({
+                where: data.field
+            });
+            return false; // 阻止表单跳转
+        });
+
+        // 新增
+        $("#btn_add").on("click", function () {
+            layer.open({
+                type: 1,
+                title: '新增任务',
+                area: '600px',
+                content: laytpl($("#from_job").html()).render({
+                    isAdd: true,
+                    jobIndex: '',
+                    jobCode: '新增任务编码由系统自动生成',
+                    jobDesc: '',
+                    cronExpression: '',
+                    jobStatus: 'NORMAL',
+                    concurrent: false,
+                    remoteUrl: '',
+                    remoteConfig: ''
+                }),
+                success: function (layero, index) {
+                    $('#tips_concurrent').off('click').on('click', function () {
+                        layer.tips('上次任务未执行完下次任务是否继续执行', this);
+                    });
+                    form.render();
+                    form.on('submit(btn_save)', function (data) {
+                        var index_loading = layer.load();
+                        console.log(data.field); //当前容器的全部表单字段，名值对形式：{name: value}
+                        $.ajax({
+                            url: '/job/add',
+                            method: "post",
+                            contentType: 'application/json; charset=UTF-8',
+                            dataType: 'json',
+                            data: JSON.stringify(data.field)
+                        }).done(function (data, textStatus, jqXHR) {
+                            layer.closeAll();
+                            layer.msg('保存成功！');
+                            tableObj.reload();
+                        }).fail(function (jqXHR, textStatus, errorThrown) {
+                            layer.msg('保存失败：' + errorThrown);
+                        }).always(function () {
+                            layer.close(index_loading);
+                        });
+                        return false;
+                    });
+                }
+            });
+        });
+
+        // 导入
+        $("#btn_import").on("click", function () {
+            layer.open({
+                type: 1,
+                title: '导入任务',
+                area: '600px',
+                content: laytpl($("#from_job_info").html()).render({
+                    jobInfo: "",
+                    btnFilter: "btn_import",
+                    btnName: "导入"
+                }),
+                success: function (layero, index) {
+                    form.render();
+                    form.on('submit(btn_import)', function (data) {
+                        var index_loading = layer.load();
+                        $.ajax({
+                            url: '/job/import',
+                            method: "post",
+                            data: $("#jobInfo").val()
+                        }).done(function (data, textStatus, jqXHR) {
+                            layer.closeAll();
+                            layer.msg('导入成功！');
+                            tableObj.reload();
+                        }).fail(function (jqXHR, textStatus, errorThrown) {
+                            layer.msg('导入失败：' + errorThrown);
+                        }).always(function () {
+                            layer.close(index_loading);
+                        });
+                        return false;
+                    });
+                }
+            });
+        });
+
+        // 导出
+        $("#btn_export").on("click", function () {
+            var index_loading = layer.load();
+            $.ajax({
+                url: '/job/export',
+                method: "post",
+                data: {}
+            }).done(function (data, textStatus, jqXHR) {
+                layer.open({
+                    type: 1,
+                    title: '导出任务',
+                    area: '600px',
+                    content: laytpl($("#from_job_info").html()).render({
+                        jobInfo: JSON.stringify(data)
+                    }),
+                    success: function (layero, index) {
+                        form.render();
+                    }
+                });
+            }).fail(function (jqXHR, textStatus, errorThrown) {
+                layer.msg('导出失败：' + errorThrown);
+            }).always(function () {
+                layer.close(index_loading);
+            });
+        });
+
+        // 监听工具条
+        table.on('tool(event_table_job)', function (obj) {
+            var layEvent = obj.event;
+            if (layEvent === 'trigger') { // 执行
+                $.ajax({
+                    url: '/job/trigger',
+                    method: "post",
+                    data: obj.data
+                }).done(function (data, textStatus, jqXHR) {
+                    layer.msg('执行成功！');
+                }).fail(function (jqXHR, textStatus, errorThrown) {
+                    layer.msg('执行失败：' + errorThrown);
+                });
+            } else if (layEvent === 'pause') {
+                $.ajax({
+                    url: '/job/pause',
+                    method: "post",
+                    data: obj.data
+                }).done(function (data, textStatus, jqXHR) {
+                    layer.msg('暂停成功！');
+                    tableObj.reload();
+                }).fail(function (jqXHR, textStatus, errorThrown) {
+                    layer.msg('暂停失败：' + errorThrown);
+                });
+            } else if (layEvent === 'resume') {
+                $.ajax({
+                    url: '/job/resume',
+                    method: "post",
+                    data: obj.data
+                }).done(function (data, textStatus, jqXHR) {
+                    layer.msg('恢复成功！');
+                    tableObj.reload();
+                }).fail(function (jqXHR, textStatus, errorThrown) {
+                    layer.msg('恢复失败：' + errorThrown);
+                });
+            } else if (layEvent === 'log') {
+                var index_loading = layer.load();
+                $.ajax({
+                    url: '/job/view_log',
+                    method: "post",
+                    data: obj.data
+                }).done(function (data, textStatus, jqXHR) {
+                    layer.open({
+                        type: 1,
+                        title: '【' + obj.data["jobDesc"] + '】日志',
+                        area: '600px',
+                        content: laytpl($("#from_job_info").html()).render({
+                            jobInfo: data.data.join('\n')
+                        }),
+                        success: function (layero, index) {
+                            form.render();
+                        }
+                    });
+                }).fail(function (jqXHR, textStatus, errorThrown) {
+                    layer.msg('加载失败：' + errorThrown);
+                }).always(function () {
+                    layer.close(index_loading);
+                });
+            } else if (layEvent === 'unlock') {
+                $.ajax({
+                    url: '/job/unlock',
+                    method: "post",
+                    data: obj.data
+                }).done(function (data, textStatus, jqXHR) {
+                    layer.msg('解锁成功！');
+                }).fail(function (jqXHR, textStatus, errorThrown) {
+                    layer.msg('解锁失败：' + errorThrown);
+                });
+            } else if (layEvent === 'edit') {
+                layer.open({
+                    type: 1,
+                    title: '修改任务',
+                    area: '600px',
+                    content: laytpl($("#from_job").html()).render($.extend(obj.data, {isAdd: false})),
+                    success: function (layero, index) {
+                        $('#tips_concurrent').off('click').on('click', function () {
+                            layer.tips('上次任务未执行完下次任务是否继续执行', this);
+                        });
+                        form.render();
+                        form.on('submit(btn_save)', function (data) {
+                            var index_loading = layer.load();
+                            console.log(data.field); //当前容器的全部表单字段，名值对形式：{name: value}
+                            $.ajax({
+                                url: '/job/edit',
+                                method: "post",
+                                contentType: 'application/json; charset=UTF-8',
+                                dataType: 'json',
+                                data: JSON.stringify(data.field)
+                            }).done(function (data, textStatus, jqXHR) {
+                                layer.closeAll();
+                                layer.msg('保存成功！');
+                                tableObj.reload();
+                            }).fail(function (jqXHR, textStatus, errorThrown) {
+                                layer.msg('保存失败：' + errorThrown);
+                            }).always(function () {
+                                layer.close(index_loading);
+                            });
+                            return false;
+                        });
+                    }
+                });
+            } else if (layEvent === 'delete') { //删除
+                layer.confirm('确定删除', function (index) {
+                    layer.close(index);
+                    $.ajax({
+                        url: '/job/delete',
+                        method: "post",
+                        data: obj.data
+                    }).done(function (data, textStatus, jqXHR) {
+                        layer.msg('删除成功！');
+                        tableObj.reload();
+                    }).fail(function (jqXHR, textStatus, errorThrown) {
+                        layer.msg('删除失败：' + errorThrown);
+                    });
+                });
+            }
+        });
+    });
+</script>
+</body>
+</html>

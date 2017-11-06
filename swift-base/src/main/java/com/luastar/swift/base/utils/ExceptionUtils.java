@@ -40,13 +40,15 @@ public class ExceptionUtils {
      */
     public static String getErrorMessageWithNestedException(Exception e) {
         Throwable nestedException = e.getCause();
-        return new StringBuilder()
-                .append(e.getMessage())
-                .append(" nested exception is ")
-                .append(nestedException.getClass().getName())
-                .append(":")
-                .append(nestedException.getMessage())
-                .toString();
+        StringBuilder msg = new StringBuilder();
+        msg.append(e.getMessage());
+        if (nestedException != null) {
+            msg.append(" nested exception is ")
+                    .append(nestedException.getClass().getName())
+                    .append(":")
+                    .append(nestedException.getMessage());
+        }
+        return msg.toString();
     }
 
     /**

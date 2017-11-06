@@ -39,7 +39,7 @@ public class TestController {
         // request info
         logger.info("requestId is : {}", request.getRequestId());
         logger.info("client ip is : {}", request.getIp());
-        for (Map.Entry<String, String> header : request.getHeaderMap().entrySet()) {
+        for (Map.Entry<String, String> header : request.getHeaders()) {
             logger.info("request header : {}={}", header.getKey(), header.getValue());
         }
         for (Map.Entry<String, String> parameter : request.getParameterMap().entrySet()) {

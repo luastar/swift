@@ -48,12 +48,13 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<FullHttpRequ
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest fullHttpRequest) throws Exception {
         try {
-            if (!fullHttpRequest.decoderResult().isSuccess()) {
-                return;
-            }
             // requestId
             String requestId = RandomStringUtils.random(20, true, true);
             MDC.put(MDC_KEY, requestId);
+            if (!fullHttpRequest.decoderResult().isSuccess()) {
+                ctx.writeAndFlush(new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.BAD_REQUEST)).addListener(ChannelFutureListener.CLOSE);
+                return;
+            }
             if (HttpUtil.is100ContinueExpected(fullHttpRequest)) {
                 ctx.write(new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE));
                 return;
@@ -62,18 +63,17 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<FullHttpRequ
             httpRequest = new HttpRequest(fullHttpRequest, requestId, getSocketAddressIp(ctx));
             httpRequest.logRequest();
             // 查找处理类方法
-            HandlerExecutionChain mappedHandler = handlerMapping.getHandler(httpRequest);
+            HandlerExecutionChain mappedHandler = handlerMapping.getActualHandler(httpRequest);
             if (mappedHandler == null) {
-                logger.warn("handler not find.");
-                FullHttpResponse fullHttpResponse = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.NOT_FOUND);
-                ctx.writeAndFlush(fullHttpResponse).addListener(ChannelFutureListener.CLOSE);
+                logger.warn("handler not find");
+                ctx.writeAndFlush(new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.NOT_FOUND)).addListener(ChannelFutureListener.CLOSE);
                 return;
             }
             // 初始化HttpResponse
             httpResponse = new HttpResponse(httpRequest.getRequestId());
             // 拦截器处理前
             if (!mappedHandler.applyPreHandle(httpRequest, httpResponse)) {
-                handleHttpResponse(ctx);
+                writeHttpResponse(ctx);
                 return;
             }
             // 执行方法
@@ -93,14 +93,14 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<FullHttpRequ
             // 拦截器处理后
             mappedHandler.applyPostHandle(httpRequest, httpResponse);
             // 返回处理结果
-            handleHttpResponse(ctx);
+            writeHttpResponse(ctx);
         } catch (Exception exception) {
             // 处理异常
             if (handlerMapping.getExceptionHandler() != null) {
                 handlerMapping.getExceptionHandler().exceptionHandle(httpRequest, httpResponse, exception);
             }
             // 返回处理结果
-            handleHttpResponse(ctx);
+            writeHttpResponse(ctx);
         } finally {
             destroy();
         }
@@ -125,25 +125,11 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<FullHttpRequ
      *
      * @param ctx
      */
-    protected void handleHttpResponse(ChannelHandlerContext ctx) {
+    protected void writeHttpResponse(ChannelHandlerContext ctx) throws Exception {
+        // 返回值处理
+        ctx.writeAndFlush(httpResponse.getFullHttpResponse()).addListener(ChannelFutureListener.CLOSE);
         // 请求体日志
         httpResponse.logResponse();
-        // 返回值处理
-        FullHttpResponse fullHttpResponse = httpResponse.getFullHttpResponse();
-        // 输出返回结果
-        /*
-        boolean keepAlive = HttpUtil.isKeepAlive(httpRequest.getFullHttpRequest());
-        if (keepAlive) {
-            response.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
-            ctx.writeAndFlush(response);
-        } else {
-            HttpUtil.setContentLength(response, contentLength);
-            ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
-        }
-        */
-        // 不处理keepAlive，直接返回结果
-        HttpUtil.setContentLength(fullHttpResponse, httpResponse.getContentLength());
-        ctx.writeAndFlush(fullHttpResponse).addListener(ChannelFutureListener.CLOSE);
     }
 
     /**
