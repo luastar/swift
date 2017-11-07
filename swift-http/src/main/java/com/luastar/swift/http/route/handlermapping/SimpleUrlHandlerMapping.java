@@ -27,6 +27,10 @@ public class SimpleUrlHandlerMapping extends AbstractUrlHandlerMapping implement
     private String locations;
     private CacheControl cacheControl;
 
+    public SimpleUrlHandlerMapping() {
+        setOrder(99);
+    }
+
     /**
      * Set a Map with URL paths as keys and handler beans (or handler bean names)
      * as values. Convenient for population with bean references.

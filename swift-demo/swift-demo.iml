@@ -43,7 +43,7 @@
     <orderEntry type="library" name="Maven: com.fasterxml.jackson.module:jackson-module-jaxb-annotations:2.6.4" level="project" />
     <orderEntry type="library" name="Maven: com.alibaba:fastjson:1.2.35" level="project" />
     <orderEntry type="library" name="Maven: org.mongodb:bson:3.4.2" level="project" />
-    <orderEntry type="library" name="Maven: com.ibeetl:beetl:2.7.14" level="project" />
+    <orderEntry type="library" name="Maven: com.ibeetl:beetl:2.7.23" level="project" />
     <orderEntry type="library" name="Maven: org.antlr:antlr4-runtime:4.2" level="project" />
     <orderEntry type="library" name="Maven: org.abego.treelayout:org.abego.treelayout.core:1.0.1" level="project" />
     <orderEntry type="library" name="Maven: org.antlr:antlr4-annotations:4.2" level="project" />
