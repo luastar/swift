@@ -1,13 +1,13 @@
 package com.luastar.swift.tools.func.mybatis;
 
-import com.luastar.swift.base.config.ConfigImpl;
+import com.luastar.swift.base.config.ConfigFactory;
 import com.luastar.swift.base.config.ItfConfig;
 
 public class MybatisGenUtils {
 
     public static void mybatisGen(String config) {
         // 从配置文件中获取
-        ItfConfig itfConfig = new ConfigImpl(new String[]{config});
+        ItfConfig itfConfig = ConfigFactory.getConfig(config);
         String driverClass = itfConfig.getString("mybatis.gen.driverClass");
         String connectionURL = itfConfig.getString("mybatis.gen.connectionURL");
         String userId = itfConfig.getString("mybatis.gen.userId");
@@ -32,7 +32,7 @@ public class MybatisGenUtils {
     }
 
     public static void mybatisGenSwift(String config) {
-        ItfConfig itfConfig = new ConfigImpl(new String[]{config});
+        ItfConfig itfConfig = ConfigFactory.getConfig(config);
         String output = itfConfig.getString("mybatis.gen.output", "~/Downloads/output");
         String[] tableNameArray = itfConfig.getStringArray("mybatis.gen.tableName");
         String modelPackage = itfConfig.getString("mybatis.gen.modelPackage");

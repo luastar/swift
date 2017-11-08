@@ -6,6 +6,8 @@ public interface ItfConfig {
 
     Pattern VALUE_RESOLVER_PATTERN = Pattern.compile("\\$\\{\\w+\\}", Pattern.CASE_INSENSITIVE);
 
+    void loadConfig(String ... config);
+
     String getString(String key);
 
     String getString(String key, String defaultValue);

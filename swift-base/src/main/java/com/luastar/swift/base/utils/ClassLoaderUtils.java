@@ -123,8 +123,21 @@ public class ClassLoaderUtils {
      */
     public static Properties getProperties(String... resource) {
         Properties properties = new Properties();
+        fillProperties(properties, resource);
+        return properties;
+    }
+
+    /**
+     * 向Properties对象中增加资源
+     * @param properties
+     * @param resource
+     */
+    public static void fillProperties(Properties properties, String... resource) {
+        if (properties == null) {
+            return;
+        }
         if (resource == null || resource.length == 0) {
-            return properties;
+            return;
         }
         for (String resPath : resource) {
             try {
@@ -139,7 +152,7 @@ public class ClassLoaderUtils {
                 logger.error(e.getMessage(), e);
             }
         }
-        return properties;
+        return;
     }
 
     /**

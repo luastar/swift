@@ -16,18 +16,33 @@ public class ConfigImpl implements ItfConfig {
 
     protected Properties properties;
 
-    public ConfigImpl(String[] propFiles) {
-        properties = ClassLoaderUtils.getProperties(propFiles);
+    public ConfigImpl() {
+        properties = new Properties();
     }
 
+    public ConfigImpl(String ... config) {
+        properties = ClassLoaderUtils.getProperties(config);
+    }
+
+    @Override
+    public void loadConfig(String... config) {
+        if (properties == null) {
+            properties = new Properties();
+        }
+        ClassLoaderUtils.fillProperties(properties, config);
+    }
+
+    @Override
     public boolean containsKey(String key) {
         return properties.containsKey(key);
     }
 
+    @Override
     public String getString(String key) {
         return getString(key, StringUtils.EMPTY);
     }
 
+    @Override
     public String getString(String key, String defaultValue) {
         String value = getAndProcessValue(key);
         if (value == null) {
@@ -54,10 +69,12 @@ public class ConfigImpl implements ItfConfig {
         return result.toString();
     }
 
+    @Override
     public String[] getStringArray(String key) {
         return getStringArray(key, null);
     }
 
+    @Override
     public String[] getStringArray(String key, String sep) {
         String value = getAndProcessValue(key);
         if (value == null) {
@@ -74,6 +91,7 @@ public class ConfigImpl implements ItfConfig {
         return Arrays.stream(value.split(sep)).map(v -> StringUtils.trim(v)).toArray(String[]::new);
     }
 
+    @Override
     public int getInt(String key, int defaultValue) {
         String value = getAndProcessValue(key);
         if (value == null) {
@@ -82,6 +100,7 @@ public class ConfigImpl implements ItfConfig {
         return NumberUtils.toInt(value, defaultValue);
     }
 
+    @Override
     public long getLong(String key, long defaultValue) {
         String value = getAndProcessValue(key);
         if (value == null) {
@@ -90,6 +109,7 @@ public class ConfigImpl implements ItfConfig {
         return NumberUtils.toLong(value, defaultValue);
     }
 
+    @Override
     public float getFloat(String key, float defaultValue) {
         String value = getAndProcessValue(key);
         if (value == null) {
@@ -98,6 +118,7 @@ public class ConfigImpl implements ItfConfig {
         return NumberUtils.toFloat(value, defaultValue);
     }
 
+    @Override
     public double getDouble(String key, double defaultValue) {
         String value = getAndProcessValue(key);
         if (value == null) {

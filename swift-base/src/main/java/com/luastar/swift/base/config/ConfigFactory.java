@@ -28,47 +28,48 @@ public class ConfigFactory {
     private static final Logger logger = LoggerFactory.getLogger(ConfigFactory.class);
 
     private static final String DEFAULT_CFG_FILE = "config.xml";
-    private static XPathExpression resourceXpathExpression;
-    private static ItfConfig configInstance;
 
-    static {
-        try {
-            XPathFactory xpathFactory = XPathFactory.newInstance();
-            resourceXpathExpression = xpathFactory.newXPath().compile("//properties/@resource");
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
-        }
-    }
-
+    /**
+     * 默认从配置文件“classpath:config.xml”中加载资源
+     *
+     * @return
+     */
     public synchronized static ItfConfig getConfig() {
         try {
-            if (configInstance != null) {
-                return configInstance;
+            InputStream is = ClassLoaderUtils.getInputStream(DEFAULT_CFG_FILE);
+            if (is == null) {
+                logger.warn("没有默认资源配置文件：{}", DEFAULT_CFG_FILE);
+                return new ConfigImpl();
             }
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             factory.setValidating(false);
             factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
             DocumentBuilder builder = factory.newDocumentBuilder();
-            InputStream is = ClassLoaderUtils.getInputStream(DEFAULT_CFG_FILE);
-            if (is == null) {
-                logger.warn("没有默认资源配置文件：{}", DEFAULT_CFG_FILE);
-                return null;
-            }
             Document xmlDoc = builder.parse(is);
             if (xmlDoc == null) {
-                return null;
+                return new ConfigImpl();
             }
-            NodeList resourceNodes = (NodeList) resourceXpathExpression.evaluate(xmlDoc, XPathConstants.NODESET);
-            List<String> resourceNames = new ArrayList<String>();
-            for (int i = 0, size = resourceNodes.getLength(); i < size; i++) {
-                resourceNames.add(StringUtils.trimToEmpty(resourceNodes.item(i).getTextContent()));
+            XPathExpression xpathExpression = XPathFactory.newInstance().newXPath().compile("//properties/@resource");
+            NodeList nodeList = (NodeList) xpathExpression.evaluate(xmlDoc, XPathConstants.NODESET);
+            List<String> resourceList = new ArrayList<String>();
+            for (int i = 0, size = nodeList.getLength(); i < size; i++) {
+                resourceList.add(StringUtils.trimToEmpty(nodeList.item(i).getTextContent()));
             }
-            configInstance = new ConfigImpl(resourceNames.toArray(new String[]{}));
-            return configInstance;
+            return new ConfigImpl(resourceList.toArray(new String[0]));
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
-            return null;
+            return new ConfigImpl();
         }
+    }
+
+    /**
+     * 从指定的配置文件中加载资源
+     *
+     * @param resource
+     * @return
+     */
+    public synchronized static ItfConfig getConfig(String... resource) {
+        return new ConfigImpl(resource);
     }
 
 }
