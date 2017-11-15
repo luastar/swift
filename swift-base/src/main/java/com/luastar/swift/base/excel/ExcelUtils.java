@@ -35,7 +35,7 @@ public class ExcelUtils {
 
     private static Logger logger = LoggerFactory.getLogger(ExcelUtils.class);
 
-    private static final int MAX_COLUMN_WIDTH = 60;
+    private static final int MAX_COLUMN_WIDTH = 50;
 
     /**
      * 初始化一个XSSFWorkbook（.xlsx文件）

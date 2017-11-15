@@ -128,24 +128,10 @@ public class EncodeUtils {
     }
 
     /**
-     * Xml 转码.
-     */
-    public static String escapeXml(String xml) {
-        return StringEscapeUtils.escapeXml10(xml);
-    }
-
-    /**
-     * Xml 解码.
-     */
-    public static String unescapeXml(String xmlEscaped) {
-        return StringEscapeUtils.unescapeXml(xmlEscaped);
-    }
-
-    /**
      * URL 编码, Encode默认为UTF-8.
      */
     public static String urlEncode(String part) {
-        return urlEncode(part, DEFAULT_URL_ENCODING);
+        return urlEncode(part, null);
     }
 
     /**
@@ -160,6 +146,20 @@ public class EncodeUtils {
         } catch (UnsupportedEncodingException e) {
             throw ExceptionUtils.unchecked(e);
         }
+    }
+
+    /**
+     * URL 编码, Encode默认为UTF-8.
+     */
+    public static String urlEncodeComponent(String part) {
+        return urlEncodeComponent(part, null);
+    }
+
+    /**
+     * URL 编码, Encode默认为UTF-8.
+     */
+    public static String urlEncodeComponent(String part, String charset) {
+        return urlEncode(part, charset).replace("+", "%20");
     }
 
     /**
