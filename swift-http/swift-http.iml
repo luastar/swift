@@ -66,6 +66,6 @@
     <orderEntry type="library" name="Maven: jaxen:jaxen:1.1.6" level="project" />
     <orderEntry type="library" name="Maven: org.jsoup:jsoup:1.8.3" level="project" />
     <orderEntry type="library" name="Maven: com.github.stuxuhai:jpinyin:1.1.8" level="project" />
-    <orderEntry type="library" name="Maven: io.netty:netty-all:4.1.4.Final" level="project" />
+    <orderEntry type="library" name="Maven: io.netty:netty-all:4.1.17.Final" level="project" />
   </component>
 </module>

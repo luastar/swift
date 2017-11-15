@@ -1,6 +1,8 @@
 package com.luastar.swift.http.server;
 
 import com.luastar.swift.base.utils.SpringUtils;
+import com.luastar.swift.http.constant.HttpConstant;
+import com.luastar.swift.http.route.HttpHandlerMapping;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
@@ -9,16 +11,15 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.codec.http.*;
+import io.netty.handler.codec.http.HttpContentCompressor;
+import io.netty.handler.codec.http.HttpObjectAggregator;
+import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.SelfSignedCertificate;
-import io.netty.handler.stream.ChunkedWriteHandler;
 import io.netty.handler.timeout.IdleStateHandler;
-import com.luastar.swift.http.constant.HttpConstant;
-import com.luastar.swift.http.route.HttpHandlerMapping;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
@@ -51,8 +52,9 @@ public class HttpServer {
         logger.info("启动端口号:{}", port);
         logger.info("spring配置文件路径:{}", HttpConstant.SWIFT_CONFIG_LOCATION);
         logger.info("超时时间:{}秒", HttpConstant.SWIFT_TIMEOUT);
-        logger.info("最大包大小:{}MB", HttpConstant.SWIFT_MAX_CONTENT_LENGTH / 1024 / 1024);
+        logger.info("最大包大小:{}KB, 输出日志大小:{}KB", HttpConstant.SWIFT_MAX_CONTENT_LENGTH / 1024, HttpConstant.SWIFT_MAX_LOG_LENGTH / 1024);
         logger.info("boss线程数:{}，worker线程数:{}", HttpConstant.SWIFT_BOSS_THREADS, HttpConstant.SWIFT_WORKER_THREADS);
+        logger.info("返回结果压缩级别:{}", HttpConstant.SWIFT_COMPRESSION_LEVEL);
         ApplicationContext applicationContext = new ClassPathXmlApplicationContext(HttpConstant.SWIFT_CONFIG_LOCATION);
         SpringUtils.setApplicationContext(applicationContext);
         this.handlerMapping = applicationContext.getBean(HttpHandlerMapping.class);
@@ -78,23 +80,19 @@ public class HttpServer {
                                 SslContext sslContext = SslContextBuilder.forServer(ssc.certificate(), ssc.privateKey()).build();
                                 pipeline.addLast(sslContext.newHandler(ch.alloc()));
                             }
+                            // 超时处理
                             pipeline.addLast(new IdleStateHandler(0, 0, HttpConstant.SWIFT_TIMEOUT));
-                            // 服务端，对请求解码
-                            pipeline.addLast(new HttpRequestDecoder());
-                            // 聚合器，把多个消息转换为一个单一的FullHttpRequest或是FullHttpResponse
+                            // http request decode and response encode
+                            pipeline.addLast(new HttpServerCodec());
+                            // 将消息头和体聚合成FullHttpRequest和FullHttpResponse
                             pipeline.addLast(new HttpObjectAggregator(HttpConstant.SWIFT_MAX_CONTENT_LENGTH));
-                            // 服务端，对响应编码
-                            pipeline.addLast(new HttpResponseEncoder());
-                            // 块写入处理器
-                            pipeline.addLast(new ChunkedWriteHandler());
-                            // 压缩处理器
-                            pipeline.addLast(new HttpContentCompressor());
-                            // 自定义服务端处理器
+                            // 压缩处理
+                            pipeline.addLast(new HttpContentCompressor(HttpConstant.SWIFT_COMPRESSION_LEVEL));
+                            // 自定义http服务
                             pipeline.addLast(new HttpChannelHandler(handlerMapping));
                         }
                     });
             Channel channel = bootstrap.bind(port).sync().channel();
-            logger.info("SwiftHttpServer started on port {}", port);
             channel.closeFuture().sync();
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
