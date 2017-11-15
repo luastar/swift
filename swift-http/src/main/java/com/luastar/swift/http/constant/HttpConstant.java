@@ -87,5 +87,9 @@ public interface HttpConstant {
      * 工作线程数，如果设置成0，默认为cpu个数 * 2
      */
     int SWIFT_WORKER_THREADS = PropertyUtils.getInt("swift.workerThreads", 16);
+    /**
+     * 返回结果压缩级别，0~9，默认6
+     */
+    int SWIFT_COMPRESSION_LEVEL = PropertyUtils.getInt("swift.compressionLevel", 6);
 
 }

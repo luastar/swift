@@ -1,6 +1,7 @@
 package com.luastar.swift.demo.http.controller;
 
 import com.luastar.swift.base.json.JsonUtils;
+import com.luastar.swift.base.utils.ClassLoaderUtils;
 import com.luastar.swift.demo.http.entity.User;
 import com.luastar.swift.http.route.RequestMethod;
 import com.luastar.swift.http.server.HttpFileUpload;
@@ -8,6 +9,7 @@ import com.luastar.swift.http.server.HttpRequest;
 import com.luastar.swift.http.server.HttpResponse;
 import com.luastar.swift.http.server.HttpService;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.CreationHelper;
 import org.apache.poi.ss.usermodel.Row;
@@ -23,6 +25,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
+import java.io.InputStream;
 import java.util.Map;
 
 @HttpService("/test")
@@ -143,6 +146,17 @@ public class TestController {
             wb.write(outputStream);
             response.setResponseContentTypeStream("aaa.xlsx");
             response.setOutputStream(outputStream);
+        } catch (IOException e) {
+            logger.error(e.getMessage(), e);
+        }
+    }
+
+    @HttpService("/compression")
+    public void compression(HttpRequest request, HttpResponse response) {
+        try {
+            InputStream inputStream = ClassLoaderUtils.getInputStream("classpath:props/test.txt");
+            response.setResponseContentTypePlain();
+            response.setResult(IOUtils.toString(inputStream));
         } catch (IOException e) {
             logger.error(e.getMessage(), e);
         }
