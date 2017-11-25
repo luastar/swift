@@ -39,14 +39,15 @@ public class ExceptionUtils {
      * 获取组合本异常信息与底层异常信息的异常描述, 适用于本异常为统一包装异常类，底层异常才是根本原因的情况。
      */
     public static String getErrorMessageWithNestedException(Exception e) {
+        StringBuilder msg = new StringBuilder().append(e.getMessage());
         Throwable nestedException = e.getCause();
-        return new StringBuilder()
-                .append(e.getMessage())
-                .append(" nested exception is ")
-                .append(nestedException.getClass().getName())
-                .append(":")
-                .append(nestedException.getMessage())
-                .toString();
+        if (nestedException != null) {
+            msg.append(" nested exception is ")
+                    .append(nestedException.getClass().getName())
+                    .append(":")
+                    .append(nestedException.getMessage());
+        }
+        return msg.toString();
     }
 
     /**
