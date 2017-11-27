@@ -150,7 +150,7 @@ public class MybatisGen {
         // 是否创建一个不可变的类，如果为true， 那么MBG会创建一个没有setter方法的类，取而代之的是类似constructorBased的类
         javaModelGeneratorConfiguration.addProperty("immutable", "false");
         // 设置是否在getter方法中，对String类型字段调用trim()方法
-        javaModelGeneratorConfiguration.addProperty("trimStrings", "true");
+        javaModelGeneratorConfiguration.addProperty("trimStrings", "false");
         // 设置一个根对象
         // javaModelGeneratorConfiguration.addProperty("rootClass","");
         return javaModelGeneratorConfiguration;
