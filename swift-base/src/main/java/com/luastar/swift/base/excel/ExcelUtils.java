@@ -132,7 +132,6 @@ public class ExcelUtils {
                     valueObj = PropertyUtils.getProperty(data, column.getProp());
                 }
                 if (valueObj == null) {
-                    logger.debug("获取不到对象{}的属性{}值", JsonUtils.toJson(data), column.getProp());
                     continue;
                 }
                 // 设置宽度
@@ -142,16 +141,16 @@ public class ExcelUtils {
                     String value = ((IExcelEnum) valueObj).getValue();
                     xssfCell.setCellValue(createHelper.createRichTextString(ObjUtils.ifNull(value, "")));
                 } else if (column.getType() == ExcelDataType.LongValue) {
-                    xssfCell.setCellValue(ObjUtils.toLong(valueObj, 0L));
+                    xssfCell.setCellValue(createHelper.createRichTextString(ObjUtils.toLong(valueObj, 0L).toString()));
                 } else if (column.getType() == ExcelDataType.IntegerValue) {
-                    xssfCell.setCellValue(ObjUtils.toInteger(valueObj, 0));
+                    xssfCell.setCellValue(createHelper.createRichTextString(ObjUtils.toInteger(valueObj, 0).toString()));
                 } else if (column.getType() == ExcelDataType.BigDecimalValue) {
                     BigDecimal value = ObjUtils.toBigDecimal(valueObj, BigDecimal.ZERO).setScale(column.getScale(), BigDecimal.ROUND_HALF_UP);
-                    xssfCell.setCellValue(value.doubleValue());
+                    xssfCell.setCellValue(createHelper.createRichTextString(value.toString()));
                 } else if (column.getType() == ExcelDataType.DateValue) {
                     xssfCell.setCellValue((Date) (valueObj));
                 } else {
-                    xssfCell.setCellValue(createHelper.createRichTextString(ObjUtils.toString(valueObj)));
+                    xssfCell.setCellValue(createHelper.createRichTextString(ObjUtils.toString(valueObj, "")));
                 }
             }
         }
@@ -233,7 +232,6 @@ public class ExcelUtils {
                     valueObj = PropertyUtils.getProperty(data, column.getProp());
                 }
                 if (valueObj == null) {
-                    logger.debug("获取不到对象{}的属性{}值", JsonUtils.toJson(data), column.getProp());
                     continue;
                 }
                 // 设置宽度
@@ -243,16 +241,16 @@ public class ExcelUtils {
                     String value = ((IExcelEnum) valueObj).getValue();
                     hssfCell.setCellValue(createHelper.createRichTextString(ObjUtils.ifNull(value, "")));
                 } else if (column.getType() == ExcelDataType.LongValue) {
-                    hssfCell.setCellValue(ObjUtils.toLong(valueObj, 0L));
+                    hssfCell.setCellValue(createHelper.createRichTextString(ObjUtils.toLong(valueObj, 0L).toString()));
                 } else if (column.getType() == ExcelDataType.IntegerValue) {
-                    hssfCell.setCellValue(ObjUtils.toInteger(valueObj, 0));
+                    hssfCell.setCellValue(createHelper.createRichTextString(ObjUtils.toInteger(valueObj, 0).toString()));
                 } else if (column.getType() == ExcelDataType.BigDecimalValue) {
                     BigDecimal value = ObjUtils.toBigDecimal(valueObj, BigDecimal.ZERO).setScale(column.getScale(), BigDecimal.ROUND_HALF_UP);
-                    hssfCell.setCellValue(value.doubleValue());
+                    hssfCell.setCellValue(createHelper.createRichTextString(value.toString()));
                 } else if (column.getType() == ExcelDataType.DateValue) {
                     hssfCell.setCellValue((Date) (valueObj));
                 } else {
-                    hssfCell.setCellValue(createHelper.createRichTextString(ObjUtils.toString(valueObj)));
+                    hssfCell.setCellValue(createHelper.createRichTextString(ObjUtils.toString(valueObj, "")));
                 }
             }
         }
