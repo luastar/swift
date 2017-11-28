@@ -21,15 +21,6 @@ public enum ExcelDataType {
         this.value = value;
     }
 
-    public static ExcelDataType valueOf(int key) {
-        for (ExcelDataType type : values()) {
-            if (type.getKey() == key) {
-                return type;
-            }
-        }
-        return null;
-    }
-
     public int getKey() {
         return key;
     }
