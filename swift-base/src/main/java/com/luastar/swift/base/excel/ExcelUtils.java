@@ -146,7 +146,8 @@ public class ExcelUtils {
                 } else if (column.getType() == ExcelDataType.IntegerValue) {
                     xssfCell.setCellValue(ObjUtils.toInteger(valueObj, 0));
                 } else if (column.getType() == ExcelDataType.BigDecimalValue) {
-                    xssfCell.setCellValue(ObjUtils.toBigDecimal(valueObj, BigDecimal.ZERO).doubleValue());
+                    BigDecimal value = ObjUtils.toBigDecimal(valueObj, BigDecimal.ZERO).setScale(column.getScale(), BigDecimal.ROUND_HALF_UP);
+                    xssfCell.setCellValue(value.doubleValue());
                 } else if (column.getType() == ExcelDataType.DateValue) {
                     xssfCell.setCellValue((Date) (valueObj));
                 } else {
@@ -246,7 +247,8 @@ public class ExcelUtils {
                 } else if (column.getType() == ExcelDataType.IntegerValue) {
                     hssfCell.setCellValue(ObjUtils.toInteger(valueObj, 0));
                 } else if (column.getType() == ExcelDataType.BigDecimalValue) {
-                    hssfCell.setCellValue(ObjUtils.toBigDecimal(valueObj, BigDecimal.ZERO).doubleValue());
+                    BigDecimal value = ObjUtils.toBigDecimal(valueObj, BigDecimal.ZERO).setScale(column.getScale(), BigDecimal.ROUND_HALF_UP);
+                    hssfCell.setCellValue(value.doubleValue());
                 } else if (column.getType() == ExcelDataType.DateValue) {
                     hssfCell.setCellValue((Date) (valueObj));
                 } else {

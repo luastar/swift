@@ -20,6 +20,10 @@ public class ExportColumn {
      */
     private ExcelDataType type;
     /**
+     * 小数点位数，主要针对BigDecimalValue类型
+     */
+    private int scale;
+    /**
      * 类型值
      */
     private String[] valueArray;
@@ -41,9 +45,14 @@ public class ExportColumn {
     private CellStyle rowStyle;
 
     public ExportColumn(String title, String prop, ExcelDataType type) {
+        this(title, prop, type, 2);
+    }
+
+    public ExportColumn(String title, String prop, ExcelDataType type, int scale) {
         this.title = title;
         this.prop = prop;
         this.type = type;
+        this.scale = scale;
     }
 
     public ExportColumn(String title, String prop, ExcelDataType type, String[] valueArray) {
@@ -75,6 +84,14 @@ public class ExportColumn {
 
     public void setType(ExcelDataType type) {
         this.type = type;
+    }
+
+    public int getScale() {
+        return scale;
+    }
+
+    public void setScale(int scale) {
+        this.scale = scale;
     }
 
     public String[] getValueArray() {
