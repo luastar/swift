@@ -594,7 +594,7 @@ public class ExcelUtils {
         if (column.isAutoWidth()) {
             if (StringUtils.isNotEmpty(value)) {
                 // 前后加几个字符的边距，跟字体大小有关，先设置成固定的
-                int width = value.getBytes("UTF-8").length + 2;
+                int width = value.getBytes("UTF-8").length + 5;
                 // 最大设置成最大值，太长了也难看
                 if (width >= MAX_COLUMN_WIDTH) {
                     width = MAX_COLUMN_WIDTH;
