@@ -11,12 +11,10 @@ import java.util.List;
 
 public class ObjUtils {
 
-    private static final String REGEXP_FORMAT_STRING = "(\\{\\d\\})";
-
     private static Mapper mapper;
 
     public static <T> T ifNull(T object, T defaultValue) {
-        return object != null ? object : defaultValue;
+        return object == null ? defaultValue : object;
     }
 
     public static String toString(Object obj) {
@@ -30,40 +28,19 @@ public class ObjUtils {
     }
 
     public static String toString(Object obj, String defaultValue) {
-        if (obj == null) {
-            return defaultValue;
-        }
-        if (obj instanceof String) {
-            return (String) obj;
-        }
-        return obj.toString();
+        return ifNull(toString(obj), defaultValue);
     }
 
     public static String toStringTrim(Object obj) {
-        if (obj == null) {
+        String value = toString(obj);
+        if (value == null) {
             return null;
         }
-        if (obj instanceof String) {
-            return ((String) obj).trim();
-        }
-        return obj.toString().trim();
+        return value.trim();
     }
 
     public static String toStringTrim(Object obj, String defaultValue) {
-        if (obj == null) {
-            return defaultValue;
-        }
-        if (obj instanceof String) {
-            return ((String) obj).trim();
-        }
-        return obj.toString().trim();
-    }
-
-    public static String prop2String(Object obj) {
-        if (obj == null) {
-            return null;
-        }
-        return ToStringBuilder.reflectionToString(obj);
+        return ifNull(toStringTrim(obj), defaultValue);
     }
 
     public static Integer toInteger(Object obj) {
@@ -81,11 +58,7 @@ public class ObjUtils {
     }
 
     public static Integer toInteger(Object obj, Integer defaultValue) {
-        Integer value = toInteger(obj);
-        if (value != null) {
-            return value;
-        }
-        return defaultValue;
+        return ifNull(toInteger(obj), defaultValue);
     }
 
     public static Long toLong(Object obj) {
@@ -103,11 +76,7 @@ public class ObjUtils {
     }
 
     public static Long toLong(Object obj, Long defaultValue) {
-        Long value = toLong(obj);
-        if (value != null) {
-            return value;
-        }
-        return defaultValue;
+        return ifNull(toLong(obj), defaultValue);
     }
 
     public static BigDecimal toBigDecimal(Object obj) {
@@ -125,11 +94,7 @@ public class ObjUtils {
     }
 
     public static BigDecimal toBigDecimal(Object obj, BigDecimal defaultValue) {
-        BigDecimal value = toBigDecimal(obj);
-        if (value != null) {
-            return value;
-        }
-        return defaultValue;
+        return ifNull(toBigDecimal(obj), defaultValue);
     }
 
     public static Boolean toBoolean(Object obj) {
@@ -139,25 +104,36 @@ public class ObjUtils {
         if (obj instanceof Boolean) {
             return (Boolean) obj;
         }
+        if (obj instanceof Number) {
+            return Boolean.valueOf(((Number) obj).intValue() == 1);
+        }
+        if (obj instanceof String) {
+            String strVal = (String) obj;
+            if (strVal.length() == 0 || "null".equalsIgnoreCase(strVal)) {
+                return null;
+            }
+            if ("true".equalsIgnoreCase(strVal)
+                    || "T".equalsIgnoreCase(strVal)
+                    || "Y".equalsIgnoreCase(strVal)
+                    || "1".equals(strVal)) {
+                return Boolean.TRUE;
+            }
+            if ("false".equalsIgnoreCase(strVal)
+                    || "F".equalsIgnoreCase(strVal)
+                    || "N".equalsIgnoreCase(strVal)
+                    || "0".equals(strVal)) {
+                return Boolean.FALSE;
+            }
+        }
         try {
-            return new Boolean(obj.toString().trim());
+            return Boolean.valueOf(obj.toString().trim());
         } catch (Exception e) {
         }
         return null;
     }
 
     public static Boolean toBoolean(Object obj, Boolean defaultValue) {
-        if (obj == null) {
-            return defaultValue;
-        }
-        if (obj instanceof Boolean) {
-            return (Boolean) obj;
-        }
-        try {
-            return new Boolean(obj.toString().trim());
-        } catch (Exception e) {
-        }
-        return defaultValue;
+        return ifNull(toBoolean(obj), defaultValue);
     }
 
     public static Mapper getMapper() {
@@ -177,6 +153,13 @@ public class ObjUtils {
 
     public static <T> T map(Object source, Class<T> destinationClass) {
         return getMapper().map(source, destinationClass);
+    }
+
+    public static String prop2String(Object obj) {
+        if (obj == null) {
+            return null;
+        }
+        return ToStringBuilder.reflectionToString(obj);
     }
 
     public static Integer[] string2IntAry(String str, String separatorChars, Integer defaultValue) {
