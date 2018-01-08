@@ -294,20 +294,16 @@ public class HttpRequest {
         return "";
     }
 
-    public SwiftHashMap<String, Object> getBodyMap() {
-        String body = getBody();
-        if (StringUtils.isEmpty(body)) {
-            return null;
-        }
-        return JSON.parseObject(body, SwiftHashMap.class);
-    }
-
     public <T> T getBodyObject(Class<T> clazz) {
         String body = getBody();
         if (StringUtils.isEmpty(body)) {
             return null;
         }
         return JSON.parseObject(body, clazz);
+    }
+
+    public SwiftHashMap<String, Object> getBodyMap() {
+        return getBodyObject(SwiftHashMap.class);
     }
 
     public ByteBufInputStream getBodyInputStream() {
