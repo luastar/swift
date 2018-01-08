@@ -2,6 +2,7 @@ package com.luastar.swift.http.server;
 
 import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Maps;
+import com.luastar.swift.base.entity.SwiftHashMap;
 import com.luastar.swift.base.utils.DateUtils;
 import com.luastar.swift.base.utils.ObjUtils;
 import com.luastar.swift.http.constant.HttpConstant;
@@ -74,6 +75,7 @@ public class HttpRequest {
                 cookieMap.put(cookie.name(), cookie);
             }
         }
+        initRequestIp();
     }
 
     protected void initRequestIp() {
@@ -132,7 +134,8 @@ public class HttpRequest {
     public void logRequest() {
         logger.info("request ip : {}, socketIp : {}", getIp(), getSocketIp());
         logger.info("request method : {}, uri : {}", getMethod(), getUri());
-        logger.info("request headers : {}", JSON.toJSONString(getHeaderMap()));
+        logger.info("request headers : {}", JSON.toJSONString(headerMap));
+        logger.info("request attributes : {}", JSON.toJSONString(attributeMap));
         String body = getBody();
         if (StringUtils.isNotEmpty(body)) {
             if (body.length() <= HttpConstant.SWIFT_MAX_LOG_LENGTH) {
@@ -255,6 +258,10 @@ public class HttpRequest {
         return fileMap.get(key);
     }
 
+    public Map<String, Object> getAttributeMap() {
+        return attributeMap;
+    }
+
     public Object getAttribute(String key) {
         return attributeMap.get(key);
     }
@@ -287,6 +294,22 @@ public class HttpRequest {
         return "";
     }
 
+    public SwiftHashMap<String, Object> getBodyMap() {
+        String body = getBody();
+        if (StringUtils.isEmpty(body)) {
+            return null;
+        }
+        return JSON.parseObject(body, SwiftHashMap.class);
+    }
+
+    public <T> T getBodyObject(Class<T> clazz) {
+        String body = getBody();
+        if (StringUtils.isEmpty(body)) {
+            return null;
+        }
+        return JSON.parseObject(body, clazz);
+    }
+
     public ByteBufInputStream getBodyInputStream() {
         ByteBuf content = request.content();
         if (content != null) {
@@ -296,15 +319,6 @@ public class HttpRequest {
     }
 
     public <T> T bindObj(T obj) {
-        /*
-        try {
-            BeanUtils.populate(obj, parameterMap);
-        } catch (IllegalAccessException e) {
-            logger.error(e.getMessage(),e);
-        } catch (InvocationTargetException e) {
-            logger.error(e.getMessage(),e);
-        }
-        */
         DataBinder dataBinder = new DataBinder(obj);
         dataBinder.registerCustomEditor(Date.class, new CustomDateEditor(DateUtils.NORMAL_FORMAT, true));
         dataBinder.bind(new MutablePropertyValues(parameterMap));
