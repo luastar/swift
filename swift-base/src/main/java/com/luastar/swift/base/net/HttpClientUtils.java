@@ -1,7 +1,9 @@
 package com.luastar.swift.base.net;
 
+import com.luastar.swift.base.utils.EncodeUtils;
 import com.luastar.swift.base.utils.ObjUtils;
 import com.luastar.swift.base.utils.RandomUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
@@ -35,6 +37,7 @@ import java.io.InputStream;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -224,6 +227,28 @@ public class HttpClientUtils {
             org.apache.http.client.utils.HttpClientUtils.closeQuietly(httpclient);
         }
         return null;
+    }
+
+    public static String buildQueryString(String uri, LinkedHashMap<String, String> paramMap) {
+        if (MapUtils.isEmpty(paramMap)) {
+            return uri;
+        }
+        StringBuilder sb = new StringBuilder(uri);
+        int index = 1;
+        for (Map.Entry<String, String> param : paramMap.entrySet()) {
+            if (index == 1 && !uri.contains("?")) {
+                sb.append("?");
+            } else {
+                sb.append("&");
+            }
+            sb.append(EncodeUtils.urlEncodeComponent(param.getKey()));
+            sb.append("=");
+            if (param.getValue() != null) {
+                sb.append(EncodeUtils.urlEncodeComponent(param.getValue()));
+            }
+            index++;
+        }
+        return sb.toString();
     }
 
     public static String post(String url, Map<String, String> params) {
