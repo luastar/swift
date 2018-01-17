@@ -1,13 +1,16 @@
 package com.luastar.swift.base.excel;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import com.luastar.swift.base.json.JsonUtils;
+import com.google.common.collect.Maps;
 import com.luastar.swift.base.utils.CollectionUtils;
+import com.luastar.swift.base.utils.DateUtils;
 import com.luastar.swift.base.utils.ObjUtils;
 import com.luastar.swift.base.utils.StrUtils;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.commons.lang3.reflect.MethodUtils;
 import org.apache.poi.hssf.usermodel.*;
@@ -17,10 +20,7 @@ import org.apache.poi.xssf.usermodel.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.util.Date;
@@ -87,6 +87,7 @@ public class ExcelUtils {
             throw new IllegalArgumentException("excel导出参数错误！");
         }
         CreationHelper createHelper = workbook.getCreationHelper();
+        DataFormat dataFormat = createHelper.createDataFormat();
         XSSFSheet sheet = workbook.createSheet(ObjUtils.ifNull(sheetConfig.getName(), "sheet1"));
         XSSFDataValidationHelper dvHelper = new XSSFDataValidationHelper(sheet);
         // 设置标题
@@ -139,18 +140,32 @@ public class ExcelUtils {
                 // 设置不同类型的值
                 if (column.getType() == ExcelDataType.EnumValue && valueObj instanceof IExcelEnum) {
                     String value = ((IExcelEnum) valueObj).getValue();
-                    xssfCell.setCellValue(createHelper.createRichTextString(ObjUtils.ifNull(value, "")));
-                } else if (column.getType() == ExcelDataType.LongValue) {
-                    xssfCell.setCellValue(createHelper.createRichTextString(ObjUtils.toLong(valueObj, 0L).toString()));
-                } else if (column.getType() == ExcelDataType.IntegerValue) {
-                    xssfCell.setCellValue(createHelper.createRichTextString(ObjUtils.toInteger(valueObj, 0).toString()));
+                    xssfCell.setCellValue(ObjUtils.ifNull(value, ""));
+                } else if (column.getType() == ExcelDataType.IntegerValue
+                        || column.getType() == ExcelDataType.LongValue) {
+                    BigDecimal value = ObjUtils.toBigDecimal(valueObj, BigDecimal.ZERO).setScale(0);
+                    if (value.toString().length() <= 12) {
+                        XSSFCellStyle cellStyle = (XSSFCellStyle) xssfCell.getCellStyle().clone();
+                        cellStyle.setDataFormat(dataFormat.getFormat("#0"));
+                        xssfCell.setCellStyle(cellStyle);
+                        xssfCell.setCellValue(value.longValue());
+                    } else {
+                        xssfCell.setCellValue(value.toString());
+                    }
                 } else if (column.getType() == ExcelDataType.BigDecimalValue) {
                     BigDecimal value = ObjUtils.toBigDecimal(valueObj, BigDecimal.ZERO).setScale(column.getScale(), BigDecimal.ROUND_HALF_UP);
-                    xssfCell.setCellValue(createHelper.createRichTextString(value.toString()));
+                    String format = "#,##0.00";
+                    if (column.getScale() > 0 && column.getScale() <= 8) {
+                        format = "#,##0." + StringUtils.repeat("0", column.getScale());
+                    }
+                    XSSFCellStyle cellStyle = (XSSFCellStyle) xssfCell.getCellStyle().clone();
+                    cellStyle.setDataFormat(dataFormat.getFormat(format));
+                    xssfCell.setCellStyle(cellStyle);
+                    xssfCell.setCellValue(value.doubleValue());
                 } else if (column.getType() == ExcelDataType.DateValue) {
-                    xssfCell.setCellValue((Date) (valueObj));
+                    xssfCell.setCellValue(DateUtils.format((Date) (valueObj)));
                 } else {
-                    xssfCell.setCellValue(createHelper.createRichTextString(ObjUtils.toString(valueObj, "")));
+                    xssfCell.setCellValue(ObjUtils.toString(valueObj, ""));
                 }
             }
         }
@@ -189,6 +204,7 @@ public class ExcelUtils {
             throw new IllegalArgumentException("excel导出参数错误！");
         }
         CreationHelper createHelper = workbook.getCreationHelper();
+        DataFormat dataFormat = createHelper.createDataFormat();
         HSSFSheet sheet = workbook.createSheet(ObjUtils.ifNull(sheetConfig.getName(), "sheet1"));
         // 设置标题
         int columnNum = sheetConfig.getColumnList().size();
@@ -239,18 +255,32 @@ public class ExcelUtils {
                 // 设置不同类型的值
                 if (column.getType() == ExcelDataType.EnumValue && valueObj instanceof IExcelEnum) {
                     String value = ((IExcelEnum) valueObj).getValue();
-                    hssfCell.setCellValue(createHelper.createRichTextString(ObjUtils.ifNull(value, "")));
-                } else if (column.getType() == ExcelDataType.LongValue) {
-                    hssfCell.setCellValue(createHelper.createRichTextString(ObjUtils.toLong(valueObj, 0L).toString()));
-                } else if (column.getType() == ExcelDataType.IntegerValue) {
-                    hssfCell.setCellValue(createHelper.createRichTextString(ObjUtils.toInteger(valueObj, 0).toString()));
+                    hssfCell.setCellValue(ObjUtils.ifNull(value, ""));
+                } else if (column.getType() == ExcelDataType.IntegerValue
+                        || column.getType() == ExcelDataType.LongValue) {
+                    BigDecimal value = ObjUtils.toBigDecimal(valueObj, BigDecimal.ZERO).setScale(0);
+                    if (value.toString().length() <= 12) {
+                        HSSFCellStyle cellStyle = hssfCell.getCellStyle();
+                        cellStyle.setDataFormat(dataFormat.getFormat("#0"));
+                        hssfCell.setCellStyle(cellStyle);
+                        hssfCell.setCellValue(value.longValue());
+                    } else {
+                        hssfCell.setCellValue(value.toString());
+                    }
                 } else if (column.getType() == ExcelDataType.BigDecimalValue) {
                     BigDecimal value = ObjUtils.toBigDecimal(valueObj, BigDecimal.ZERO).setScale(column.getScale(), BigDecimal.ROUND_HALF_UP);
-                    hssfCell.setCellValue(createHelper.createRichTextString(value.toString()));
+                    String format = "#,##0.00";
+                    if (column.getScale() > 0 && column.getScale() <= 8) {
+                        format = "#,##0." + StringUtils.repeat("0", column.getScale());
+                    }
+                    HSSFCellStyle cellStyle = hssfCell.getCellStyle();
+                    cellStyle.setDataFormat(dataFormat.getFormat(format));
+                    hssfCell.setCellStyle(cellStyle);
+                    hssfCell.setCellValue(value.doubleValue());
                 } else if (column.getType() == ExcelDataType.DateValue) {
-                    hssfCell.setCellValue((Date) (valueObj));
+                    hssfCell.setCellValue(DateUtils.format((Date) (valueObj)));
                 } else {
-                    hssfCell.setCellValue(createHelper.createRichTextString(ObjUtils.toString(valueObj, "")));
+                    hssfCell.setCellValue(ObjUtils.toString(valueObj, ""));
                 }
             }
         }
@@ -670,6 +700,40 @@ public class ExcelUtils {
             logger.warn(e.getMessage(), e);
             return column.getTitle();
         }
+    }
+
+    public static void main(String[] args) throws Exception {
+        List<Map<String, Object>> resultList = Lists.newArrayList();
+        resultList.add(new ImmutableMap.Builder<String, Object>()
+                .put("col1", "row1")
+                .put("col2", 100)
+                .put("col3", 9999999999999998L)
+                .put("col4", 123456.654321)
+                .put("col5", 123456)
+                .put("col6", true)
+                .put("col7", new Date())
+                .build());
+        resultList.add(new ImmutableMap.Builder<String, Object>()
+                .put("col1", "row2")
+                .put("col2", 200)
+                .put("col3", 999999999999999L)
+                .put("col4", 34.6)
+                .put("col5", -123456.123456)
+                .put("col6", false)
+                .put("col7", new Date())
+                .build());
+        XSSFWorkbook workbook = ExcelUtils.newXlsxWorkbook();
+        List<ExportColumn> columnList = Lists.newArrayList(
+                new ExportColumn("测试列1", "col1", ExcelDataType.StringValue),
+                new ExportColumn("测试列2", "col2", ExcelDataType.IntegerValue),
+                new ExportColumn("测试列3", "col3", ExcelDataType.LongValue),
+                new ExportColumn("测试列4", "col4", ExcelDataType.BigDecimalValue, 3),
+                new ExportColumn("测试列5", "col5", ExcelDataType.BigDecimalValue, 5),
+                new ExportColumn("测试列6", "col6", ExcelDataType.BooleanValue),
+                new ExportColumn("测试列7", "col7", ExcelDataType.DateValue)
+        );
+        ExcelUtils.writeXlsxWorkbook(workbook, new ExportSheet(columnList, resultList));
+        workbook.write(new FileOutputStream(new File("/Users/zhuminghua/Downloads/test.xlsx")));
     }
 
 }
