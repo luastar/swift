@@ -1,8 +1,8 @@
 package com.luastar.swift.base.excel;
 
+import com.alibaba.fastjson.JSON;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.luastar.swift.base.utils.CollectionUtils;
 import com.luastar.swift.base.utils.DateUtils;
 import com.luastar.swift.base.utils.ObjUtils;
@@ -10,8 +10,6 @@ import com.luastar.swift.base.utils.StrUtils;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
-import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.commons.lang3.reflect.MethodUtils;
 import org.apache.poi.hssf.usermodel.*;
 import org.apache.poi.ss.usermodel.*;
@@ -21,9 +19,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -101,6 +99,7 @@ public class ExcelUtils {
             cell.setCellStyle(ObjUtils.ifNull(column.getTitleStyle(), sheetConfig.getTitleStyle()));
             cell.setCellValue(createHelper.createRichTextString(title));
             ExcelUtils.setColumnWidthTitle(column, sheet, i, title);
+            sheet.setColumnHidden(i, column.isHidden());
         }
         if (CollectionUtils.isEmpty(sheetConfig.getDataList())) {
             logger.info("sheet {} 数据为空", sheet.getSheetName());
@@ -217,6 +216,7 @@ public class ExcelUtils {
             cell.setCellValue(createHelper.createRichTextString(title));
             cell.setCellStyle(ObjUtils.ifNull(column.getTitleStyle(), sheetConfig.getTitleStyle()));
             ExcelUtils.setColumnWidthTitle(column, sheet, i, title);
+            sheet.setColumnHidden(i, column.isHidden());
         }
         if (CollectionUtils.isEmpty(sheetConfig.getDataList())) {
             logger.info("sheet {} 数据为空", sheet.getSheetName());
@@ -677,16 +677,11 @@ public class ExcelUtils {
             } else if (column.getType() == ExcelDataType.DateValue) {
                 PropertyUtils.setProperty(data, column.getProp(), cell.getDateCellValue());
             } else if (column.getType() == ExcelDataType.EnumValue) {
-                if (StringUtils.isEmpty(column.getStaticMethodName())) {
-                    logger.warn("没有设置获取枚举【{}】的静态方法", column.getTitle());
+                if (column.getStaticClass() == null || StringUtils.isEmpty(column.getStaticMethodName())) {
+                    logger.warn("没有设置获取枚举【{}】的静态类和方法", column.getTitle());
                     return column.getTitle();
                 }
-                Field enumField = FieldUtils.getField(data.getClass(), column.getProp(), true);
-                if (enumField == null) {
-                    logger.warn("获取不到枚举【{}】的属性【{}】定义", column.getTitle(), column.getProp());
-                    return column.getTitle();
-                }
-                Object value = MethodUtils.invokeStaticMethod(enumField.getType(), column.getStaticMethodName(), cell.getStringCellValue());
+                Object value = MethodUtils.invokeStaticMethod(column.getStaticClass(), column.getStaticMethodName(), cell.getStringCellValue());
                 if (value == null) {
                     logger.info("获取不到枚举【{}】【{}】对应的值【{}】", column.getTitle(), column.getProp(), cell.getStringCellValue());
                     return column.getTitle();
@@ -703,10 +698,20 @@ public class ExcelUtils {
     }
 
     public static void main(String[] args) throws Exception {
+        writeExample();
+//        readExample();
+    }
+
+    /**
+     * 写例子
+     *
+     * @throws Exception
+     */
+    private static void writeExample() throws Exception {
         List<Map<String, Object>> resultList = Lists.newArrayList();
         resultList.add(new ImmutableMap.Builder<String, Object>()
                 .put("col1", "row1")
-                .put("col2", 100)
+                .put("col2", "男")
                 .put("col3", 9999999999999998L)
                 .put("col4", 123456.654321)
                 .put("col5", 123456)
@@ -715,7 +720,7 @@ public class ExcelUtils {
                 .build());
         resultList.add(new ImmutableMap.Builder<String, Object>()
                 .put("col1", "row2")
-                .put("col2", 200)
+                .put("col2", "女")
                 .put("col3", 999999999999999L)
                 .put("col4", 34.6)
                 .put("col5", -123456.123456)
@@ -724,8 +729,8 @@ public class ExcelUtils {
                 .build());
         XSSFWorkbook workbook = ExcelUtils.newXlsxWorkbook();
         List<ExportColumn> columnList = Lists.newArrayList(
-                new ExportColumn("测试列1", "col1", ExcelDataType.StringValue),
-                new ExportColumn("测试列2", "col2", ExcelDataType.IntegerValue),
+                new ExportColumn("测试列1", "col1", ExcelDataType.StringValue, true),
+                new ExportColumn("测试列2", "col2", ExcelDataType.EnumValue, SexEnum.getValues()),
                 new ExportColumn("测试列3", "col3", ExcelDataType.LongValue),
                 new ExportColumn("测试列4", "col4", ExcelDataType.BigDecimalValue, 3),
                 new ExportColumn("测试列5", "col5", ExcelDataType.BigDecimalValue, 5),
@@ -734,6 +739,23 @@ public class ExcelUtils {
         );
         ExcelUtils.writeXlsxWorkbook(workbook, new ExportSheet(columnList, resultList));
         workbook.write(new FileOutputStream(new File("/Users/zhuminghua/Downloads/test.xlsx")));
+    }
+
+    /**
+     * 读例子
+     *
+     * @throws Exception
+     */
+    private static void readExample() throws Exception {
+        File file = new File("/Users/zhuminghua/Downloads/test.xlsx");
+        List<ImportColumn> columnList = Lists.newArrayList(
+                new ImportColumn("测试列1", "col1", ExcelDataType.StringValue),
+                new ImportColumn("测试列2", "col2", ExcelDataType.EnumValue, SexEnum.class, "getByValue"),
+                new ImportColumn("测试列3", "col3", ExcelDataType.LongValue)
+        );
+        ImportSheet importSheet = new ImportSheet(columnList, HashMap.class);
+        ExcelUtils.readXlsxExcel(file, importSheet);
+        System.out.println(JSON.toJSONString(importSheet.getDataList()));
     }
 
 }
