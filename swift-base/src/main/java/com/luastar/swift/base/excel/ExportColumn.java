@@ -22,7 +22,7 @@ public class ExportColumn {
     /**
      * 小数点位数，主要针对BigDecimalValue类型
      */
-    private int scale;
+    private int scale = 2;
     /**
      * 类型值
      */
@@ -32,7 +32,11 @@ public class ExportColumn {
      */
     private boolean autoWidth;
     /**
-     * 宽度（1~255）
+     * 是否隐藏列
+     */
+    private boolean hidden = false;
+    /**
+     * 宽度（1~255），如果没有设置，则 autoWidth = true
      */
     private Integer width;
     /**
@@ -45,7 +49,23 @@ public class ExportColumn {
     private CellStyle rowStyle;
 
     public ExportColumn(String title, String prop, ExcelDataType type) {
-        this(title, prop, type, 2);
+        this.title = title;
+        this.prop = prop;
+        this.type = type;
+    }
+
+    public ExportColumn(String title, String prop, ExcelDataType type, CellStyle titleStyle) {
+        this.title = title;
+        this.prop = prop;
+        this.type = type;
+        this.titleStyle = titleStyle;
+    }
+
+    public ExportColumn(String title, String prop, ExcelDataType type, boolean hidden) {
+        this.title = title;
+        this.prop = prop;
+        this.type = type;
+        this.hidden = hidden;
     }
 
     public ExportColumn(String title, String prop, ExcelDataType type, int scale) {
@@ -55,11 +75,27 @@ public class ExportColumn {
         this.scale = scale;
     }
 
+    public ExportColumn(String title, String prop, ExcelDataType type, int scale, CellStyle titleStyle) {
+        this.title = title;
+        this.prop = prop;
+        this.type = type;
+        this.scale = scale;
+        this.titleStyle = titleStyle;
+    }
+
     public ExportColumn(String title, String prop, ExcelDataType type, String[] valueArray) {
         this.title = title;
         this.prop = prop;
         this.type = type;
         this.valueArray = valueArray;
+    }
+
+    public ExportColumn(String title, String prop, ExcelDataType type, String[] valueArray, CellStyle titleStyle) {
+        this.title = title;
+        this.prop = prop;
+        this.type = type;
+        this.valueArray = valueArray;
+        this.titleStyle = titleStyle;
     }
 
     public String getTitle() {
@@ -108,6 +144,14 @@ public class ExportColumn {
 
     public void setAutoWidth(boolean autoWidth) {
         this.autoWidth = autoWidth;
+    }
+
+    public boolean isHidden() {
+        return hidden;
+    }
+
+    public void setHidden(boolean hidden) {
+        this.hidden = hidden;
     }
 
     public Integer getWidth() {

@@ -18,11 +18,15 @@ public class ImportColumn {
      */
     private ExcelDataType type;
     /**
+     * 如果为枚举类型，需要设置从value获取枚举的类
+     */
+    private Class staticClass;
+    /**
      * 如果为枚举类型，需要设置从value获取枚举的静态方法
      */
     private String staticMethodName;
     /**
-     * 所在列
+     * 所在列，不用设置，会自动按标题查找后设置
      */
     private Integer columnIndex;
 
@@ -32,10 +36,11 @@ public class ImportColumn {
         this.type = type;
     }
 
-    public ImportColumn(String title, String prop, ExcelDataType type, String staticMethodName) {
+    public ImportColumn(String title, String prop, ExcelDataType type, Class staticClass, String staticMethodName) {
         this.title = title;
         this.prop = prop;
         this.type = type;
+        this.staticClass = staticClass;
         this.staticMethodName = staticMethodName;
     }
 
@@ -63,6 +68,14 @@ public class ImportColumn {
         this.type = type;
     }
 
+    public Class getStaticClass() {
+        return staticClass;
+    }
+
+    public void setStaticClass(Class staticClass) {
+        this.staticClass = staticClass;
+    }
+
     public String getStaticMethodName() {
         return staticMethodName;
     }
@@ -78,5 +91,5 @@ public class ImportColumn {
     public void setColumnIndex(Integer columnIndex) {
         this.columnIndex = columnIndex;
     }
-    
+
 }
