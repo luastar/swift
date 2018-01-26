@@ -338,6 +338,9 @@ public class ExcelUtils {
                 || sheetConfig.getColumnList() == null) {
             throw new IllegalArgumentException("excel导入参数错误！");
         }
+        // 公式执行器
+        CreationHelper createHelper = workbook.getCreationHelper();
+        FormulaEvaluator formulaEvaluator = createHelper.createFormulaEvaluator();
         int sheetNum = workbook.getNumberOfSheets();
         if (sheetConfig.getIndex() >= sheetNum) {
             String msg = StrUtils.formatString("sheet【{0}】不存在", sheetConfig.getIndex() + 1);
@@ -381,7 +384,7 @@ public class ExcelUtils {
             for (int j = 0; j < columnNum; j++) {
                 ImportColumn column = columnList.get(j);
                 XSSFCell cell = row.getCell(column.getColumnIndex());
-                setRsList.add(ExcelUtils.setProperty(column, cell, data));
+                setRsList.add(ExcelUtils.setProperty(column, cell, data, formulaEvaluator));
             }
             ExcelData excelData = new ExcelData(row.getRowNum(), data);
             // 赋值失败的列
@@ -449,7 +452,9 @@ public class ExcelUtils {
                 || sheetConfig.getColumnList() == null) {
             throw new IllegalArgumentException("excel导入参数错误！");
         }
-        List<String> errorList = Lists.newArrayList();
+        // 公式执行器
+        CreationHelper createHelper = workbook.getCreationHelper();
+        FormulaEvaluator formulaEvaluator = createHelper.createFormulaEvaluator();
         int sheetNum = workbook.getNumberOfSheets();
         if (sheetConfig.getIndex() >= sheetNum) {
             String msg = StrUtils.formatString("sheet【{0}】不存在", sheetConfig.getIndex() + 1);
@@ -493,7 +498,7 @@ public class ExcelUtils {
             for (int j = 0; j < columnNum; j++) {
                 ImportColumn column = columnList.get(j);
                 HSSFCell cell = row.getCell(column.getColumnIndex());
-                setRsList.add(ExcelUtils.setProperty(column, cell, data));
+                setRsList.add(ExcelUtils.setProperty(column, cell, data, formulaEvaluator));
             }
             ExcelData excelData = new ExcelData(row.getRowNum(), data);
             // 赋值失败的列
@@ -647,15 +652,24 @@ public class ExcelUtils {
      * @param data
      * @return
      */
-    private static String setProperty(ImportColumn column, Cell cell, Object data) {
+    private static String setProperty(ImportColumn column, Cell cell, Object data, FormulaEvaluator formulaEvaluator) {
         try {
             if (cell == null || data == null) {
                 return null;
             }
+            CellType cellType = cell.getCellTypeEnum();
+            if (cellType == CellType.FORMULA) {
+                // 如果是公式，先执行公式
+                cellType = formulaEvaluator.evaluate(cell).getCellTypeEnum();
+            }
             Object cellValue;
-            switch (cell.getCellTypeEnum()) {
+            switch (cellType) {
                 case NUMERIC:
-                    cellValue = BigDecimal.valueOf(cell.getNumericCellValue());
+                    if (DateUtil.isCellDateFormatted(cell)) {
+                        cellValue = cell.getDateCellValue();
+                    } else {
+                        cellValue = cell.getNumericCellValue();
+                    }
                     break;
                 case BOOLEAN:
                     cellValue = cell.getBooleanCellValue();
@@ -665,6 +679,9 @@ public class ExcelUtils {
                     break;
             }
             if (column.getType() == ExcelDataType.StringValue) {
+                // 如果需要获取字符串，转换格式为文本类型后获取字符串值，避免出现取到数值类型为xx.0的值。
+                cell.setCellType(CellType.STRING);
+                cellValue = cell.getStringCellValue();
                 PropertyUtils.setProperty(data, column.getProp(), ObjUtils.toString(cellValue));
             } else if (column.getType() == ExcelDataType.LongValue) {
                 PropertyUtils.setProperty(data, column.getProp(), ObjUtils.toLong(cellValue));
@@ -675,15 +692,25 @@ public class ExcelUtils {
             } else if (column.getType() == ExcelDataType.BooleanValue) {
                 PropertyUtils.setProperty(data, column.getProp(), ObjUtils.toBoolean(cellValue));
             } else if (column.getType() == ExcelDataType.DateValue) {
-                PropertyUtils.setProperty(data, column.getProp(), cell.getDateCellValue());
+                if (cellValue instanceof Date) {
+                    PropertyUtils.setProperty(data, column.getProp(), cellValue);
+                } else {
+                    // 尝试转换
+                    cellValue = DateUtils.parse(ObjUtils.toString(cellValue), "yyyy-MM-dd HH:mm:ss");
+                    if (cellValue == null) {
+                        logger.info("列【{}】获取不到日期值。", column.getTitle());
+                        return column.getTitle();
+                    }
+                    PropertyUtils.setProperty(data, column.getProp(), cellValue);
+                }
             } else if (column.getType() == ExcelDataType.EnumValue) {
                 if (column.getStaticClass() == null || StringUtils.isEmpty(column.getStaticMethodName())) {
-                    logger.warn("没有设置获取枚举【{}】的静态类和方法", column.getTitle());
+                    logger.info("列【{}】没有设置获取枚举的静态类和方法。", column.getTitle());
                     return column.getTitle();
                 }
                 Object value = MethodUtils.invokeStaticMethod(column.getStaticClass(), column.getStaticMethodName(), cell.getStringCellValue());
                 if (value == null) {
-                    logger.info("获取不到枚举【{}】【{}】对应的值【{}】", column.getTitle(), column.getProp(), cell.getStringCellValue());
+                    logger.info("列【{}】获取不到枚举值。", column.getTitle(), column.getProp(), cell.getStringCellValue());
                     return column.getTitle();
                 }
                 PropertyUtils.setProperty(data, column.getProp(), value);
@@ -692,14 +719,14 @@ public class ExcelUtils {
             }
             return null;
         } catch (Exception e) {
-            logger.warn(e.getMessage(), e);
+            logger.warn("列【" + column.getTitle() + "】获取值异常：" + e.getMessage(), e);
             return column.getTitle();
         }
     }
 
     public static void main(String[] args) throws Exception {
-        writeExample();
-//        readExample();
+//        writeExample();
+        readExample();
     }
 
     /**
@@ -751,7 +778,7 @@ public class ExcelUtils {
         List<ImportColumn> columnList = Lists.newArrayList(
                 new ImportColumn("测试列1", "col1", ExcelDataType.StringValue),
                 new ImportColumn("测试列2", "col2", ExcelDataType.EnumValue, SexEnum.class, "getByValue"),
-                new ImportColumn("测试列3", "col3", ExcelDataType.LongValue)
+                new ImportColumn("测试列3", "col3", ExcelDataType.StringValue)
         );
         ImportSheet importSheet = new ImportSheet(columnList, HashMap.class);
         ExcelUtils.readXlsxExcel(file, importSheet);
