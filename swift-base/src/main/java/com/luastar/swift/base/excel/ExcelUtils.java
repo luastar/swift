@@ -380,16 +380,23 @@ public class ExcelUtils {
         for (int i = firstRowNum + 1; i <= lastRowNum; i++) {
             XSSFRow row = sheet.getRow(i);
             Object data = sheetConfig.getDataClass().newInstance();
-            List<String> setRsList = Lists.newArrayList();
+            if (row == null) {
+                ExcelData excelData = new ExcelData(i, data);
+                excelData.setCheckMsg("获取行数据为空");
+                dataList.add(excelData);
+                continue;
+            }
+            // 行不为空
+            List<String> setPropList = Lists.newArrayList();
             for (int j = 0; j < columnNum; j++) {
                 ImportColumn column = columnList.get(j);
                 XSSFCell cell = row.getCell(column.getColumnIndex());
-                setRsList.add(ExcelUtils.setProperty(column, cell, data, formulaEvaluator));
+                setPropList.add(ExcelUtils.setProperty(column, cell, data, formulaEvaluator));
             }
-            ExcelData excelData = new ExcelData(row.getRowNum(), data);
+            ExcelData excelData = new ExcelData(i, data);
             // 赋值失败的列
-            List setErrList = setRsList.stream().filter(rs -> rs != null).collect(Collectors.toList());
-            if (!setErrList.isEmpty()) {
+            List setErrList = setPropList.stream().filter(rs -> rs != null).collect(Collectors.toList());
+            if (CollectionUtils.isNotEmpty(setErrList)) {
                 String msg = StrUtils.formatString("获取以下属性的值失败：{0}", StringUtils.join(setErrList, ","));
                 excelData.setCheckMsg(msg);
             }
@@ -494,17 +501,24 @@ public class ExcelUtils {
         for (int i = firstRowNum + 1; i <= lastRowNum; i++) {
             HSSFRow row = sheet.getRow(i);
             Object data = sheetConfig.getDataClass().newInstance();
-            List<String> setRsList = Lists.newArrayList();
+            if (row == null) {
+                ExcelData excelData = new ExcelData(i, data);
+                excelData.setCheckMsg("获取行数据为空");
+                dataList.add(excelData);
+                continue;
+            }
+            // 行不为空
+            List<String> setPropList = Lists.newArrayList();
             for (int j = 0; j < columnNum; j++) {
                 ImportColumn column = columnList.get(j);
                 HSSFCell cell = row.getCell(column.getColumnIndex());
-                setRsList.add(ExcelUtils.setProperty(column, cell, data, formulaEvaluator));
+                setPropList.add(ExcelUtils.setProperty(column, cell, data, formulaEvaluator));
             }
             ExcelData excelData = new ExcelData(row.getRowNum(), data);
             // 赋值失败的列
-            List setErrList = setRsList.stream().filter(rs -> rs != null).collect(Collectors.toList());
+            List setErrList = setPropList.stream().filter(rs -> rs != null).collect(Collectors.toList());
             if (!setErrList.isEmpty()) {
-                String msg = StrUtils.formatString("获取以下属性的值失败：{0}", StringUtils.join(setErrList, ","));
+                String msg = StrUtils.formatString("获取属性失败：{0}", StringUtils.join(setErrList, ","));
                 excelData.setCheckMsg(msg);
             }
             dataList.add(excelData);
