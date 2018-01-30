@@ -50,8 +50,21 @@ public class ObjUtils {
         if (obj instanceof Integer) {
             return (Integer) obj;
         }
+        if (obj instanceof Number) {
+            return ((Number) obj).intValue();
+        }
+        // 处理字符串值
+        String strValue = obj.toString().trim();
+        if (StringUtils.isEmpty(strValue)
+                || "null".equalsIgnoreCase(strValue)) {
+            return null;
+        }
+        // 处理千分位
+        if (strValue.contains(",")) {
+            strValue = strValue.replaceAll(",", "");
+        }
         try {
-            return new Integer(obj.toString().trim());
+            return new BigDecimal(strValue).intValue();
         } catch (Exception e) {
         }
         return null;
@@ -68,8 +81,20 @@ public class ObjUtils {
         if (obj instanceof Long) {
             return (Long) obj;
         }
+        if (obj instanceof Number) {
+            return ((Number) obj).longValue();
+        }
+        // 处理字符串值
+        String strValue = obj.toString().trim();
+        if (StringUtils.isEmpty(strValue) || "null".equalsIgnoreCase(strValue)) {
+            return null;
+        }
+        // 处理千分位
+        if (strValue.contains(",")) {
+            strValue = strValue.replaceAll(",", "");
+        }
         try {
-            return new Long(obj.toString().trim());
+            return new BigDecimal(strValue).longValue();
         } catch (Exception e) {
         }
         return null;
@@ -86,8 +111,17 @@ public class ObjUtils {
         if (obj instanceof BigDecimal) {
             return (BigDecimal) obj;
         }
+        // 处理字符串值
+        String strValue = obj.toString().trim();
+        if (StringUtils.isEmpty(strValue) || "null".equalsIgnoreCase(strValue)) {
+            return null;
+        }
+        // 处理千分位
+        if (strValue.contains(",")) {
+            strValue = strValue.replaceAll(",", "");
+        }
         try {
-            return new BigDecimal(obj.toString().trim());
+            return new BigDecimal(strValue);
         } catch (Exception e) {
         }
         return null;
@@ -107,27 +141,22 @@ public class ObjUtils {
         if (obj instanceof Number) {
             return Boolean.valueOf(((Number) obj).intValue() == 1);
         }
-        if (obj instanceof String) {
-            String strVal = (String) obj;
-            if (strVal.length() == 0 || "null".equalsIgnoreCase(strVal)) {
-                return null;
-            }
-            if ("true".equalsIgnoreCase(strVal)
-                    || "T".equalsIgnoreCase(strVal)
-                    || "Y".equalsIgnoreCase(strVal)
-                    || "1".equals(strVal)) {
-                return Boolean.TRUE;
-            }
-            if ("false".equalsIgnoreCase(strVal)
-                    || "F".equalsIgnoreCase(strVal)
-                    || "N".equalsIgnoreCase(strVal)
-                    || "0".equals(strVal)) {
-                return Boolean.FALSE;
-            }
+        // 处理字符串值
+        String strValue = obj.toString().trim();
+        if (StringUtils.isEmpty(strValue) || "null".equalsIgnoreCase(strValue)) {
+            return null;
         }
-        try {
-            return Boolean.valueOf(obj.toString().trim());
-        } catch (Exception e) {
+        if ("true".equalsIgnoreCase(strValue)
+                || "T".equalsIgnoreCase(strValue)
+                || "Y".equalsIgnoreCase(strValue)
+                || "1".equals(strValue)) {
+            return Boolean.TRUE;
+        }
+        if ("false".equalsIgnoreCase(strValue)
+                || "F".equalsIgnoreCase(strValue)
+                || "N".equalsIgnoreCase(strValue)
+                || "0".equals(strValue)) {
+            return Boolean.FALSE;
         }
         return null;
     }
