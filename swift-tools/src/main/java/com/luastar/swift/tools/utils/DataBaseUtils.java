@@ -288,7 +288,7 @@ public class DataBaseUtils {
                 Map<String, Object> value = new LinkedHashMap<>();
                 for (int i = 0; i < count; i++) {
                     ColumnVO col = colList.get(i);
-                    value.put(col.getColumnName(), rs.getObject(i + 1));
+                    value.put(col.getDbColumnName(), rs.getObject(i + 1));
                 }
                 valueList.add(value);
             }
