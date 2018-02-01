@@ -14,10 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.sql.DataSource;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class DataBaseUtils {
 
@@ -266,14 +263,14 @@ public class DataBaseUtils {
         Connection conn = null;
         PreparedStatement stmt = null;
         ResultSet rs = null;
-        ResultSetMetaData rsmd = null;
         try {
             conn = getConn();
             stmt = conn.prepareStatement(sql);
             getQueryRunner().fillStatement(stmt, params);
             logger.info("执行SQL语句：" + sql);
             rs = stmt.executeQuery();
-            rsmd = rs.getMetaData();
+            ResultSetMetaData rsmd = rs.getMetaData();
+            // 获取列名
             int count = rsmd.getColumnCount();
             List<ColumnVO> colList = new ArrayList<ColumnVO>();
             for (int i = 0; i < count; i++) {
@@ -285,14 +282,15 @@ public class DataBaseUtils {
                 col.setColumnSize(rsmd.getColumnDisplaySize(i + 1));
                 colList.add(col);
             }
-            List<Object[]> valueList = new ArrayList<Object[]>();
-            Object[] obj = null;
+            // 获取数据
+            List<Map<String, Object>> valueList = new ArrayList<>();
             while (rs.next()) {
-                obj = new Object[count];
+                Map<String, Object> value = new LinkedHashMap<>();
                 for (int i = 0; i < count; i++) {
-                    obj[i] = rs.getObject(i + 1);
+                    ColumnVO col = colList.get(i);
+                    value.put(col.getColumnName(), rs.getObject(i + 1));
                 }
-                valueList.add(obj);
+                valueList.add(value);
             }
             rsVO.setColList(colList);
             rsVO.setValueList(valueList);
