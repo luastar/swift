@@ -1,8 +1,3 @@
-/**
- * Copyright (c) 2005-2012 springside.org.cn
- * <p/>
- * Licensed under the Apache License, Version 2.0 (the "License");
- */
 package com.luastar.swift.base.utils;
 
 import org.apache.commons.codec.DecoderException;
@@ -14,6 +9,9 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.crypto.Cipher;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,7 +29,9 @@ import java.net.URLEncoder;
  */
 public class EncodeUtils {
 
-    private static final String DEFAULT_URL_ENCODING = "UTF-8";
+    private static final String DEFAULT_CHARSET = "UTF-8";
+    private static final String AES_ALGORITHM = "AES";
+    private static final String AES_CIPHER_ALGORITHM = "AES/CBC/PKCS5Padding";
     private static final char[] BASE62 = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".toCharArray();
 
     /**
@@ -140,7 +140,7 @@ public class EncodeUtils {
     public static String urlEncode(String part, String charset) {
         try {
             if (StringUtils.isEmpty(charset)) {
-                charset = DEFAULT_URL_ENCODING;
+                charset = DEFAULT_CHARSET;
             }
             return URLEncoder.encode(part, charset);
         } catch (UnsupportedEncodingException e) {
@@ -166,7 +166,7 @@ public class EncodeUtils {
      * URL 解码, Encode默认为UTF-8.
      */
     public static String urlDecode(String part) {
-        return urlDecode(part, DEFAULT_URL_ENCODING);
+        return urlDecode(part, DEFAULT_CHARSET);
     }
 
     /**
@@ -175,12 +175,67 @@ public class EncodeUtils {
     public static String urlDecode(String part, String charset) {
         try {
             if (StringUtils.isEmpty(charset)) {
-                charset = DEFAULT_URL_ENCODING;
+                charset = DEFAULT_CHARSET;
             }
             return URLDecoder.decode(part, charset);
         } catch (UnsupportedEncodingException e) {
             throw ExceptionUtils.unchecked(e);
         }
+    }
+
+    /**
+     * AES/CBC/PKCS5Padding 加密
+     * AES 为对称加密算法
+     * @param content
+     * @param password
+     * @param passwordIV
+     * @return
+     * @throws Exception
+     */
+    public static String aesEncode(String content, String password, byte[] passwordIV) throws Exception {
+        if (StringUtils.isEmpty(content)
+                || StringUtils.isEmpty(password)
+                || passwordIV == null) {
+            throw new IllegalArgumentException("内容/密码/向量都不能为空！");
+        }
+        SecretKeySpec key = new SecretKeySpec(password.getBytes(DEFAULT_CHARSET), AES_ALGORITHM);
+        IvParameterSpec iv = new IvParameterSpec(passwordIV);
+        // 默认“AES”为：“AES/ECB/PKCS5Padding”，此处使用“AES/CBC/PKCS5Padding”
+        Cipher cipher = Cipher.getInstance(AES_CIPHER_ALGORITHM);
+        cipher.init(Cipher.ENCRYPT_MODE, key, iv);
+        byte[] result = cipher.doFinal(content.getBytes(DEFAULT_CHARSET));
+        return encodeBase64(result);
+    }
+
+    /**
+     * AES/CBC/PKCS5Padding 解密
+     * @param content
+     * @param password
+     * @param passwordIV
+     * @return
+     * @throws Exception
+     */
+    public static String aesDecode(String content, String password, byte[] passwordIV) throws Exception {
+        if (StringUtils.isEmpty(content)
+                || StringUtils.isEmpty(password)
+                || passwordIV == null) {
+            throw new IllegalArgumentException("内容/密码/向量都不能为空！");
+        }
+        SecretKeySpec key = new SecretKeySpec(password.getBytes(DEFAULT_CHARSET), AES_ALGORITHM);
+        IvParameterSpec zeroIv = new IvParameterSpec(passwordIV);
+        Cipher cipher = Cipher.getInstance(AES_CIPHER_ALGORITHM);
+        cipher.init(Cipher.DECRYPT_MODE, key, zeroIv);
+        byte[] result = cipher.doFinal(decodeBase64_byte(content));
+        return new String(result, DEFAULT_CHARSET);
+    }
+
+    public static void main(String[] args) throws Exception {
+        String key = "1234567890123456";
+        byte[] password = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+        String encode = aesEncode("测试AES加解密", key, password);
+        System.out.println(encode);
+        String decode = aesDecode(encode, key, password);
+        System.out.println(decode);
     }
 
 }
