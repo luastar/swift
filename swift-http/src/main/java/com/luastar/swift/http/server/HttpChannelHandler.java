@@ -169,17 +169,6 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<HttpObject> 
             }
         }
         // 输出返回结果
-        /*
-        boolean keepAlive = HttpUtil.isKeepAlive(httpRequest.getFullHttpRequest());
-        if (keepAlive) {
-            response.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
-            ctx.writeAndFlush(response);
-        } else {
-            HttpUtil.setContentLength(response, contentLength);
-            ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
-        }
-        */
-        // 不处理keepAlive，直接返回结果
         HttpUtil.setContentLength(response, contentLength);
         ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
     }
