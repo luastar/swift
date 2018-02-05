@@ -299,6 +299,14 @@ public class HttpRequest {
         return JSON.parseObject(body, clazz);
     }
 
+    public <T> List<T> getBodyArray(Class<T> clazz) {
+        String body = getBody();
+        if (StringUtils.isEmpty(body)) {
+            return null;
+        }
+        return JSON.parseArray(body, clazz);
+    }
+
     public SwiftHashMap<String, Object> getBodyMap() {
         return getBodyObject(SwiftHashMap.class);
     }
