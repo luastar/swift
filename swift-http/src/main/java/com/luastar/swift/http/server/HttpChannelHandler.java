@@ -113,7 +113,7 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<HttpObject> 
             // 返回处理结果
             handleHttpResponse(ctx);
         } finally {
-            reset();
+            destroy();
         }
     }
 
@@ -185,9 +185,9 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<HttpObject> 
     }
 
     /**
-     * 重置变量
+     * 销毁数据
      */
-    protected void reset() {
+    protected void destroy() {
         // 清空swiftRequest
         if (httpRequest != null) {
             httpRequest.destroy();
@@ -198,13 +198,6 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<HttpObject> 
             httpResponse = null;
         }
         MDC.remove(MDC_KEY);
-    }
-
-    @Override
-    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        if (httpRequest != null) {
-            httpRequest.cleanFiles();
-        }
     }
 
     @Override

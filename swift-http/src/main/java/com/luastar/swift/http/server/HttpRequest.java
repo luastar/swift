@@ -302,6 +302,14 @@ public class HttpRequest {
         return JSON.parseObject(body, clazz);
     }
 
+    public <T> List<T> getBodyArray(Class<T> clazz) {
+        String body = getBody();
+        if (StringUtils.isEmpty(body)) {
+            return null;
+        }
+        return JSON.parseArray(body, clazz);
+    }
+
     public SwiftHashMap<String, Object> getBodyMap() {
         return getBodyObject(SwiftHashMap.class);
     }
@@ -319,12 +327,6 @@ public class HttpRequest {
         dataBinder.registerCustomEditor(Date.class, new CustomDateEditor(DateUtils.NORMAL_FORMAT, true));
         dataBinder.bind(new MutablePropertyValues(parameterMap));
         return obj;
-    }
-
-    public void cleanFiles() {
-        if (postRequestDecoder != null) {
-            postRequestDecoder.cleanFiles();
-        }
     }
 
     public void destroy() {
