@@ -13,7 +13,7 @@
     <artifactId>swift-rpc</artifactId>
 
     <properties>
-        <netty.version>4.1.20.Final</netty.version>
+        <netty.version>4.1.19.Final</netty.version>
         <zookeeper.version>3.4.6</zookeeper.version>
         <protostuff.version>1.0.10</protostuff.version>
         <hessian.version>4.0.38</hessian.version>
