@@ -13,6 +13,16 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.InputStream;
 
+/**
+ * dom4j 支持的xpath：
+ * /AAA/DDD/BBB： 表示一层一层的，AAA下面 DDD下面的BBB
+ * //BBB： 表示和这个名称相同，表示只要名称是BBB，都得到
+ * /*: 所有元素
+ * BBB[1]：　表示第一个BBB元素
+ * BBB[last()]：表示最后一个BBB元素
+ * //BBB[@id]： 表示只要BBB元素上面有id属性，都得到
+ * //BBB[@id='aaaa'] 表示元素名称是BBB,在BBB上面有id属性，并且id的属性值是aaa
+ */
 public class XmlUtils {
 
     private static Logger logger = LoggerFactory.getLogger(XmlUtils.class);
