@@ -78,6 +78,7 @@ public class HttpClientUtils {
             // https支持
             if (StringUtils.isNotEmpty(url) && url.startsWith("https://")) {
                 SSLContext sslcontext = SSLContexts.custom().loadTrustMaterial(null, new TrustStrategy() {
+                    @Override
                     public boolean isTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException {
                         return true;
                     }
@@ -183,13 +184,11 @@ public class HttpClientUtils {
             logger.info("请求url：{}，结果状态：{}，耗时：{}毫秒。", url, status, ((end - start)));
             result.setStatus(status);
             result.setCost(end - start);
-            if (status >= 200 && status < 300) {
-                HttpEntity entity = response.getEntity();
-                if (entity != null) {
-                    byte[] content = EntityUtils.toByteArray(entity);
-                    if (content != null) {
-                        result.setInputStream(new ByteArrayInputStream(content));
-                    }
+            HttpEntity entity = response.getEntity();
+            if (entity != null) {
+                byte[] content = EntityUtils.toByteArray(entity);
+                if (content != null) {
+                    result.setInputStream(new ByteArrayInputStream(content));
                 }
             }
             return result;
@@ -216,10 +215,8 @@ public class HttpClientUtils {
             long end = System.currentTimeMillis();
             int status = response.getStatusLine().getStatusCode();
             logger.info("请求url：{}，结果状态：{}，耗时：{}毫秒。", url, status, ((end - start)));
-            if (status >= 200 && status < 300) {
-                HttpEntity entity = response.getEntity();
-                return entity != null ? EntityUtils.toByteArray(entity) : null;
-            }
+            HttpEntity entity = response.getEntity();
+            return entity != null ? EntityUtils.toByteArray(entity) : null;
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
         } finally {
@@ -381,13 +378,11 @@ public class HttpClientUtils {
             logger.info("请求url：{}，结果状态：{}，耗时：{}毫秒。", url, status, (end - start));
             result.setStatus(status);
             result.setCost(end - start);
-            if (status >= 200 && status < 300) {
-                HttpEntity entity = response.getEntity();
-                if (entity != null) {
-                    byte[] content = EntityUtils.toByteArray(entity);
-                    if (content != null) {
-                        result.setInputStream(new ByteArrayInputStream(content));
-                    }
+            HttpEntity entity = response.getEntity();
+            if (entity != null) {
+                byte[] content = EntityUtils.toByteArray(entity);
+                if (content != null) {
+                    result.setInputStream(new ByteArrayInputStream(content));
                 }
             }
             return result;
@@ -538,13 +533,11 @@ public class HttpClientUtils {
             logger.info("请求url：{}，结果状态：{}，耗时：{}毫秒。", url, status, (end - start));
             result.setStatus(status);
             result.setCost(end - start);
-            if (status >= 200 && status < 300) {
-                HttpEntity entity = response.getEntity();
-                if (entity != null) {
-                    byte[] content = EntityUtils.toByteArray(entity);
-                    if (content != null) {
-                        result.setInputStream(new ByteArrayInputStream(content));
-                    }
+            HttpEntity entity = response.getEntity();
+            if (entity != null) {
+                byte[] content = EntityUtils.toByteArray(entity);
+                if (content != null) {
+                    result.setInputStream(new ByteArrayInputStream(content));
                 }
             }
             return result;
@@ -653,13 +646,11 @@ public class HttpClientUtils {
             logger.info("请求url：{}，结果状态：{}，耗时：{}毫秒。", url, status, ((end - start)));
             result.setStatus(status);
             result.setCost(end - start);
-            if (status >= 200 && status < 300) {
-                HttpEntity entity = response.getEntity();
-                if (entity != null) {
-                    byte[] content = EntityUtils.toByteArray(entity);
-                    if (content != null) {
-                        result.setInputStream(new ByteArrayInputStream(content));
-                    }
+            HttpEntity entity = response.getEntity();
+            if (entity != null) {
+                byte[] content = EntityUtils.toByteArray(entity);
+                if (content != null) {
+                    result.setInputStream(new ByteArrayInputStream(content));
                 }
             }
             return result;
@@ -697,14 +688,12 @@ public class HttpClientUtils {
             long end = System.currentTimeMillis();
             int status = response.getStatusLine().getStatusCode();
             logger.info("请求url：{}，结果状态：{}，耗时：{}毫秒。", url, status, ((end - start)));
-            if (status >= 200 && status < 300) {
-                HttpEntity entity = response.getEntity();
-                if (entity != null) {
-                    File targetFile = new File(filePath);
-                    File tmpFile = new File(targetFile.getAbsolutePath() + "." + RandomUtils.uuid2());
-                    FileUtils.copyInputStreamToFile(entity.getContent(), tmpFile);
-                    tmpFile.renameTo(targetFile);
-                }
+            HttpEntity entity = response.getEntity();
+            if (entity != null) {
+                File targetFile = new File(filePath);
+                File tmpFile = new File(targetFile.getAbsolutePath() + "." + RandomUtils.uuid2());
+                FileUtils.copyInputStreamToFile(entity.getContent(), tmpFile);
+                tmpFile.renameTo(targetFile);
             }
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
