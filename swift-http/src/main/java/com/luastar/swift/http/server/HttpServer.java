@@ -1,5 +1,6 @@
 package com.luastar.swift.http.server;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.luastar.swift.base.utils.SpringUtils;
 import com.luastar.swift.http.constant.HttpConstant;
 import com.luastar.swift.http.route.HttpHandlerMapping;
@@ -65,8 +66,10 @@ public class HttpServer {
     }
 
     public void start() {
-        EventLoopGroup bossGroup = new NioEventLoopGroup(HttpConstant.SWIFT_BOSS_THREADS);
-        EventLoopGroup workerGroup = new NioEventLoopGroup(HttpConstant.SWIFT_WORKER_THREADS);
+        // 设置线程名称
+        ThreadFactoryBuilder threadFactoryBuilder = new ThreadFactoryBuilder();
+        EventLoopGroup bossGroup = new NioEventLoopGroup(HttpConstant.SWIFT_BOSS_THREADS, threadFactoryBuilder.setNameFormat("boss-group-%d").build());
+        EventLoopGroup workerGroup = new NioEventLoopGroup(HttpConstant.SWIFT_WORKER_THREADS, threadFactoryBuilder.setNameFormat("worker-group-%d").build());
         try {
             ServerBootstrap bootstrap = new ServerBootstrap();
             bootstrap.group(bossGroup, workerGroup)
