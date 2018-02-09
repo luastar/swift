@@ -78,13 +78,13 @@ public interface HttpConstant {
     /**
      * 输出日志最大值
      */
-    int SWIFT_MAX_LOG_LENGTH = PropertyUtils.getInt("swift.maxLogLength", 1024 * 1024);
+    int SWIFT_MAX_LOG_LENGTH = PropertyUtils.getInt("swift.maxLogLength", 1024 * 512);
     /**
-     * 分发线程数，如果只有一个端口，建议设置成1
+     * 分发线程数，默认值4（为0表示cpu个数 * 2）
      */
-    int SWIFT_BOSS_THREADS = PropertyUtils.getInt("swift.bossThreads", 1);
+    int SWIFT_BOSS_THREADS = PropertyUtils.getInt("swift.bossThreads", 4);
     /**
-     * 工作线程数，如果设置成0，默认为cpu个数 * 2
+     * 工作线程数，默认值16（为0表示cpu个数 * 2）
      */
     int SWIFT_WORKER_THREADS = PropertyUtils.getInt("swift.workerThreads", 16);
     /**
