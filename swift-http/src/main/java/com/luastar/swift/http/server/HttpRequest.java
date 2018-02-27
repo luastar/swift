@@ -34,7 +34,7 @@ public class HttpRequest {
 
     private static final Logger logger = LoggerFactory.getLogger(HttpRequest.class);
 
-    private static final HttpDataFactory factory = new DefaultHttpDataFactory(DefaultHttpDataFactory.MINSIZE);
+    private static final HttpDataFactory factory = new DefaultHttpDataFactory(1024 * 1024);
 
     static {
         DiskFileUpload.deleteOnExitTemporaryFile = true;
