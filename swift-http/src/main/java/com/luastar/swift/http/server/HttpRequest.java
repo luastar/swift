@@ -21,6 +21,7 @@ import org.springframework.beans.propertyeditors.CustomDateEditor;
 import org.springframework.validation.DataBinder;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
@@ -253,6 +254,14 @@ public class HttpRequest {
 
     public HttpFileUpload getFile(String key) {
         return fileMap.get(key);
+    }
+
+    public InputStream getFileInputStream(String key) throws IOException {
+        HttpFileUpload fileUpload = getFile(key);
+        if (fileUpload == null) {
+            return null;
+        }
+        return fileUpload.getInputStream();
     }
 
     public Map<String, Object> getAttributeMap() {
