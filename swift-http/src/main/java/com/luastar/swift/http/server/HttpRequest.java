@@ -34,7 +34,10 @@ public class HttpRequest {
 
     private static final Logger logger = LoggerFactory.getLogger(HttpRequest.class);
 
-    private static final HttpDataFactory factory = new DefaultHttpDataFactory(1024 * 1024);
+    /**
+     * 10MB以内文件存在内存中
+     */
+    private static final HttpDataFactory factory = new DefaultHttpDataFactory(1024 * 1024 * 10);
 
     static {
         DiskFileUpload.deleteOnExitTemporaryFile = true;
