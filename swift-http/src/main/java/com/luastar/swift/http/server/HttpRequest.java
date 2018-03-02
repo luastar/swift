@@ -33,9 +33,9 @@ public class HttpRequest {
     private static final Logger logger = LoggerFactory.getLogger(HttpRequest.class);
 
     /**
-     * 1M以内的文件存在内存里
+     * 10M以内的文件存在内存里
      */
-    private static final HttpDataFactory factory = new DefaultHttpDataFactory(1024 * 1024);
+    private static final HttpDataFactory factory = new DefaultHttpDataFactory(1024 * 1024 * 10);
 
     private String requestId;
     private String socketIp;
