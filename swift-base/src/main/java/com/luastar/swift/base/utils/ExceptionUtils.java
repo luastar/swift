@@ -43,9 +43,9 @@ public class ExceptionUtils {
         StringBuilder msg = new StringBuilder();
         msg.append(e.getMessage());
         if (nestedException != null && nestedException != e) {
-            msg.append(" nested exception is ")
+            msg.append(", nested exception is ")
                     .append(nestedException.getClass().getName())
-                    .append(":")
+                    .append(": ")
                     .append(nestedException.getMessage());
         }
         return msg.toString();
