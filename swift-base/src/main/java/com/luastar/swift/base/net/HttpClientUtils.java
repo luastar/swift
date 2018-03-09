@@ -173,7 +173,7 @@ public class HttpClientUtils {
             // head设置
             if (headMap != null && !headMap.isEmpty()) {
                 for (Map.Entry<String, String> entry : headMap.entrySet()) {
-                    httpGet.addHeader(entry.getKey(), entry.getValue());
+                    httpGet.setHeader(entry.getKey(), entry.getValue());
                 }
             }
             httpclient = createHttpClient(url);
@@ -287,7 +287,7 @@ public class HttpClientUtils {
             // head设置
             if (headMap != null && !headMap.isEmpty()) {
                 for (Map.Entry<String, String> entry : headMap.entrySet()) {
-                    httpPost.addHeader(entry.getKey(), entry.getValue());
+                    httpPost.setHeader(entry.getKey(), entry.getValue());
                 }
             }
             // 参数设置
@@ -359,7 +359,7 @@ public class HttpClientUtils {
             // head设置
             if (headMap != null && !headMap.isEmpty()) {
                 for (Map.Entry<String, String> entry : headMap.entrySet()) {
-                    httpPost.addHeader(entry.getKey(), entry.getValue());
+                    httpPost.setHeader(entry.getKey(), entry.getValue());
                 }
             }
             // 参数设置
@@ -576,9 +576,10 @@ public class HttpClientUtils {
                     .setConnectionRequestTimeout(timeout).build();
             httpPost.setConfig(requestConfig);
             // head设置
+            httpPost.setHeader("Content-Type", ContentType.APPLICATION_JSON.toString());
             if (headMap != null && !headMap.isEmpty()) {
                 for (Map.Entry<String, String> entry : headMap.entrySet()) {
-                    httpPost.addHeader(entry.getKey(), entry.getValue());
+                    httpPost.setHeader(entry.getKey(), entry.getValue());
                 }
             }
             // 请求体设置
@@ -629,9 +630,10 @@ public class HttpClientUtils {
                     .setConnectionRequestTimeout(timeout).build();
             httpPost.setConfig(requestConfig);
             // head设置
+            httpPost.setHeader("Content-Type", ContentType.APPLICATION_JSON.toString());
             if (headMap != null && !headMap.isEmpty()) {
                 for (Map.Entry<String, String> entry : headMap.entrySet()) {
-                    httpPost.addHeader(entry.getKey(), entry.getValue());
+                    httpPost.setHeader(entry.getKey(), entry.getValue());
                 }
             }
             // 请求体设置
@@ -679,7 +681,7 @@ public class HttpClientUtils {
             // head设置
             if (headMap != null && !headMap.isEmpty()) {
                 for (Map.Entry<String, String> entry : headMap.entrySet()) {
-                    httpGet.addHeader(entry.getKey(), entry.getValue());
+                    httpGet.setHeader(entry.getKey(), entry.getValue());
                 }
             }
             httpclient = createHttpClient(url);
@@ -717,7 +719,7 @@ public class HttpClientUtils {
             // head设置
             if (headMap != null && !headMap.isEmpty()) {
                 for (Map.Entry<String, String> entry : headMap.entrySet()) {
-                    httpGet.addHeader(entry.getKey(), entry.getValue());
+                    httpGet.setHeader(entry.getKey(), entry.getValue());
                 }
             }
             // 自定义重定向，不自动处理
