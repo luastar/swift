@@ -47,11 +47,12 @@ public class ThreadUtils {
 
     /**
      * 创建普通的线程池
+     *
      * @param namePrefix
      * @param poolSize
      * @return
      */
-    public static ExecutorService newFixedThreadPool(String namePrefix, int poolSize) {
+    public static ThreadPoolExecutor commonThreadPool(String namePrefix, int poolSize) {
         return commonThreadPool(namePrefix, poolSize, poolSize);
     }
 
@@ -69,13 +70,13 @@ public class ThreadUtils {
      * @param maximumPoolSize
      * @return
      */
-    public static ExecutorService commonThreadPool(String namePrefix, int corePoolSize, int maximumPoolSize) {
+    public static ThreadPoolExecutor commonThreadPool(String namePrefix, int corePoolSize, int maximumPoolSize) {
         return new ThreadPoolExecutor(
                 corePoolSize,
                 maximumPoolSize,
                 0L,
                 TimeUnit.MILLISECONDS,
-                new LinkedBlockingQueue<>(102400),
+                new LinkedBlockingQueue<>(24000),
                 namedThreadFactory(namePrefix),
                 new ThreadPoolExecutor.AbortPolicy());
     }
