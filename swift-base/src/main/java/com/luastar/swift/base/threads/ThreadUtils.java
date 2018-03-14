@@ -1,8 +1,3 @@
-/**
- * Copyright (c) 2005-2012 springside.org.cn
- * <p>
- * Licensed under the Apache License, Version 2.0 (the "License");
- */
 package com.luastar.swift.base.threads;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -17,6 +12,8 @@ import java.util.concurrent.*;
  * @author calvin
  */
 public class ThreadUtils {
+
+    private static Logger logger = LoggerFactory.getLogger(ThreadUtils.class);
 
     /**
      * sleep等待, 单位为毫秒.
@@ -50,12 +47,23 @@ public class ThreadUtils {
 
     /**
      * 创建普通的线程池
+     * @param namePrefix
+     * @param poolSize
+     * @return
+     */
+    public static ExecutorService newFixedThreadPool(String namePrefix, int poolSize) {
+        return commonThreadPool(namePrefix, poolSize, poolSize);
+    }
+
+    /**
+     * 创建普通的线程池
      * 线程池不要使用Executors去创建，而是通过ThreadPoolExecutor的方式，这样的处理方式让写的同学更加明确线程池的运行规则，规避资源耗尽的风险。
      * 说明：Executors各个方法的弊端：
      * 1）newFixedThreadPool和newSingleThreadExecutor:
      * 主要问题是堆积的请求处理队列可能会耗费非常大的内存，甚至OOM。
      * 2）newCachedThreadPool和newScheduledThreadPool:
      * 主要问题是线程数最大数是Integer.MAX_VALUE，可能会创建数量非常多的线程，甚至OOM。
+     *
      * @param namePrefix
      * @param corePoolSize
      * @param maximumPoolSize
@@ -67,7 +75,7 @@ public class ThreadUtils {
                 maximumPoolSize,
                 0L,
                 TimeUnit.MILLISECONDS,
-                new LinkedBlockingQueue<Runnable>(1024),
+                new LinkedBlockingQueue<>(102400),
                 namedThreadFactory(namePrefix),
                 new ThreadPoolExecutor.AbortPolicy());
     }
@@ -79,16 +87,17 @@ public class ThreadUtils {
      * 如果仍然超時，則強制退出.
      * 另对在shutdown时线程本身被调用中断做了处理.
      */
-    public static void gracefulShutdown(ExecutorService pool, int shutdownTimeout, int shutdownNowTimeout,
-                                        TimeUnit timeUnit) {
-        pool.shutdown(); // Disable new tasks from being submitted
+    public static void gracefulShutdown(ExecutorService pool, int shutdownTimeout, int shutdownNowTimeout, TimeUnit timeUnit) {
+        // Disable new tasks from being submitted
+        pool.shutdown();
         try {
             // Wait a while for existing tasks to terminate
             if (!pool.awaitTermination(shutdownTimeout, timeUnit)) {
-                pool.shutdownNow(); // Cancel currently executing tasks
+                // Cancel currently executing tasks
+                pool.shutdownNow();
                 // Wait a while for tasks to respond to being cancelled
                 if (!pool.awaitTermination(shutdownNowTimeout, timeUnit)) {
-                    System.err.println("Pool did not terminated");
+                    logger.info("Pool did not terminated");
                 }
             }
         } catch (InterruptedException ie) {
@@ -106,7 +115,7 @@ public class ThreadUtils {
         try {
             pool.shutdownNow();
             if (!pool.awaitTermination(timeout, timeUnit)) {
-                System.err.println("Pool did not terminated");
+                logger.info("Pool did not terminated");
             }
         } catch (InterruptedException ie) {
             Thread.currentThread().interrupt();
@@ -131,8 +140,7 @@ public class ThreadUtils {
             try {
                 runnable.run();
             } catch (Exception e) {
-                // catch any exception, because the scheduled thread will break if the exception thrown outside.
-                logger.error("Unexpected error occurred in task", e);
+                logger.error(e.getMessage(), e);
             }
         }
     }
