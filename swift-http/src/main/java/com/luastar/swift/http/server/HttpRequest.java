@@ -97,14 +97,14 @@ public class HttpRequest {
     }
 
     protected void decodeBody() {
-        if (HttpMethod.GET.equals(request.method())) {
-            return;
-        }
-        String contentType = getContentType();
-        if (StringUtils.isEmpty(contentType)) {
-            return;
-        }
         try {
+            if (HttpMethod.GET.equals(request.method())) {
+                return;
+            }
+            String contentType = getContentType();
+            if (StringUtils.isEmpty(contentType)) {
+                return;
+            }
             if (StringUtils.containsIgnoreCase(contentType, HttpHeaderValues.APPLICATION_X_WWW_FORM_URLENCODED)
                     || StringUtils.containsIgnoreCase(contentType, HttpHeaderValues.MULTIPART_FORM_DATA)) {
                 // 只解析 X_WWW_FORM_URLENCODED 和 MULTIPART_FORM_DATA
@@ -120,7 +120,7 @@ public class HttpRequest {
                     }
                 }
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             logger.error(e.getMessage(), e);
         }
     }
