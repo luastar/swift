@@ -7,6 +7,7 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpHeaders;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.RedirectStrategy;
 import org.apache.http.client.config.RequestConfig;
@@ -576,7 +577,7 @@ public class HttpClientUtils {
                     .setConnectionRequestTimeout(timeout).build();
             httpPost.setConfig(requestConfig);
             // head设置
-            httpPost.setHeader("Content-Type", ContentType.APPLICATION_JSON.toString());
+            httpPost.setHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString());
             if (headMap != null && !headMap.isEmpty()) {
                 for (Map.Entry<String, String> entry : headMap.entrySet()) {
                     httpPost.setHeader(entry.getKey(), entry.getValue());
@@ -630,7 +631,7 @@ public class HttpClientUtils {
                     .setConnectionRequestTimeout(timeout).build();
             httpPost.setConfig(requestConfig);
             // head设置
-            httpPost.setHeader("Content-Type", ContentType.APPLICATION_JSON.toString());
+            httpPost.setHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString());
             if (headMap != null && !headMap.isEmpty()) {
                 for (Map.Entry<String, String> entry : headMap.entrySet()) {
                     httpPost.setHeader(entry.getKey(), entry.getValue());
