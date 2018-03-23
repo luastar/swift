@@ -7,7 +7,6 @@ import org.beetl.core.BeetlKit;
 import java.io.UnsupportedEncodingException;
 import java.text.MessageFormat;
 import java.util.Map;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -31,6 +30,10 @@ public class StrUtils {
 
     public static boolean isNumber(String str) {
         return NumberUtils.isNumber(str);
+    }
+
+    public static String trim(String str) {
+        return StringUtils.deleteWhitespace(str);
     }
 
     /**

@@ -1,5 +1,7 @@
 package com.luastar.swift.base.utils;
 
+import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.dozer.DozerBeanMapper;
@@ -7,14 +9,79 @@ import org.dozer.Mapper;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 public class ObjUtils {
+
+    private static final String NULL_VALUE = "NULL";
+    private static final String EMPTY_VALUE = "";
+    private static final String COMMA = ",";
+    private static final String BOOLEAN_TRUE = "TRUE";
+    private static final String BOOLEAN_FALSE = "FALSE";
+    private static final String BOOLEAN_T = "T";
+    private static final String BOOLEAN_F = "F";
+    private static final String BOOLEAN_Y = "Y";
+    private static final String BOOLEAN_N = "N";
+    private static final String BOOLEAN_1 = "1";
+    private static final String BOOLEAN_0 = "0";
 
     private static Mapper mapper;
 
     public static <T> T ifNull(T object, T defaultValue) {
         return object == null ? defaultValue : object;
+    }
+
+    public static boolean isNull(Object value) {
+        if (value == null) {
+            return true;
+        } else if (value instanceof String && NULL_VALUE.equalsIgnoreCase((String) value)) {
+            return true;
+        }
+        return false;
+    }
+
+    public static boolean isEmpty(Object value) {
+        if (value == null) {
+            return true;
+        } else if (value instanceof String) {
+            if (StringUtils.isEmpty((String) value) || NULL_VALUE.equalsIgnoreCase((String) value)) {
+                return true;
+            }
+        } else if (value instanceof Collection && CollectionUtils.isEmpty((Collection) value)) {
+            return true;
+        } else if (value instanceof Map && MapUtils.isEmpty((Map) value)) {
+            return true;
+        }
+        return false;
+    }
+
+    public static boolean isNotEmpty(Object value) {
+        return !isEmpty(value);
+    }
+
+    public static <T> boolean isEmpty(final T[] array) {
+        return ArrayUtils.isEmpty(array);
+    }
+
+    public static <T> boolean isNotEmpty(final T[] array) {
+        return ArrayUtils.isNotEmpty(array);
+    }
+
+    public static boolean isBlank(Object value) {
+        if (value == null) {
+            return true;
+        } else if (value instanceof String) {
+            if (StringUtils.isBlank((String) value) || NULL_VALUE.equalsIgnoreCase((String) value)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean isNotBlank(Object value) {
+        return !isBlank(value);
     }
 
     public static String toString(Object obj) {
@@ -44,7 +111,7 @@ public class ObjUtils {
     }
 
     public static Integer toInteger(Object obj) {
-        if (obj == null) {
+        if (isEmpty(obj)) {
             return null;
         }
         if (obj instanceof Integer) {
@@ -55,13 +122,9 @@ public class ObjUtils {
         }
         // 处理字符串值
         String strValue = obj.toString().trim();
-        if (StringUtils.isEmpty(strValue)
-                || "null".equalsIgnoreCase(strValue)) {
-            return null;
-        }
         // 处理千分位
-        if (strValue.contains(",")) {
-            strValue = strValue.replaceAll(",", "");
+        if (strValue.contains(COMMA)) {
+            strValue = strValue.replaceAll(COMMA, EMPTY_VALUE);
         }
         try {
             return new BigDecimal(strValue).intValue();
@@ -75,7 +138,7 @@ public class ObjUtils {
     }
 
     public static Long toLong(Object obj) {
-        if (obj == null) {
+        if (isEmpty(obj)) {
             return null;
         }
         if (obj instanceof Long) {
@@ -86,12 +149,9 @@ public class ObjUtils {
         }
         // 处理字符串值
         String strValue = obj.toString().trim();
-        if (StringUtils.isEmpty(strValue) || "null".equalsIgnoreCase(strValue)) {
-            return null;
-        }
         // 处理千分位
-        if (strValue.contains(",")) {
-            strValue = strValue.replaceAll(",", "");
+        if (strValue.contains(COMMA)) {
+            strValue = strValue.replaceAll(COMMA, EMPTY_VALUE);
         }
         try {
             return new BigDecimal(strValue).longValue();
@@ -105,7 +165,7 @@ public class ObjUtils {
     }
 
     public static BigDecimal toBigDecimal(Object obj) {
-        if (obj == null) {
+        if (isEmpty(obj)) {
             return null;
         }
         if (obj instanceof BigDecimal) {
@@ -113,12 +173,9 @@ public class ObjUtils {
         }
         // 处理字符串值
         String strValue = obj.toString().trim();
-        if (StringUtils.isEmpty(strValue) || "null".equalsIgnoreCase(strValue)) {
-            return null;
-        }
         // 处理千分位
-        if (strValue.contains(",")) {
-            strValue = strValue.replaceAll(",", "");
+        if (strValue.contains(COMMA)) {
+            strValue = strValue.replaceAll(COMMA, EMPTY_VALUE);
         }
         try {
             return new BigDecimal(strValue);
@@ -132,7 +189,7 @@ public class ObjUtils {
     }
 
     public static Boolean toBoolean(Object obj) {
-        if (obj == null) {
+        if (isEmpty(obj)) {
             return null;
         }
         if (obj instanceof Boolean) {
@@ -143,19 +200,16 @@ public class ObjUtils {
         }
         // 处理字符串值
         String strValue = obj.toString().trim();
-        if (StringUtils.isEmpty(strValue) || "null".equalsIgnoreCase(strValue)) {
-            return null;
-        }
-        if ("true".equalsIgnoreCase(strValue)
-                || "T".equalsIgnoreCase(strValue)
-                || "Y".equalsIgnoreCase(strValue)
-                || "1".equals(strValue)) {
+        if (BOOLEAN_TRUE.equalsIgnoreCase(strValue)
+                || BOOLEAN_T.equalsIgnoreCase(strValue)
+                || BOOLEAN_Y.equalsIgnoreCase(strValue)
+                || BOOLEAN_1.equals(strValue)) {
             return Boolean.TRUE;
         }
-        if ("false".equalsIgnoreCase(strValue)
-                || "F".equalsIgnoreCase(strValue)
-                || "N".equalsIgnoreCase(strValue)
-                || "0".equals(strValue)) {
+        if (BOOLEAN_FALSE.equalsIgnoreCase(strValue)
+                || BOOLEAN_F.equalsIgnoreCase(strValue)
+                || BOOLEAN_N.equalsIgnoreCase(strValue)
+                || BOOLEAN_0.equals(strValue)) {
             return Boolean.FALSE;
         }
         return null;
@@ -163,6 +217,10 @@ public class ObjUtils {
 
     public static Boolean toBoolean(Object obj, Boolean defaultValue) {
         return ifNull(toBoolean(obj), defaultValue);
+    }
+
+    public static boolean toboolean(Object obj) {
+        return toBoolean(obj, false);
     }
 
     public static Mapper getMapper() {
@@ -192,7 +250,7 @@ public class ObjUtils {
     }
 
     public static Integer[] string2IntAry(String str, String separatorChars, Integer defaultValue) {
-        if (StringUtils.isBlank(str)) {
+        if (isBlank(str)) {
             return null;
         }
         String[] strAry = StringUtils.split(str, separatorChars);
@@ -204,7 +262,7 @@ public class ObjUtils {
     }
 
     public static List<Integer> string2IntList(String str, String separatorChars, Integer defaultValue) {
-        if (StringUtils.isBlank(str)) {
+        if (isBlank(str)) {
             return new ArrayList<Integer>(1);
         }
         String[] strAry = StringUtils.split(str, separatorChars);
@@ -216,7 +274,7 @@ public class ObjUtils {
     }
 
     public static Long[] string2LongAry(String str, String separatorChars, Long defaultValue) {
-        if (StringUtils.isBlank(str)) {
+        if (isBlank(str)) {
             return null;
         }
         String[] strAry = StringUtils.split(str, separatorChars);
@@ -228,7 +286,7 @@ public class ObjUtils {
     }
 
     public static List<Long> string2LongList(String str, String separatorChars, Long defaultValue) {
-        if (StringUtils.isBlank(str)) {
+        if (isBlank(str)) {
             return new ArrayList<Long>(1);
         }
         String[] strAry = StringUtils.split(str, separatorChars);
