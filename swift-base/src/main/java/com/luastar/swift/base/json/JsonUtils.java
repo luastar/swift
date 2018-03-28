@@ -1,60 +1,125 @@
 package com.luastar.swift.base.json;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.PropertyNamingStrategy;
-import com.alibaba.fastjson.parser.ParserConfig;
-import com.alibaba.fastjson.serializer.SerializeConfig;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Map;
 
-public abstract class JsonUtils {
+public class JsonUtils {
 
-    protected static JsonMapper jsonMapper = new JsonMapper();
+    private static Logger logger = LoggerFactory.getLogger(JsonUtils.class);
 
-    private static SerializeConfig serializeConfig;
-    private static ParserConfig parserConfig;
+    private static ObjectMapper defaultMapper;
+    private static ObjectMapper snakeMapper;
 
     static {
-        serializeConfig = new SerializeConfig();
-        serializeConfig.propertyNamingStrategy = PropertyNamingStrategy.SnakeCase;
-        parserConfig = new ParserConfig();
-        parserConfig.propertyNamingStrategy = PropertyNamingStrategy.SnakeCase;
-    }
-
-    public static JsonMapper getJsonMapper() {
-        return jsonMapper;
+        // 默认mapper
+        defaultMapper = new ObjectMapper();
+        defaultMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        defaultMapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"));
+        defaultMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        // 下画线mapper
+        snakeMapper = new ObjectMapper();
+        snakeMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        snakeMapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"));
+        snakeMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        snakeMapper.setPropertyNamingStrategy(PropertyNamingStrategy.CAMEL_CASE_TO_LOWER_CASE_WITH_UNDERSCORES);
     }
 
     public static String toJson(Object obj) {
-        return jsonMapper.toJson(obj);
+        try {
+            if (obj == null) {
+                return null;
+            }
+            return defaultMapper.writeValueAsString(obj);
+        } catch (IOException e) {
+            logger.error("[writeValueAsString]：" + e.getMessage(), e);
+        }
+        return null;
     }
 
     public static String toJsonSnake(Object obj) {
-        return JSON.toJSONString(obj, serializeConfig);
+        try {
+            if (obj == null) {
+                return null;
+            }
+            return snakeMapper.writeValueAsString(obj);
+        } catch (IOException e) {
+            logger.error("[writeValueAsString]：" + e.getMessage(), e);
+        }
+        return null;
     }
 
     public static <T> T toObj(String json, Class<T> clazz) {
-        return jsonMapper.toObj(json, clazz);
+        try {
+            if (StringUtils.isEmpty(json)) {
+                return null;
+            }
+            return defaultMapper.readValue(json, clazz);
+        } catch (IOException e) {
+            logger.error("[readValue]：" + e.getMessage(), e);
+        }
+        return null;
     }
 
     public static <T> T toObjSnake(String json, Class<T> clazz) {
-        return JSON.parseObject(json, clazz, parserConfig);
+        try {
+            if (StringUtils.isEmpty(json)) {
+                return null;
+            }
+            return snakeMapper.readValue(json, clazz);
+        } catch (IOException e) {
+            logger.error("[readValue]：" + e.getMessage(), e);
+        }
+        return null;
     }
 
     public static <T> T toObj(String json, Class<? extends Collection> collectionClass, Class<?> elementClass) {
-        JavaType javaType = jsonMapper.contructCollectionType(collectionClass, elementClass);
-        return jsonMapper.toObj(json, javaType);
+        try {
+            if (StringUtils.isEmpty(json)) {
+                return null;
+            }
+            JavaType javaType = defaultMapper.getTypeFactory().constructCollectionType(collectionClass, elementClass);
+            return (T) defaultMapper.readValue(json, javaType);
+        } catch (IOException e) {
+            logger.error("[toObj]" + e.getMessage(), e);
+        }
+        return null;
     }
 
     public static <T> T toObj(String json, Class<? extends Map> mapClass, Class<?> keyClass, Class<?> valueClass) {
-        JavaType javaType = jsonMapper.contructMapType(mapClass, keyClass, valueClass);
-        return jsonMapper.toObj(json, javaType);
+        try {
+            if (StringUtils.isEmpty(json)) {
+                return null;
+            }
+            JavaType javaType = defaultMapper.getTypeFactory().constructMapType(mapClass, keyClass, valueClass);
+            return (T) defaultMapper.readValue(json, javaType);
+        } catch (IOException e) {
+            logger.error("[toObj]" + e.getMessage(), e);
+        }
+        return null;
     }
 
     public static String formatJson(String json) {
-        return jsonMapper.formatJson(json);
+        try {
+            if (json == null) {
+                return null;
+            }
+            Object obj = defaultMapper.readValue(json, Object.class);
+            return defaultMapper.writerWithDefaultPrettyPrinter().writeValueAsString(obj);
+        } catch (Exception e) {
+            logger.error("[formatJson]：" + e.getMessage(), e);
+        }
+        return json;
     }
 
 }
