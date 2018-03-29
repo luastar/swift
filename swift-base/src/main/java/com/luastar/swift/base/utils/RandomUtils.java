@@ -58,13 +58,6 @@ public class RandomUtils {
     }
 
     /**
-     * 使用SecureRandom随机生成Long.
-     */
-    public static long randomLong() {
-        return Math.abs(random.nextLong());
-    }
-
-    /**
      * 包括数字和字母
      */
     public static String randomStr(int length) {
@@ -103,8 +96,8 @@ public class RandomUtils {
         } else if (length < 0) {
             throw new IllegalArgumentException("Requested random string length " + length + " is less than 0.");
         }
-        StringBuilder sb = new StringBuilder();
         int len = NUMBER_LOWER_LETTER_CHAR.length();
+        StringBuilder sb = new StringBuilder();
         for (int i = 0; i < length; i++) {
             sb.append(NUMBER_LOWER_LETTER_CHAR.charAt(randomInt(len)));
         }
