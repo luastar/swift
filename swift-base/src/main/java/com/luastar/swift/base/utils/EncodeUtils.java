@@ -32,7 +32,6 @@ public class EncodeUtils {
     private static final String DEFAULT_CHARSET = "UTF-8";
     private static final String AES_ALGORITHM = "AES";
     private static final String AES_CIPHER_ALGORITHM = "AES/CBC/PKCS5Padding";
-    private static final char[] BASE62 = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".toCharArray();
 
     /**
      * Md5编码.
@@ -100,17 +99,6 @@ public class EncodeUtils {
      */
     public static String decodeBase64(String input) {
         return org.apache.commons.codec.binary.StringUtils.newStringUtf8(Base64.decodeBase64(input));
-    }
-
-    /**
-     * Base62编码。
-     */
-    public static String encodeBase62(byte[] input) {
-        char[] chars = new char[input.length];
-        for (int i = 0; i < input.length; i++) {
-            chars[i] = BASE62[((input[i] & 0xFF) % BASE62.length)];
-        }
-        return new String(chars);
     }
 
     /**
@@ -186,6 +174,7 @@ public class EncodeUtils {
     /**
      * AES/CBC/PKCS5Padding 加密
      * AES 为对称加密算法
+     *
      * @param content
      * @param password
      * @param passwordIV
@@ -209,6 +198,7 @@ public class EncodeUtils {
 
     /**
      * AES/CBC/PKCS5Padding 解密
+     *
      * @param content
      * @param password
      * @param passwordIV
@@ -231,7 +221,7 @@ public class EncodeUtils {
 
     public static void main(String[] args) throws Exception {
         String key = "1234567890123456";
-        byte[] password = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
+        byte[] password = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
         String encode = aesEncode("测试AES加解密", key, password);
         System.out.println(encode);
         String decode = aesDecode(encode, key, password);

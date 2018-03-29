@@ -694,7 +694,7 @@ public class HttpClientUtils {
             HttpEntity entity = response.getEntity();
             if (entity != null) {
                 File targetFile = new File(filePath);
-                File tmpFile = new File(targetFile.getAbsolutePath() + "." + RandomUtils.uuid2());
+                File tmpFile = new File(targetFile.getAbsolutePath() + "." + RandomUtils.bsonId());
                 FileUtils.copyInputStreamToFile(entity.getContent(), tmpFile);
                 tmpFile.renameTo(targetFile);
             }
