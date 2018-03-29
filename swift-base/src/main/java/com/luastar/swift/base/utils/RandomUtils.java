@@ -1,10 +1,6 @@
-/**
- * Copyright (c) 2005-2012 springside.org.cn
- * <p/>
- * Licensed under the Apache License, Version 2.0 (the "License");
- */
 package com.luastar.swift.base.utils;
 
+import org.apache.commons.lang3.RandomStringUtils;
 import org.bson.types.ObjectId;
 
 import java.security.SecureRandom;
@@ -18,9 +14,11 @@ import java.util.UUID;
 public class RandomUtils {
 
     private static SecureRandom random = new SecureRandom();
-    private static final String ALL_CHAR = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+    private static final String NUMBER_CHAR = "0123456789";
     private static final String LETTER_CHAR = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    private static final String NUMBER_LOWERLETTER__CHAR = "0123456789abcdefghijklmnopqrstuvwxyz";
+    private static final String ALL_CHAR = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    private static final String NUMBER_LOWER_LETTER_CHAR = "0123456789abcdefghijklmnopqrstuvwxyz";
 
     /**
      * 封装JDK自带的UUID, 通过Random数字生成, 中间有-分割.
@@ -32,7 +30,7 @@ public class RandomUtils {
     /**
      * 封装JDK自带的UUID, 通过Random数字生成, 中间无-分割.
      */
-    public static String uuid2() {
+    public static String uuidNoDelimiter() {
         return UUID.randomUUID().toString().replaceAll("-", "");
     }
 
@@ -67,12 +65,30 @@ public class RandomUtils {
     }
 
     /**
-     * 基于Base62编码的SecureRandom随机生成bytes.
+     * 包括数字和字母
      */
     public static String randomStr(int length) {
-        byte[] randomBytes = new byte[length];
-        random.nextBytes(randomBytes);
-        return EncodeUtils.encodeBase62(randomBytes);
+        return RandomStringUtils.randomAlphanumeric(length);
+    }
+
+    /**
+     * 只包括数字
+     *
+     * @param length
+     * @return
+     */
+    public static String randomNum(int length) {
+        return RandomStringUtils.randomNumeric(length);
+    }
+
+    /**
+     * 只包括字母
+     *
+     * @param length
+     * @return
+     */
+    public static String randomLetter(int length) {
+        return RandomStringUtils.randomAlphabetic(length);
     }
 
     /**
@@ -81,11 +97,16 @@ public class RandomUtils {
      * @param length
      * @return
      */
-    public static String randomStr2(int length) {
-        StringBuffer sb = new StringBuffer();
-        int len = NUMBER_LOWERLETTER__CHAR.length();
+    public static String randomNumAndLowerLetter(int length) {
+        if (length == 0) {
+            return "";
+        } else if (length < 0) {
+            throw new IllegalArgumentException("Requested random string length " + length + " is less than 0.");
+        }
+        StringBuilder sb = new StringBuilder();
+        int len = NUMBER_LOWER_LETTER_CHAR.length();
         for (int i = 0; i < length; i++) {
-            sb.append(NUMBER_LOWERLETTER__CHAR.charAt(randomInt(len)));
+            sb.append(NUMBER_LOWER_LETTER_CHAR.charAt(randomInt(len)));
         }
         return sb.toString();
     }
