@@ -5,7 +5,11 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.beetl.core.BeetlKit;
 
 import java.io.UnsupportedEncodingException;
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
 import java.text.MessageFormat;
+import java.util.Enumeration;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -220,6 +224,32 @@ public class StrUtils {
             return new String(str.getBytes(), "UTF-8");
         } catch (UnsupportedEncodingException e) {
             return str;
+        }
+    }
+
+    /**
+     * 获取本机ip地址
+     *
+     * @return
+     */
+    public static String getLocalHostAddress() {
+        try {
+            Enumeration networkInterfaces = NetworkInterface.getNetworkInterfaces();
+            while (networkInterfaces.hasMoreElements()) {
+                NetworkInterface networkInterface = (NetworkInterface) networkInterfaces.nextElement();
+                Enumeration inetAddresses = networkInterface.getInetAddresses();
+                while (inetAddresses.hasMoreElements()) {
+                    InetAddress inetAddress = (InetAddress) inetAddresses.nextElement();
+                    if (!inetAddress.isLoopbackAddress()
+                            && !inetAddress.isSiteLocalAddress()
+                            && inetAddress instanceof Inet4Address) {
+                        return inetAddress.getHostAddress();
+                    }
+                }
+            }
+            return InetAddress.getLocalHost().getHostAddress();
+        } catch (Exception e) {
+            return "127.0.0.1";
         }
     }
 
