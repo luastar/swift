@@ -2,6 +2,7 @@ package com.luastar.swift.base.net;
 
 import com.luastar.swift.base.utils.ExceptionUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.http.Header;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -13,6 +14,7 @@ public class HttpResult {
 
     private int status;
     private long cost;
+    private Header[] headers;
     private InputStream inputStream;
     private String result;
     private Exception exception;
@@ -33,12 +35,24 @@ public class HttpResult {
         this.cost = cost;
     }
 
+    public Header[] getHeaders() {
+        return headers;
+    }
+
+    public void setHeaders(Header[] headers) {
+        this.headers = headers;
+    }
+
     public InputStream getInputStream() {
         return inputStream;
     }
 
     public void setInputStream(InputStream inputStream) {
         this.inputStream = inputStream;
+    }
+
+    public void setResult(String result) {
+        this.result = result;
     }
 
     public Exception getException() {
