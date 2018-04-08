@@ -185,6 +185,7 @@ public class HttpClientUtils {
             logger.info("请求url：{}，结果状态：{}，耗时：{}毫秒。", url, status, ((end - start)));
             result.setStatus(status);
             result.setCost(end - start);
+            result.setHeaders(response.getAllHeaders());
             HttpEntity entity = response.getEntity();
             if (entity != null) {
                 byte[] content = EntityUtils.toByteArray(entity);
@@ -379,6 +380,7 @@ public class HttpClientUtils {
             logger.info("请求url：{}，结果状态：{}，耗时：{}毫秒。", url, status, (end - start));
             result.setStatus(status);
             result.setCost(end - start);
+            result.setHeaders(response.getAllHeaders());
             HttpEntity entity = response.getEntity();
             if (entity != null) {
                 byte[] content = EntityUtils.toByteArray(entity);
@@ -534,6 +536,7 @@ public class HttpClientUtils {
             logger.info("请求url：{}，结果状态：{}，耗时：{}毫秒。", url, status, (end - start));
             result.setStatus(status);
             result.setCost(end - start);
+            result.setHeaders(response.getAllHeaders());
             HttpEntity entity = response.getEntity();
             if (entity != null) {
                 byte[] content = EntityUtils.toByteArray(entity);
@@ -649,6 +652,7 @@ public class HttpClientUtils {
             logger.info("请求url：{}，结果状态：{}，耗时：{}毫秒。", url, status, ((end - start)));
             result.setStatus(status);
             result.setCost(end - start);
+            result.setHeaders(response.getAllHeaders());
             HttpEntity entity = response.getEntity();
             if (entity != null) {
                 byte[] content = EntityUtils.toByteArray(entity);
