@@ -319,7 +319,12 @@ public class HttpRequest {
         if (StringUtils.isEmpty(body)) {
             return null;
         }
-        return JSON.parseObject(body, clazz);
+        try {
+            return JSON.parseObject(body, clazz);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            return null;
+        }
     }
 
     public <T> List<T> getBodyArray(Class<T> clazz) {
@@ -327,7 +332,12 @@ public class HttpRequest {
         if (StringUtils.isEmpty(body)) {
             return null;
         }
-        return JSON.parseArray(body, clazz);
+        try {
+            return JSON.parseArray(body, clazz);
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            return null;
+        }
     }
 
     public SwiftHashMap<String, Object> getBodyMap() {
