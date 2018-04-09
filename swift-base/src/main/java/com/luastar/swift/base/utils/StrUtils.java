@@ -3,15 +3,15 @@ package com.luastar.swift.base.utils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.beetl.core.BeetlKit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.UnsupportedEncodingException;
-import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.text.MessageFormat;
 import java.util.Enumeration;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 /**
  * 特殊字符串处理常用类，
@@ -19,7 +19,7 @@ import java.util.regex.Pattern;
  */
 public class StrUtils {
 
-    public static final Pattern FORMAT_PATTERN = Pattern.compile("(\\{\\d\\})", Pattern.CASE_INSENSITIVE);
+    private static final Logger logger = LoggerFactory.getLogger(StrUtils.class);
 
     public static boolean isDigits(String str) {
         return NumberUtils.isDigits(str);
@@ -229,26 +229,47 @@ public class StrUtils {
 
     /**
      * 获取本机ip地址
+     * 1.1、127.xxx.xxx.xxx 属于"loopback" 地址，即只能你自己的本机可见，就是本机地址，比较常见的有127.0.0.1；
+     * 1.2、192.168.xxx.xxx 属于private 私有地址(site local address)，属于本地组织内部访问，只能在本地局域网可见。同样10.xxx.xxx.xxx、从172.16.xxx.xxx 到 172.31.xxx.xxx都是私有地址，也是属于组织内部访问；
+     * 1.3、169.254.xxx.xxx 属于连接本地地址（link local IP），在单独网段可用
+     * 1.4、从224.xxx.xxx.xxx 到 239.xxx.xxx.xxx 属于组播地址
+     * 1.5、比较特殊的255.255.255.255 属于广播地址
+     * 1.6、除此之外的地址就是点对点的可用的公开IPv4地址
      *
      * @return
      */
     public static String getLocalHostAddress() {
         try {
+            InetAddress candidateAddress = null;
             Enumeration networkInterfaces = NetworkInterface.getNetworkInterfaces();
             while (networkInterfaces.hasMoreElements()) {
                 NetworkInterface networkInterface = (NetworkInterface) networkInterfaces.nextElement();
                 Enumeration inetAddresses = networkInterface.getInetAddresses();
                 while (inetAddresses.hasMoreElements()) {
                     InetAddress inetAddress = (InetAddress) inetAddresses.nextElement();
-                    if (!inetAddress.isLoopbackAddress()
-                            && !inetAddress.isSiteLocalAddress()
-                            && inetAddress instanceof Inet4Address) {
-                        return inetAddress.getHostAddress();
+                    logger.info("【getLocalHostAddress】==1=={}", inetAddress.toString());
+                    if (!inetAddress.isLoopbackAddress()) {
+                        // 排除loopback类型地址
+                        if (inetAddress.isSiteLocalAddress()) {
+                            // 如果是site-local地址，就是它了
+                            logger.info("【getLocalHostAddress】==2==");
+                            return inetAddress.getHostAddress();
+                        } else if (candidateAddress == null) {
+                            // site-local类型的地址未被发现，记录为候选地址
+                            candidateAddress = inetAddress;
+                        }
                     }
                 }
             }
+            if (candidateAddress != null) {
+                logger.info("【getLocalHostAddress】==3==");
+                return candidateAddress.getHostAddress();
+            }
+            // 如果没有发现non-loopback地址，只能用最次选的方案
+            logger.info("【getLocalHostAddress】==4==");
             return InetAddress.getLocalHost().getHostAddress();
         } catch (Exception e) {
+            logger.error("获取本机ip地址异常：" + e.getMessage(), e);
             return "127.0.0.1";
         }
     }
