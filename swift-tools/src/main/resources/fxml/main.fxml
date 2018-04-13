@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane prefHeight="600" prefWidth="800" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.luastar.swift.tools.controller.MainController">
+    <center>
+        <TabPane fx:id="funcTabPane" tabClosingPolicy="UNAVAILABLE">
+            <Tab text="数据库配置">
+                <fx:include source="db_config.fxml"/>
+            </Tab>
+            <Tab text="mybatis生成">
+                <fx:include source="mybatis.fxml"/>
+            </Tab>
+        </TabPane>
+    </center>
+    <bottom>
+        <TitledPane text="Console">
+            <TextArea fx:id="consoleTextArea" editable="false"/>
+        </TitledPane>
+    </bottom>
+</BorderPane>

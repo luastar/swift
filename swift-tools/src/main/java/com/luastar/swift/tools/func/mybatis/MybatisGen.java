@@ -3,18 +3,15 @@ package com.luastar.swift.tools.func.mybatis;
 import com.google.common.collect.Lists;
 import com.luastar.swift.base.utils.CollectionUtils;
 import com.luastar.swift.base.utils.RandomUtils;
-import com.luastar.swift.tools.func.mybatis.ext.JavaTypeResolverImpl;
-import com.luastar.swift.tools.func.mybatis.ext.MybatisDefaultShellCallback;
-import com.luastar.swift.tools.func.mybatis.ext.MybatisLimitPlugin;
-import com.luastar.swift.tools.model.ColumnVO;
-import com.luastar.swift.tools.model.TableVO;
+import com.luastar.swift.tools.enums.DbType;
+import com.luastar.swift.tools.model.db.ColumnVO;
+import com.luastar.swift.tools.model.db.TableVO;
 import com.luastar.swift.tools.utils.DataBaseUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.mybatis.generator.api.MyBatisGenerator;
 import org.mybatis.generator.api.ShellCallback;
 import org.mybatis.generator.config.*;
-import org.mybatis.generator.internal.DefaultShellCallback;
 import org.mybatis.generator.internal.NullProgressCallback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -87,10 +84,10 @@ public class MybatisGen {
         // limit plugin
         PluginConfiguration limitPlugin = new PluginConfiguration();
         limitPlugin.setConfigurationType(MybatisLimitPlugin.class.getName());
-        if (driverClass.contains(MybatisConstant.DB_TYPE_POSTGRESQL)) {
-            limitPlugin.addProperty("dbType", MybatisConstant.DB_TYPE_POSTGRESQL);
+        if (StringUtils.containsIgnoreCase(driverClass, DbType.PostgreSQL.getName())) {
+            limitPlugin.addProperty("dbType", DbType.PostgreSQL.getName());
         } else {
-            limitPlugin.addProperty("dbType", MybatisConstant.DB_TYPE_MYSQL);
+            limitPlugin.addProperty("dbType", DbType.MySQL.getName());
         }
         pluginConfigurationList.add(limitPlugin);
         return pluginConfigurationList;
@@ -131,7 +128,7 @@ public class MybatisGen {
      */
     protected JavaTypeResolverConfiguration getJavaTypeResolverConfiguration() {
         JavaTypeResolverConfiguration javaTypeResolverConfiguration = new JavaTypeResolverConfiguration();
-        javaTypeResolverConfiguration.setConfigurationType(JavaTypeResolverImpl.class.getName());
+        javaTypeResolverConfiguration.setConfigurationType(MybatisJavaTypeResolverImpl.class.getName());
         javaTypeResolverConfiguration.addProperty("forceBigDecimals", "false");
         return javaTypeResolverConfiguration;
     }
@@ -268,7 +265,7 @@ public class MybatisGen {
             }
             configuration.addContext(context);
             // generate
-            ShellCallback shellCallback = new MybatisDefaultShellCallback(true);
+            ShellCallback shellCallback = new MybatisShellCallback(true);
             List<String> warnings = new ArrayList<String>();
             MyBatisGenerator myBatisGenerator = new MyBatisGenerator(configuration, shellCallback, warnings);
             myBatisGenerator.generate(new NullProgressCallback());

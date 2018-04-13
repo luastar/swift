@@ -1,4 +1,4 @@
-package com.luastar.swift.tools.func.mybatis.ext;
+package com.luastar.swift.tools.func.mybatis;
 
 import org.mybatis.generator.exception.ShellException;
 import org.mybatis.generator.internal.DefaultShellCallback;
@@ -10,7 +10,7 @@ import static org.mybatis.generator.internal.util.messages.Messages.getString;
 /**
  * 重写生成输出路径方法
  */
-public class MybatisDefaultShellCallback extends DefaultShellCallback {
+public class MybatisShellCallback extends DefaultShellCallback {
 
 
     /**
@@ -18,7 +18,7 @@ public class MybatisDefaultShellCallback extends DefaultShellCallback {
      *
      * @param overwrite the overwrite
      */
-    public MybatisDefaultShellCallback(boolean overwrite) {
+    public MybatisShellCallback(boolean overwrite) {
         super(overwrite);
     }
 

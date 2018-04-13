@@ -1,8 +1,9 @@
 package com.luastar.swift.tools.func.mybatis;
 
 import com.luastar.swift.base.utils.StrUtils;
-import com.luastar.swift.tools.model.ColumnVO;
-import com.luastar.swift.tools.model.TableVO;
+import com.luastar.swift.tools.enums.DbType;
+import com.luastar.swift.tools.model.db.ColumnVO;
+import com.luastar.swift.tools.model.db.TableVO;
 import com.luastar.swift.tools.utils.BeetlUtils;
 import com.luastar.swift.tools.utils.DataBaseUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -119,7 +120,7 @@ public class MybatisGenSwift {
         TableVO tableVO = dbUtils.getDbTableInfo(tableName, needSchema);
         String className = getClassName(tableName);
         beetlUtils.setTemplate(TEMP_MAPPER);
-        if (dbDriver.contains(MybatisConstant.DB_TYPE_POSTGRESQL)) {
+        if (StringUtils.containsIgnoreCase(dbDriver, DbType.PostgreSQL.getName())) {
             beetlUtils.binding("limit", "limit #{limit} offset #{start}");
         } else {
             beetlUtils.binding("limit", "limit #{start}, #{limit}");

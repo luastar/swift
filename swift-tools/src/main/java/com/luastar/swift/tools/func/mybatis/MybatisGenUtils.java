@@ -57,7 +57,7 @@ public class MybatisGenUtils {
 
     public static void main(String[] args) {
 //        MybatisGenUtils.mybatisGenSwift("classpath:props/mybatis-gen-swift-mysql.properties");
-        MybatisGenUtils.mybatisGen("classpath:props/mybatis-gen-mysql.properties");
+        MybatisGenUtils.mybatisGen("classpath:props/mybatis-gen-h2.properties");
     }
 
 }

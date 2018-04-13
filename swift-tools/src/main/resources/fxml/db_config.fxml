@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.luastar.swift.tools.controller.DbConfigController">
+    <children>
+        <ToolBar>
+            <items>
+                <Button mnemonicParsing="false" text="新增" onAction="#createDbAction"/>
+                <Button mnemonicParsing="false" text="修改" onAction="#updateDbAction"/>
+                <Button mnemonicParsing="false" text="删除" onAction="#deleteDbAction"/>
+            </items>
+        </ToolBar>
+        <TableView fx:id="dbTableView">
+            <columns>
+                <TableColumn fx:id="dbNameTableColumn" text="名称"/>
+                <TableColumn fx:id="dbTypeTableColumn" text="类型"/>
+                <TableColumn fx:id="jdbcUrlTableColumn" text="地址"/>
+            </columns>
+        </TableView>
+    </children>
+</VBox>
