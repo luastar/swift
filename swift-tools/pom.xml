@@ -54,4 +54,20 @@
         </dependency>
     </dependencies>
 
+    <!-- 插件配置 -->
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>com.zenjava</groupId>
+                <artifactId>javafx-maven-plugin</artifactId>
+                <version>8.8.3</version>
+                <configuration>
+                    <mainClass>com.luastar.swift.tools.MainUI</mainClass>
+                    <vendor>zhuminghua</vendor>
+                    <identifier>6M6YBBYHVY</identifier>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
 </project>

@@ -68,15 +68,6 @@
                     <warName>${project.artifactId}</warName>
                 </configuration>
             </plugin>
-            <plugin>
-                <groupId>com.zenjava</groupId>
-                <artifactId>javafx-maven-plugin</artifactId>
-                <version>8.8.3</version>
-                <configuration>
-                    <vendor>zhu</vendor>
-                    <mainClass>com.luastar.swift.tools.MainUI</mainClass>
-                </configuration>
-            </plugin>
         </plugins>
     </build>
 
