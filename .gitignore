@@ -1,6 +1,7 @@
 .idea/
 *.class
 *.iml
+out/
 swift-base/target/
 swift-http/target/
 swift-rpc/target/

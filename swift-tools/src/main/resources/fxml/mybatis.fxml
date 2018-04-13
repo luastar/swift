@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<GridPane xmlns="http://javafx.com/javafx/8.0.112" xmlns:fx="http://javafx.com/fxml/1"
+          fx:controller="com.luastar.swift.tools.controller.MybatisController">
+    <rowConstraints>
+        <RowConstraints/>
+        <RowConstraints/>
+        <RowConstraints/>
+        <RowConstraints/>
+        <RowConstraints/>
+        <RowConstraints/>
+        <RowConstraints/>
+        <RowConstraints/>
+    </rowConstraints>
+    <columnConstraints>
+        <ColumnConstraints/>
+        <ColumnConstraints/>
+        <ColumnConstraints/>
+    </columnConstraints>
+    <children>
+        <!-- 第0行 -->
+        <Label text="数据库："/>
+        <ChoiceBox fx:id="dbChoiceBox" GridPane.columnIndex="1" GridPane.hgrow="SOMETIMES"/>
+        <Button mnemonicParsing="false" onAction="#loadDbConfigAction" text="刷新" GridPane.columnIndex="2"/>
+        <!-- 第1行 -->
+        <Label text="表前缀：" GridPane.rowIndex="1"/>
+        <TextField fx:id="tableTextField" GridPane.columnIndex="1" GridPane.rowIndex="1" GridPane.hgrow="SOMETIMES"/>
+        <Button mnemonicParsing="false" onAction="#loadTableListAction" text="查询" GridPane.columnIndex="2"
+                GridPane.rowIndex="1"/>
+        <!-- 第2行 -->
+        <ListView fx:id="tableListView" GridPane.columnSpan="3" GridPane.rowIndex="2" GridPane.vgrow="SOMETIMES"/>
+        <!-- 第3行 -->
+        <Label text="输出目录：" GridPane.rowIndex="3"/>
+        <TextField fx:id="outputTextField" editable="false" GridPane.columnIndex="1" GridPane.rowIndex="3"
+                   GridPane.hgrow="SOMETIMES"/>
+        <Button mnemonicParsing="false" onAction="#setOutputAction" text="选择" GridPane.columnIndex="2"
+                GridPane.rowIndex="3"/>
+        <!-- 第4行 -->
+        <Label text="Model包路径：" GridPane.rowIndex="4"/>
+        <TextField fx:id="modelTextField" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.rowIndex="4"
+                   GridPane.hgrow="SOMETIMES"/>
+        <!-- 第5行 -->
+        <Label text="DAO包路径：" GridPane.rowIndex="5"/>
+        <TextField fx:id="daoTextField" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.rowIndex="5"
+                   GridPane.hgrow="SOMETIMES"/>
+        <!-- 第6行 -->
+        <Label text="使用真实列名：" GridPane.rowIndex="6"/>
+        <CheckBox fx:id="useDbNameCheckBox" text="使用" GridPane.columnIndex="1" GridPane.columnSpan="2"
+                  GridPane.rowIndex="6" GridPane.hgrow="SOMETIMES"/>
+        <!-- 第7行 -->
+        <ButtonBar GridPane.halignment="RIGHT" GridPane.columnSpan="3" GridPane.rowIndex="7">
+            <buttons>
+                <Button mnemonicParsing="false" onAction="#genAction" text="生成"/>
+            </buttons>
+        </ButtonBar>
+    </children>
+    <padding>
+        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+    </padding>
+</GridPane>

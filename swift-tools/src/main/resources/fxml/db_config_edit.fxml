@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<GridPane hgap="5.0" vgap="5.0" xmlns="http://javafx.com/javafx/8.0.112" xmlns:fx="http://javafx.com/fxml/1"
+          fx:controller="com.luastar.swift.tools.controller.DbConfigEditController">
+    <rowConstraints>
+        <RowConstraints prefHeight="0"/>
+        <RowConstraints/>
+        <RowConstraints/>
+        <RowConstraints/>
+        <RowConstraints/>
+        <RowConstraints/>
+        <RowConstraints/>
+    </rowConstraints>
+    <columnConstraints>
+        <ColumnConstraints halignment="RIGHT"/>
+        <ColumnConstraints hgrow="SOMETIMES"/>
+    </columnConstraints>
+    <children>
+        <!-- 第0行 -->
+        <Pane visible="false" GridPane.columnSpan="2">
+            <TextField fx:id="idTextField"/>
+        </Pane>
+        <!-- 第1行 -->
+        <Label text="数据库类型：" GridPane.rowIndex="1"/>
+        <ChoiceBox fx:id="dbTypeChoiceBox" prefWidth="160" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+        <!-- 第2行 -->
+        <Label text="数据库名称：" GridPane.rowIndex="2"/>
+        <TextField fx:id="dbNameTextField" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+        <!-- 第3行 -->
+        <Label text="数据库链接：" GridPane.rowIndex="3"/>
+        <TextField fx:id="jdbcUrlTextField" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+        <!-- 第4行 -->
+        <Label text="用户名：" GridPane.rowIndex="4"/>
+        <TextField fx:id="userNameTextField" GridPane.columnIndex="1" GridPane.rowIndex="4"/>
+        <!-- 第5行 -->
+        <Label text="密码：" GridPane.rowIndex="5"/>
+        <TextField fx:id="passwordTextField" GridPane.columnIndex="1" GridPane.rowIndex="5"/>
+        <!-- 第6行 -->
+        <ButtonBar GridPane.halignment="RIGHT" GridPane.rowIndex="6" GridPane.columnSpan="2">
+            <buttons>
+                <Button mnemonicParsing="false" text="测试" onAction="#testDbConfigAction"/>
+                <Button mnemonicParsing="false" text="保存" onAction="#saveDbConfigAction"/>
+            </buttons>
+        </ButtonBar>
+    </children>
+    <padding>
+        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+    </padding>
+</GridPane>

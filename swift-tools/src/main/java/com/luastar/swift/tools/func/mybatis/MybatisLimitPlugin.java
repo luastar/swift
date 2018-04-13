@@ -1,6 +1,6 @@
-package com.luastar.swift.tools.func.mybatis.ext;
+package com.luastar.swift.tools.func.mybatis;
 
-import com.luastar.swift.tools.func.mybatis.MybatisConstant;
+import com.luastar.swift.tools.enums.DbType;
 import org.mybatis.generator.api.IntrospectedTable;
 import org.mybatis.generator.api.PluginAdapter;
 import org.mybatis.generator.api.dom.java.*;
@@ -15,18 +15,20 @@ import java.util.List;
  */
 public class MybatisLimitPlugin extends PluginAdapter {
 
-    private String dbType = MybatisConstant.DB_TYPE_MYSQL;
+    private String dbType = DbType.MySQL.getName();
 
     public void setDbType(String dbType) {
         this.dbType = dbType;
     }
 
+    @Override
     public boolean validate(List<String> warnings) {
         return true;
     }
 
     /**
      * 为每个Example类添加limit和offset属性已经set、get方法
+     *
      * @param topLevelClass
      * @param introspectedTable
      * @return
@@ -79,6 +81,7 @@ public class MybatisLimitPlugin extends PluginAdapter {
 
     /**
      * 为Mapper.xml的selectByExample添加limit
+     *
      * @param element
      * @param introspectedTable
      * @return
@@ -95,7 +98,7 @@ public class MybatisLimitPlugin extends PluginAdapter {
         // limit 和 offset 都不为空
         XmlElement ifOffsetNotNullElement = new XmlElement("if");
         ifOffsetNotNullElement.addAttribute(new Attribute("test", "offset != null"));
-        if (MybatisConstant.DB_TYPE_POSTGRESQL.equalsIgnoreCase(dbType)){
+        if (DbType.parse(dbType) == DbType.PostgreSQL) {
             ifOffsetNotNullElement.addElement(new TextElement("limit ${limit} offset ${offset}"));
         } else {
             ifOffsetNotNullElement.addElement(new TextElement("limit ${offset}, ${limit}"));

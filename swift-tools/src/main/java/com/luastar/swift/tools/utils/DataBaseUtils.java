@@ -97,15 +97,13 @@ public class DataBaseUtils {
     /**
      * 得到数据库表信息
      *
-     * @param tableStart 表名前缀
+     * @param table 表名前缀
      * @param needSchema 是否需要匹配模式 注：这个参数主要是因为在使用oracle时，不同用户下有相同表时，会查出所有表的属性，
      *                   为true时，将使用表名的用户进行匹配，过滤掉其他表，一般置为false就行了。
      * @return 返回表信息
      */
-    public List<TableVO> getDbTables(String tableStart, boolean needSchema) {
-
+    public List<TableVO> getDbTables(String table, boolean needSchema) {
         logger.info("获取数据库所有表信息...");
-
         Connection conn = null;
         ResultSet rs_table = null;
         List<TableVO> tableList = new ArrayList<TableVO>();
@@ -119,10 +117,12 @@ public class DataBaseUtils {
             if (needSchema) {
                 schema = dbUsername.toUpperCase();
             }
-            if (StringUtils.isNotEmpty(tableStart)) {
-                tableStart = tableStart.toUpperCase() + "%";
+            if (StringUtils.isNotEmpty(table)) {
+                table = "%" + table.toUpperCase() + "%";
+            } else {
+                table = null;
             }
-            rs_table = dmd.getTables(catalog, schema, tableStart, new String[]{TABLE});
+            rs_table = dmd.getTables(catalog, schema, table, new String[]{TABLE});
             TableVO tbVO = null;
             String temp = null;
             while (rs_table.next()) {
