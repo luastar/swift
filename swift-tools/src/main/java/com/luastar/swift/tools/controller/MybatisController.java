@@ -9,6 +9,7 @@ import com.luastar.swift.tools.func.mybatis.MybatisGen;
 import com.luastar.swift.tools.model.db.TableVO;
 import com.luastar.swift.tools.model.gui.DbConfig;
 import com.luastar.swift.tools.model.gui.PubConfig;
+import com.luastar.swift.tools.utils.DataBaseUtils;
 import com.luastar.swift.tools.utils.H2Utils;
 import com.luastar.swift.tools.view.AlertUI;
 import javafx.fxml.FXML;
@@ -47,7 +48,7 @@ public class MybatisController extends AbstractController {
     @FXML
     private CheckBox useDbNameCheckBox;
 
-    private PubConfig dbCofig;
+    private PubConfig dbIdCofig;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -57,51 +58,67 @@ public class MybatisController extends AbstractController {
         if (ObjUtils.isNotEmpty(dbConfigList)) {
             dbChoiceBox.getItems().addAll(dbConfigList);
         }
-        // 选择后保存到数据库
+        // 选择数据库后保存以备后用
         dbChoiceBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue == null) {
                 return;
             }
-            Integer savedId = 0;
-            if (dbCofig != null) {
-                savedId = ObjUtils.toInteger(dbCofig.getData_content());
-            }
-            if (!savedId.equals(newValue.getId())) {
-                dbCofig = H2Utils.savePubConfig(ConfigGroupCode.mybatis, ConfigCode.mybatis_db_id, ObjUtils.toString(newValue.getId()));
+            if (dbIdCofig == null
+                    || !newValue.getId().equals(ObjUtils.toInteger(dbIdCofig.getData_content()))) {
+                // 没有选中数据库或选中了其他数据库
+                dbIdCofig = H2Utils.savePubConfig(ConfigGroupCode.mybatis, ConfigCode.mybatis_db_id, ObjUtils.toString(newValue.getId()));
+                tableListView.getItems().clear();
             }
         });
         // 设置表可以多选
         tableListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
-        // 设置保存的配置
-        Map<ConfigCode, PubConfig> configMap = H2Utils.getPubConfigMap(ConfigGroupCode.mybatis);
-        if (ObjUtils.isNotEmpty(configMap)) {
-            // 设置默认的数据库
-            dbCofig = configMap.get(ConfigCode.mybatis_db_id);
-            setDbIdValue();
-            // 设置默认的输出目录
-            PubConfig outputConfig = configMap.get(ConfigCode.mybatis_output);
-            if (outputConfig != null) {
-                outputTextField.setText(outputConfig.getData_content());
-            }
-        }
         // 设置使用表属性名称提示信息
         useDbNameCheckBox.setTooltip(new Tooltip("选中后会使用数据库表的列名定义类属性，不会使用驼峰"));
         useDbNameCheckBox.setSelected(false);
+        // 设置默认配置
+        initDefaultValue();
     }
 
     /**
-     * 选中保存的数据库
+     * 设置默认值
      */
-    private void setDbIdValue() {
-        if (dbCofig == null) {
+    private void initDefaultValue() {
+        Map<ConfigCode, PubConfig> configMap = H2Utils.getPubConfigMap(ConfigGroupCode.mybatis);
+        if (ObjUtils.isEmpty(configMap)) {
             return;
         }
-        int defaultDbId = ObjUtils.toInteger(dbCofig.getData_content(), 0);
+        // 设置默认的数据库
+        dbIdCofig = configMap.get(ConfigCode.mybatis_db_id);
+        setDbChoiceBoxValue();
+        // 设置默认的输出目录
+        PubConfig outputConfig = configMap.get(ConfigCode.mybatis_output);
+        if (outputConfig != null) {
+            outputTextField.setText(outputConfig.getData_content());
+        }
+        // 设置包名
+        PubConfig modelConfig = configMap.get(ConfigCode.mybatis_model_package);
+        if (modelConfig != null) {
+            modelTextField.setText(modelConfig.getData_content());
+        }
+        PubConfig daoConfig = configMap.get(ConfigCode.mybatis_dao_package);
+        if (daoConfig != null) {
+            daoTextField.setText(daoConfig.getData_content());
+        }
+    }
+
+    /**
+     * 设置数据库
+     */
+    private void setDbChoiceBoxValue() {
+        if (dbIdCofig == null) {
+            return;
+        }
+        int defaultDbId = ObjUtils.toInteger(dbIdCofig.getData_content(), 0);
         List<DbConfig> dbConfigList = dbChoiceBox.getItems();
         if (ObjUtils.isNotEmpty(dbConfigList)) {
             for (DbConfig dbConfig : dbConfigList) {
                 if (dbConfig.getId() == defaultDbId) {
-                    dbChoiceBox.getSelectionModel().select(dbConfig);
+                    dbChoiceBox.setValue(dbConfig);
                     break;
                 }
             }
@@ -115,14 +132,19 @@ public class MybatisController extends AbstractController {
         if (ObjUtils.isNotEmpty(dbConfigList)) {
             dbChoiceBox.getItems().addAll(dbConfigList);
         }
-        setDbIdValue();
+        setDbChoiceBoxValue();
     }
 
     @FXML
     public void loadTableListAction() {
         tableListView.getItems().clear();
         String table = tableTextField.getText();
-        List<TableVO> tableVOList = H2Utils.getInstance().getDbTables(table, false);
+        DbConfig dbConfig = dbChoiceBox.getSelectionModel().getSelectedItem();
+        List<TableVO> tableVOList = new DataBaseUtils(
+                DbType.parse(dbConfig.getDb_type()).getDriver(),
+                dbConfig.getJdbc_url(),
+                dbConfig.getUser_name(),
+                dbConfig.getPassword()).getDbTables(table, false);
         if (ObjUtils.isNotEmpty(tableVOList)) {
             tableListView.getItems().addAll(tableVOList.stream().map(TableVO::getTableName).collect(Collectors.toList()));
         }
@@ -177,6 +199,9 @@ public class MybatisController extends AbstractController {
                 tableList.toArray(new String[tableList.size()]),
                 useDbName.toString());
         mybatisGen.gen();
+        // 保存最近使用包名
+        H2Utils.savePubConfig(ConfigGroupCode.mybatis, ConfigCode.mybatis_model_package, modelPackage);
+        H2Utils.savePubConfig(ConfigGroupCode.mybatis, ConfigCode.mybatis_dao_package, daoPackage);
     }
 
 }

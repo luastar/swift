@@ -14,7 +14,15 @@ public enum ConfigCode {
     /**
      * 输出目录
      */
-    mybatis_output("mybatis_output", "输出目录"),;
+    mybatis_output("mybatis_output", "输出目录"),
+    /**
+     * model包名
+     */
+    mybatis_model_package("mybatis_model_package", "model包名"),
+    /**
+     * dao包名
+     */
+    mybatis_dao_package("mybatis_dao_package", "dao包名"),;
 
     private final String configCode;
     private final String configName;

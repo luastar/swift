@@ -63,8 +63,8 @@ public class DataBaseUtils {
         config.setConnectionTimeout(30000);
         config.setIdleTimeout(600000);
         config.setMaxLifetime(1800000);
-        config.setMinimumIdle(10);
-        config.setMaximumPoolSize(20);
+        config.setMinimumIdle(1);
+        config.setMaximumPoolSize(10);
         config.setAutoCommit(true);
         dataSource = new HikariDataSource(config);
     }
