@@ -124,7 +124,7 @@ public class DbConfigController extends AbstractController {
                 dialog = new Stage();
                 dialog.initOwner(MainUI.getPrimaryStage());
                 dialog.initModality(Modality.APPLICATION_MODAL);
-                dialog.setWidth(480);
+                dialog.setWidth(600);
                 dialog.setMaximized(false);
                 dialog.setResizable(false);
                 FXMLLoader loader = new FXMLLoader(ClassLoaderUtils.getClassLoader().getResource("fxml/db_config_edit.fxml"));
