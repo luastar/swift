@@ -52,6 +52,7 @@
             <artifactId>postgresql</artifactId>
             <version>42.2.1</version>
         </dependency>
+        
     </dependencies>
 
     <!-- 插件配置 -->
