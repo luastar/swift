@@ -1,4 +1,4 @@
-package com.luastar.swift.tools.model;
+package com.luastar.swift.tools.model.db;
 
 
 import java.util.HashMap;
