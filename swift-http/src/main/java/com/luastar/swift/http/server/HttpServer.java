@@ -21,7 +21,8 @@ import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.SslProvider;
 import io.netty.handler.ssl.util.SelfSignedCertificate;
-import io.netty.handler.timeout.IdleStateHandler;
+import io.netty.util.concurrent.DefaultEventExecutorGroup;
+import io.netty.util.concurrent.EventExecutorGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
@@ -55,7 +56,7 @@ public class HttpServer {
         logger.info("spring配置文件路径:{}", HttpConstant.SWIFT_CONFIG_LOCATION);
         logger.info("超时时间:{}秒", HttpConstant.SWIFT_TIMEOUT);
         logger.info("最大包大小:{}KB, 输出日志大小:{}KB", HttpConstant.SWIFT_MAX_CONTENT_LENGTH / 1024, HttpConstant.SWIFT_MAX_LOG_LENGTH / 1024);
-        logger.info("boss线程数:{}，worker线程数:{}", HttpConstant.SWIFT_BOSS_THREADS, HttpConstant.SWIFT_WORKER_THREADS);
+        logger.info("boss线程数:{}，worker线程数:{}, executor线程数:{}", HttpConstant.SWIFT_BOSS_THREADS, HttpConstant.SWIFT_WORKER_THREADS, HttpConstant.SWIFT_EXECUTOR_THREADS);
         logger.info("返回结果压缩级别:{}", HttpConstant.SWIFT_COMPRESSION_LEVEL);
         ApplicationContext applicationContext = new ClassPathXmlApplicationContext(HttpConstant.SWIFT_CONFIG_LOCATION);
         SpringUtils.setApplicationContext(applicationContext);
@@ -70,6 +71,7 @@ public class HttpServer {
         ThreadFactoryBuilder threadFactoryBuilder = new ThreadFactoryBuilder();
         EventLoopGroup bossGroup = new NioEventLoopGroup(HttpConstant.SWIFT_BOSS_THREADS, threadFactoryBuilder.setNameFormat("boss-group-%d").build());
         EventLoopGroup workerGroup = new NioEventLoopGroup(HttpConstant.SWIFT_WORKER_THREADS, threadFactoryBuilder.setNameFormat("worker-group-%d").build());
+        EventExecutorGroup executorGroup = new DefaultEventExecutorGroup(HttpConstant.SWIFT_EXECUTOR_THREADS, threadFactoryBuilder.setNameFormat("executor-group-%d").build());
         try {
             ServerBootstrap bootstrap = new ServerBootstrap();
             bootstrap.group(bossGroup, workerGroup)
@@ -84,8 +86,6 @@ public class HttpServer {
                                 SslContext sslContext = SslContextBuilder.forServer(ssc.certificate(), ssc.privateKey()).sslProvider(SslProvider.JDK).build();
                                 pipeline.addLast(sslContext.newHandler(ch.alloc()));
                             }
-                            // 超时处理
-                            pipeline.addLast(new IdleStateHandler(0, 0, HttpConstant.SWIFT_TIMEOUT));
                             // http request decode and response encode
                             pipeline.addLast(new HttpServerCodec());
                             // 将消息头和体聚合成FullHttpRequest和FullHttpResponse
@@ -93,7 +93,7 @@ public class HttpServer {
                             // 压缩处理
                             pipeline.addLast(new HttpContentCompressor(HttpConstant.SWIFT_COMPRESSION_LEVEL));
                             // 自定义http服务
-                            pipeline.addLast(new HttpChannelHandler(handlerMapping));
+                            pipeline.addLast(executorGroup, "http-handler", new HttpChannelHandler(handlerMapping));
                         }
                     });
             Channel channel = bootstrap.bind(port).sync().channel();
