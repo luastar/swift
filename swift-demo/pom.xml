@@ -109,18 +109,18 @@
             </activation>
             <properties>
                 <profile.name>dev</profile.name>
-                <redis.host>10.1.1.4</redis.host>
-                <redis.port>6382</redis.port>
-                <redis.passwd>lajin@2015</redis.passwd>
+                <redis.host>127.0.0.1</redis.host>
+                <redis.port>6379</redis.port>
+                <redis.passwd></redis.passwd>
             </properties>
         </profile>
         <profile>
             <id>test</id>
             <properties>
                 <profile.name>test</profile.name>
-                <redis.host>10.1.1.4</redis.host>
-                <redis.port>6382</redis.port>
-                <redis.passwd>lajin@2015</redis.passwd>
+                <redis.host>127.0.0.1</redis.host>
+                <redis.port>6379</redis.port>
+                <redis.passwd></redis.passwd>
             </properties>
         </profile>
     </profiles>

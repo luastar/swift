@@ -14,8 +14,6 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.handler.codec.http.cookie.ServerCookieEncoder;
-import io.netty.handler.timeout.IdleState;
-import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.util.CharsetUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
@@ -54,66 +52,86 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<HttpObject> 
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, HttpObject msg) throws Exception {
-        try {
-            if (!(msg instanceof FullHttpRequest)) {
-                return;
-            }
-            // requestId
-            String requestId = RandomStringUtils.random(20, true, true);
-            MDC.put(MDC_KEY, requestId);
-            FullHttpRequest fullHttpRequest = (FullHttpRequest) msg;
-            if (HttpUtil.is100ContinueExpected(fullHttpRequest)) {
-                ctx.write(new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE));
-                return;
-            }
-            if (URI_FAVICON_ICO.equals(fullHttpRequest.uri())) {
-                FullHttpResponse fullHttpResponse = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.NOT_FOUND);
-                ctx.writeAndFlush(fullHttpResponse).addListener(ChannelFutureListener.CLOSE);
-                return;
-            }
-            // 初始化HttpRequest
-            httpRequest = new HttpRequest(fullHttpRequest, requestId, getSocketAddressIp(ctx));
-            httpRequest.logRequest();
-            // 查找处理类方法
-            HandlerExecutionChain mappedHandler = handlerMapping.getHandler(httpRequest);
-            if (mappedHandler == null) {
-                logger.warn("handler not find.");
-                FullHttpResponse fullHttpResponse = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.NOT_FOUND);
-                ctx.writeAndFlush(fullHttpResponse).addListener(ChannelFutureListener.CLOSE);
-                return;
-            }
-            // 初始化HttpResponse
-            httpResponse = new HttpResponse(httpRequest.getRequestId());
-            // 拦截器处理前
-            if (!mappedHandler.applyPreHandle(httpRequest, httpResponse)) {
+        if (!(msg instanceof FullHttpRequest)) {
+            return;
+        }
+        // requestId
+        String requestId = RandomStringUtils.random(20, true, true);
+        MDC.put(MDC_KEY, requestId);
+        FullHttpRequest fullHttpRequest = (FullHttpRequest) msg;
+        if (HttpUtil.is100ContinueExpected(fullHttpRequest)) {
+            ctx.write(new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE));
+            return;
+        }
+        if (URI_FAVICON_ICO.equals(fullHttpRequest.uri())) {
+            FullHttpResponse fullHttpResponse = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.NOT_FOUND);
+            ctx.writeAndFlush(fullHttpResponse).addListener(ChannelFutureListener.CLOSE);
+            return;
+        }
+        // 初始化HttpRequest
+        httpRequest = new HttpRequest(fullHttpRequest, requestId, getSocketAddressIp(ctx));
+        httpRequest.logRequest();
+        // 查找处理类方法
+        HandlerExecutionChain mappedHandler = handlerMapping.getHandler(httpRequest);
+        if (mappedHandler == null) {
+            logger.warn("handler not find.");
+            FullHttpResponse fullHttpResponse = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.NOT_FOUND);
+            ctx.writeAndFlush(fullHttpResponse).addListener(ChannelFutureListener.CLOSE);
+            return;
+        }
+        // 初始化HttpResponse
+        httpResponse = new HttpResponse(httpRequest.getRequestId());
+        // 耗时任务交给EventExecutorGroup线程池处理
+        ctx.executor().submit(() -> {
+            try {
+                // 拦截器处理前
+                if (!mappedHandler.applyPreHandle(httpRequest, httpResponse)) {
+                    handleHttpResponse(ctx);
+                    return;
+                }
+                // 执行方法
+                Object handler = mappedHandler.getHandler();
+                if (handler instanceof HttpRequestHandler) {
+                    HttpRequestHandler requestHandler = (HttpRequestHandler) handler;
+                    requestHandler.handleRequest(httpRequest, httpResponse);
+                } else if (handler instanceof HandlerMethod) {
+                    HandlerMethod handlerMethod = (HandlerMethod) handler;
+                    Method method = handlerMethod.getMethod();
+                    Object[] args = new Object[]{httpRequest, httpResponse};
+                    ReflectionUtils.makeAccessible(method);
+                    method.invoke(handlerMethod.getBean(), args);
+                } else {
+                    logger.warn("not support handler : {}", handler);
+                }
+                // 拦截器处理后
+                mappedHandler.applyPostHandle(httpRequest, httpResponse);
+                // 返回处理结果
                 handleHttpResponse(ctx);
-                return;
+            } catch (Exception exception) {
+                try {
+                    // 处理异常
+                    handlerMapping.exceptionHandler(httpRequest, httpResponse, exception);
+                    // 返回处理结果
+                    handleHttpResponse(ctx);
+                } catch (Exception e) {
+                    exceptionCaught(ctx, e);
+                }
+            } finally {
+                destroy();
             }
-            // 执行方法
-            Object handler = mappedHandler.getHandler();
-            if (handler instanceof HttpRequestHandler) {
-                HttpRequestHandler requestHandler = (HttpRequestHandler) handler;
-                requestHandler.handleRequest(httpRequest, httpResponse);
-            } else if (handler instanceof HandlerMethod) {
-                HandlerMethod handlerMethod = (HandlerMethod) handler;
-                Method method = handlerMethod.getMethod();
-                Object[] args = new Object[]{httpRequest, httpResponse};
-                ReflectionUtils.makeAccessible(method);
-                method.invoke(handlerMethod.getBean(), args);
-            } else {
-                logger.warn("not support handler : {}", handler);
-            }
-            // 拦截器处理后
-            mappedHandler.applyPostHandle(httpRequest, httpResponse);
-            // 返回处理结果
-            handleHttpResponse(ctx);
-        } catch (Exception exception) {
-            // 处理异常
-            handlerMapping.exceptionHandler(httpRequest, httpResponse, exception);
-            // 返回处理结果
-            handleHttpResponse(ctx);
-        } finally {
-            destroy();
+        });
+    }
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+        logger.error(cause.getMessage(), cause);
+        if (ctx.channel().isActive()) {
+            ByteBuf buf = Unpooled.copiedBuffer("Failure: " + cause.getMessage() + "\r\n", CharsetUtil.UTF_8);
+            FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.INTERNAL_SERVER_ERROR, buf);
+            response.headers().set(HttpHeaderNames.CONTENT_TYPE, HttpMediaType.TEXT_PLAIN_UTF_8);
+            response.headers().set(HttpHeaderNames.CONTENT_LENGTH, buf.readableBytes());
+            HttpUtil.setContentLength(response, buf.readableBytes());
+            ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
         }
     }
 
@@ -160,7 +178,7 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<HttpObject> 
         }
         // 处理返回头信息
         for (Map.Entry<String, String> resHeader : httpResponse.getHeaderMap().entrySet()) {
-            response.headers().add(resHeader.getKey(), resHeader.getValue());
+            response.headers().set(resHeader.getKey(), resHeader.getValue());
         }
         // 处理cookie
         if (CollectionUtils.isNotEmpty(httpResponse.getCookieSet())) {
@@ -187,29 +205,6 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<HttpObject> 
             httpResponse = null;
         }
         MDC.remove(MDC_KEY);
-    }
-
-    @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-        logger.error(cause.getMessage(), cause);
-        if (ctx.channel().isActive()) {
-            ByteBuf buf = Unpooled.copiedBuffer("Failure: " + cause.getMessage() + "\r\n", CharsetUtil.UTF_8);
-            FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.INTERNAL_SERVER_ERROR, buf);
-            response.headers().set(HttpHeaderNames.CONTENT_TYPE, HttpMediaType.TEXT_PLAIN_UTF_8);
-            ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
-        }
-    }
-
-    @Override
-    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
-        super.userEventTriggered(ctx, evt);
-        if (evt instanceof IdleStateEvent) {
-            IdleStateEvent event = (IdleStateEvent) evt;
-            if (ctx.channel().isActive() && IdleState.ALL_IDLE.equals(event.state())) {
-                logger.info("close timeout channel {}", ctx.channel().id());
-                ctx.channel().close();
-            }
-        }
     }
 
 }
