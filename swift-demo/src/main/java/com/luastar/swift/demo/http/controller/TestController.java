@@ -108,9 +108,10 @@ public class TestController {
     }
 
     @HttpService(value = "/get_or_post", method = {RequestMethod.GET, RequestMethod.POST})
-    public void getOrPost(HttpRequest request, HttpResponse response) {
+    public void getOrPost(HttpRequest request, HttpResponse response) throws InterruptedException {
         logger.info("----------come into TestCtrl[get_or_post]");
         // response
+        Thread.sleep(30000);
         response.setResponseContentTypePlain();
         response.setResult("TestCtrl[get_or_post] OK !");
     }
