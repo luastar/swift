@@ -103,6 +103,7 @@ public class HttpServer {
         } finally {
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
+            executorGroup.shutdownGracefully();
         }
     }
 
