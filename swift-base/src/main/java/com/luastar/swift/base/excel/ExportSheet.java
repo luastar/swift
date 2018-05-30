@@ -29,6 +29,14 @@ public class ExportSheet {
      * 行样式
      */
     private CellStyle rowStyle;
+    /**
+     * 奇数行样式
+     */
+    private CellStyle oddRowStyle;
+    /**
+     * 偶数行样式
+     */
+    private CellStyle evenRowStyle;
 
     public ExportSheet(List<ExportColumn> columnList, List<?> dataList) {
         this.columnList = columnList;
@@ -79,6 +87,22 @@ public class ExportSheet {
 
     public void setRowStyle(CellStyle rowStyle) {
         this.rowStyle = rowStyle;
+    }
+
+    public CellStyle getOddRowStyle() {
+        return oddRowStyle;
+    }
+
+    public void setOddRowStyle(CellStyle oddRowStyle) {
+        this.oddRowStyle = oddRowStyle;
+    }
+
+    public CellStyle getEvenRowStyle() {
+        return evenRowStyle;
+    }
+
+    public void setEvenRowStyle(CellStyle evenRowStyle) {
+        this.evenRowStyle = evenRowStyle;
     }
 
 }

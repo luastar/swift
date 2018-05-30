@@ -20,10 +20,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.math.BigDecimal;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -114,7 +111,21 @@ public class ExcelUtils {
             for (int j = 0; j < columnNum; j++) {
                 ExportColumn column = columnList.get(j);
                 XSSFCell xssfCell = row.createCell(j);
-                xssfCell.setCellStyle(ObjUtils.ifNull(column.getRowStyle(), sheetConfig.getRowStyle()));
+                // 行样式
+                CellStyle rowCellStyle = ObjUtils.ifNull(column.getRowStyle(), sheetConfig.getRowStyle());
+                if (rowCellStyle == null) {
+                    if ((i + 1) % 2 == 0) {
+                        // 偶数行样式
+                        CellStyle evenRowCellStyle = ObjUtils.ifNull(column.getEvenRowStyle(), sheetConfig.getEvenRowStyle());
+                        xssfCell.setCellStyle(evenRowCellStyle);
+                    } else {
+                        // 奇数行样式
+                        CellStyle oddRowCellStyle = ObjUtils.ifNull(column.getOddRowStyle(), sheetConfig.getOddRowStyle());
+                        xssfCell.setCellStyle(oddRowCellStyle);
+                    }
+                } else {
+                    xssfCell.setCellStyle(rowCellStyle);
+                }
                 // 设置下拉框
                 if (i == 0 && column.getType() == ExcelDataType.EnumValue && ArrayUtils.isNotEmpty(column.getValueArray())) {
                     XSSFDataValidationConstraint dvConstraint = (XSSFDataValidationConstraint) dvHelper.createExplicitListConstraint(column.getValueArray());
@@ -231,7 +242,21 @@ public class ExcelUtils {
             for (int j = 0; j < columnNum; j++) {
                 ExportColumn column = columnList.get(j);
                 HSSFCell hssfCell = row.createCell(j);
-                hssfCell.setCellStyle(ObjUtils.ifNull(column.getRowStyle(), sheetConfig.getRowStyle()));
+                // 行样式
+                CellStyle rowCellStyle = ObjUtils.ifNull(column.getRowStyle(), sheetConfig.getRowStyle());
+                if (rowCellStyle == null) {
+                    if ((i + 1) % 2 == 0) {
+                        // 偶数行样式
+                        CellStyle evenRowCellStyle = ObjUtils.ifNull(column.getEvenRowStyle(), sheetConfig.getEvenRowStyle());
+                        hssfCell.setCellStyle(evenRowCellStyle);
+                    } else {
+                        // 奇数行样式
+                        CellStyle oddRowCellStyle = ObjUtils.ifNull(column.getOddRowStyle(), sheetConfig.getOddRowStyle());
+                        hssfCell.setCellStyle(oddRowCellStyle);
+                    }
+                } else {
+                    hssfCell.setCellStyle(rowCellStyle);
+                }
                 if (i == 0 && column.getType() == ExcelDataType.EnumValue && ArrayUtils.isNotEmpty(column.getValueArray())) {
                     CellRangeAddressList addressList = new CellRangeAddressList(1, rowNum + 1, j, j);
                     DVConstraint dvConstraint = DVConstraint.createExplicitListConstraint(column.getValueArray());
@@ -356,9 +381,10 @@ public class ExcelUtils {
         // 通过标题找对应的列
         List<String> columnNotFound = Lists.newArrayList();
         List<ImportColumn> columnList = sheetConfig.getColumnList();
-        int columnNum = columnList.size();
         XSSFRow titleRow = sheet.getRow(firstRowNum);
-        for (int i = 0; i < columnNum; i++) {
+        int titleNum = columnList.size();
+        int columnNum = titleRow.getLastCellNum();
+        for (int i = 0; i < titleNum; i++) {
             ImportColumn column = columnList.get(i);
             for (int j = 0; j < columnNum; j++) {
                 XSSFCell cell = titleRow.getCell(j);
@@ -388,7 +414,7 @@ public class ExcelUtils {
             }
             // 行不为空
             List<String> setPropList = Lists.newArrayList();
-            for (int j = 0; j < columnNum; j++) {
+            for (int j = 0; j < titleNum; j++) {
                 ImportColumn column = columnList.get(j);
                 XSSFCell cell = row.getCell(column.getColumnIndex());
                 setPropList.add(ExcelUtils.setProperty(column, cell, data, formulaEvaluator));
@@ -477,9 +503,10 @@ public class ExcelUtils {
         // 通过标题找对应的列
         List<String> columnNotFound = Lists.newArrayList();
         List<ImportColumn> columnList = sheetConfig.getColumnList();
-        int columnNum = columnList.size();
         HSSFRow titleRow = sheet.getRow(firstRowNum);
-        for (int i = 0; i < columnNum; i++) {
+        int titleNum = columnList.size();
+        int columnNum = titleRow.getLastCellNum();
+        for (int i = 0; i < titleNum; i++) {
             ImportColumn column = columnList.get(i);
             for (int j = 0; j < columnNum; j++) {
                 HSSFCell cell = titleRow.getCell(j);
@@ -509,7 +536,7 @@ public class ExcelUtils {
             }
             // 行不为空
             List<String> setPropList = Lists.newArrayList();
-            for (int j = 0; j < columnNum; j++) {
+            for (int j = 0; j < titleNum; j++) {
                 ImportColumn column = columnList.get(j);
                 HSSFCell cell = row.getCell(column.getColumnIndex());
                 setPropList.add(ExcelUtils.setProperty(column, cell, data, formulaEvaluator));
@@ -768,6 +795,24 @@ public class ExcelUtils {
                 .put("col6", false)
                 .put("col7", new Date())
                 .build());
+        resultList.add(new ImmutableMap.Builder<String, Object>()
+                .put("col1", "row1")
+                .put("col2", "男")
+                .put("col3", 9999999999999998L)
+                .put("col4", 123456.654321)
+                .put("col5", 123456)
+                .put("col6", true)
+                .put("col7", new Date())
+                .build());
+        resultList.add(new ImmutableMap.Builder<String, Object>()
+                .put("col1", "row2")
+                .put("col2", "女")
+                .put("col3", 999999999999999L)
+                .put("col4", 34.6)
+                .put("col5", -123456.123456)
+                .put("col6", false)
+                .put("col7", new Date())
+                .build());
         XSSFWorkbook workbook = ExcelUtils.newXlsxWorkbook();
         List<ExportColumn> columnList = Lists.newArrayList(
                 new ExportColumn("测试列1", "col1", ExcelDataType.StringValue, true),
@@ -778,7 +823,22 @@ public class ExcelUtils {
                 new ExportColumn("测试列6", "col6", ExcelDataType.BooleanValue),
                 new ExportColumn("测试列7", "col7", ExcelDataType.DateValue)
         );
-        ExcelUtils.writeXlsxWorkbook(workbook, new ExportSheet(columnList, resultList));
+        ExportSheet exportSheet = new ExportSheet(columnList, resultList);
+        CellStyle oddStyle = workbook.createCellStyle();
+        oddStyle.setWrapText(true); // 设置自动换行
+        oddStyle.setAlignment(HorizontalAlignment.LEFT); // 左右对齐
+        oddStyle.setVerticalAlignment(VerticalAlignment.CENTER); // 垂直对齐
+        oddStyle.setFillForegroundColor(IndexedColors.BLUE.getIndex());
+        oddStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        exportSheet.setOddRowStyle(oddStyle);
+        CellStyle evenStyle = workbook.createCellStyle();
+        evenStyle.setWrapText(true); // 设置自动换行
+        evenStyle.setAlignment(HorizontalAlignment.LEFT); // 左右对齐
+        evenStyle.setVerticalAlignment(VerticalAlignment.CENTER); // 垂直对齐
+        evenStyle.setFillForegroundColor(IndexedColors.YELLOW.getIndex());
+        evenStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        exportSheet.setEvenRowStyle(evenStyle);
+        ExcelUtils.writeXlsxWorkbook(workbook, exportSheet);
         workbook.write(new FileOutputStream(new File("/Users/zhuminghua/Downloads/test.xlsx")));
     }
 
@@ -794,7 +854,7 @@ public class ExcelUtils {
                 new ImportColumn("测试列2", "col2", ExcelDataType.EnumValue, SexEnum.class, "getByValue"),
                 new ImportColumn("测试列3", "col3", ExcelDataType.StringValue)
         );
-        ImportSheet importSheet = new ImportSheet(columnList, HashMap.class);
+        ImportSheet importSheet = new ImportSheet(columnList, LinkedHashMap.class);
         ExcelUtils.readXlsxExcel(file, importSheet);
         System.out.println(JSON.toJSONString(importSheet.getDataList()));
     }
