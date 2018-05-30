@@ -80,9 +80,9 @@ public interface HttpConstant {
      */
     int SWIFT_MAX_LOG_LENGTH = PropertyUtils.getInt("swift.maxLogLength", 1024 * 512);
     /**
-     * 分发线程数，默认值0（为0表示cpu个数 * 2）
+     * 分发线程数，默认值1（为0表示cpu个数 * 2）
      */
-    int SWIFT_BOSS_THREADS = PropertyUtils.getInt("swift.bossThreads", 0);
+    int SWIFT_BOSS_THREADS = PropertyUtils.getInt("swift.bossThreads", 1);
     /**
      * 工作线程数，默认值0（为0表示cpu个数 * 2）
      */
