@@ -22,6 +22,10 @@ public class ExportSheet {
      */
     private List<?> dataList;
     /**
+     * 为null时显示值
+     */
+    private String ifNull;
+    /**
      * 标题样式
      */
     private CellStyle titleStyle;
@@ -73,36 +77,49 @@ public class ExportSheet {
         this.dataList = dataList;
     }
 
+    public String getIfNull() {
+        return ifNull;
+    }
+
+    public ExportSheet setIfNull(String ifNull) {
+        this.ifNull = ifNull;
+        return this;
+    }
+
     public CellStyle getTitleStyle() {
         return titleStyle;
     }
 
-    public void setTitleStyle(CellStyle titleStyle) {
+    public ExportSheet setTitleStyle(CellStyle titleStyle) {
         this.titleStyle = titleStyle;
+        return this;
     }
 
     public CellStyle getRowStyle() {
         return rowStyle;
     }
 
-    public void setRowStyle(CellStyle rowStyle) {
+    public ExportSheet setRowStyle(CellStyle rowStyle) {
         this.rowStyle = rowStyle;
+        return this;
     }
 
     public CellStyle getOddRowStyle() {
         return oddRowStyle;
     }
 
-    public void setOddRowStyle(CellStyle oddRowStyle) {
+    public ExportSheet setOddRowStyle(CellStyle oddRowStyle) {
         this.oddRowStyle = oddRowStyle;
+        return this;
     }
 
     public CellStyle getEvenRowStyle() {
         return evenRowStyle;
     }
 
-    public void setEvenRowStyle(CellStyle evenRowStyle) {
+    public ExportSheet setEvenRowStyle(CellStyle evenRowStyle) {
         this.evenRowStyle = evenRowStyle;
+        return this;
     }
 
 }

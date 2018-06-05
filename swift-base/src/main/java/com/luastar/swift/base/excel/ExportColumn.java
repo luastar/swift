@@ -40,6 +40,10 @@ public class ExportColumn {
      */
     private Integer width;
     /**
+     * 为null时显示值
+     */
+    private String ifNull;
+    /**
      * 标题样式
      */
     private CellStyle titleStyle;
@@ -62,13 +66,6 @@ public class ExportColumn {
         this.type = type;
     }
 
-    public ExportColumn(String title, String prop, ExcelDataType type, CellStyle titleStyle) {
-        this.title = title;
-        this.prop = prop;
-        this.type = type;
-        this.titleStyle = titleStyle;
-    }
-
     public ExportColumn(String title, String prop, ExcelDataType type, boolean hidden) {
         this.title = title;
         this.prop = prop;
@@ -83,27 +80,11 @@ public class ExportColumn {
         this.scale = scale;
     }
 
-    public ExportColumn(String title, String prop, ExcelDataType type, int scale, CellStyle titleStyle) {
-        this.title = title;
-        this.prop = prop;
-        this.type = type;
-        this.scale = scale;
-        this.titleStyle = titleStyle;
-    }
-
     public ExportColumn(String title, String prop, ExcelDataType type, String[] valueArray) {
         this.title = title;
         this.prop = prop;
         this.type = type;
         this.valueArray = valueArray;
-    }
-
-    public ExportColumn(String title, String prop, ExcelDataType type, String[] valueArray, CellStyle titleStyle) {
-        this.title = title;
-        this.prop = prop;
-        this.type = type;
-        this.valueArray = valueArray;
-        this.titleStyle = titleStyle;
     }
 
     public String getTitle() {
@@ -170,36 +151,49 @@ public class ExportColumn {
         this.width = width;
     }
 
+    public String getIfNull() {
+        return ifNull;
+    }
+
+    public ExportColumn setIfNull(String ifNull) {
+        this.ifNull = ifNull;
+        return this;
+    }
+
     public CellStyle getTitleStyle() {
         return titleStyle;
     }
 
-    public void setTitleStyle(CellStyle titleStyle) {
+    public ExportColumn setTitleStyle(CellStyle titleStyle) {
         this.titleStyle = titleStyle;
+        return this;
     }
 
     public CellStyle getRowStyle() {
         return rowStyle;
     }
 
-    public void setRowStyle(CellStyle rowStyle) {
+    public ExportColumn setRowStyle(CellStyle rowStyle) {
         this.rowStyle = rowStyle;
+        return this;
     }
 
     public CellStyle getOddRowStyle() {
         return oddRowStyle;
     }
 
-    public void setOddRowStyle(CellStyle oddRowStyle) {
+    public ExportColumn setOddRowStyle(CellStyle oddRowStyle) {
         this.oddRowStyle = oddRowStyle;
+        return this;
     }
 
     public CellStyle getEvenRowStyle() {
         return evenRowStyle;
     }
 
-    public void setEvenRowStyle(CellStyle evenRowStyle) {
+    public ExportColumn setEvenRowStyle(CellStyle evenRowStyle) {
         this.evenRowStyle = evenRowStyle;
+        return this;
     }
 
 }

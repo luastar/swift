@@ -20,7 +20,10 @@ import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -143,6 +146,13 @@ public class ExcelUtils {
                     valueObj = PropertyUtils.getProperty(data, column.getProp());
                 }
                 if (valueObj == null) {
+                    String ifNull = ObjUtils.ifNull(column.getIfNull(), sheetConfig.getIfNull());
+                    if (ifNull != null) {
+                        // 设置宽度
+                        ExcelUtils.setColumnWidthRow(column, sheet, j, ifNull);
+                        // 设置为空时的显示值
+                        xssfCell.setCellValue(ifNull);
+                    }
                     continue;
                 }
                 // 设置宽度
@@ -273,6 +283,13 @@ public class ExcelUtils {
                     valueObj = PropertyUtils.getProperty(data, column.getProp());
                 }
                 if (valueObj == null) {
+                    String ifNull = ObjUtils.ifNull(column.getIfNull(), sheetConfig.getIfNull());
+                    if (ifNull != null) {
+                        // 设置宽度
+                        ExcelUtils.setColumnWidthRow(column, sheet, j, ifNull);
+                        // 设置为空时的显示值
+                        hssfCell.setCellValue(ifNull);
+                    }
                     continue;
                 }
                 // 设置宽度
@@ -823,21 +840,22 @@ public class ExcelUtils {
                 new ExportColumn("测试列6", "col6", ExcelDataType.BooleanValue),
                 new ExportColumn("测试列7", "col7", ExcelDataType.DateValue)
         );
-        ExportSheet exportSheet = new ExportSheet(columnList, resultList);
+
         CellStyle oddStyle = workbook.createCellStyle();
         oddStyle.setWrapText(true); // 设置自动换行
         oddStyle.setAlignment(HorizontalAlignment.LEFT); // 左右对齐
         oddStyle.setVerticalAlignment(VerticalAlignment.CENTER); // 垂直对齐
         oddStyle.setFillForegroundColor(IndexedColors.BLUE.getIndex());
         oddStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-        exportSheet.setOddRowStyle(oddStyle);
         CellStyle evenStyle = workbook.createCellStyle();
         evenStyle.setWrapText(true); // 设置自动换行
         evenStyle.setAlignment(HorizontalAlignment.LEFT); // 左右对齐
         evenStyle.setVerticalAlignment(VerticalAlignment.CENTER); // 垂直对齐
         evenStyle.setFillForegroundColor(IndexedColors.YELLOW.getIndex());
         evenStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-        exportSheet.setEvenRowStyle(evenStyle);
+        ExportSheet exportSheet = new ExportSheet(columnList, resultList)
+                .setOddRowStyle(oddStyle)
+                .setEvenRowStyle(evenStyle);
         ExcelUtils.writeXlsxWorkbook(workbook, exportSheet);
         workbook.write(new FileOutputStream(new File("/Users/zhuminghua/Downloads/test.xlsx")));
     }
