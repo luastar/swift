@@ -90,7 +90,7 @@ public interface HttpConstant {
     /**
      * 业务执行线程数，默认值64
      */
-    int SWIFT_EXECUTOR_THREADS = PropertyUtils.getInt("swift.executorThreads", 64);
+    int SWIFT_BUSINESS_THREADS = PropertyUtils.getInt("swift.executorThreads", 64);
     /**
      * 返回结果压缩级别，0~9，默认6
      */
