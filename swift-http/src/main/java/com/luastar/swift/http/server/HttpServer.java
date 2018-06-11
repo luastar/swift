@@ -21,8 +21,6 @@ import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.SslProvider;
 import io.netty.handler.ssl.util.SelfSignedCertificate;
-import io.netty.util.concurrent.DefaultEventExecutorGroup;
-import io.netty.util.concurrent.EventExecutorGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
@@ -71,7 +69,13 @@ public class HttpServer {
         ThreadFactoryBuilder threadFactoryBuilder = new ThreadFactoryBuilder();
         EventLoopGroup bossGroup = new NioEventLoopGroup(HttpConstant.SWIFT_BOSS_THREADS, threadFactoryBuilder.setNameFormat("boss-group-%d").build());
         EventLoopGroup workerGroup = new NioEventLoopGroup(HttpConstant.SWIFT_WORKER_THREADS, threadFactoryBuilder.setNameFormat("worker-group-%d").build());
-        EventExecutorGroup executorGroup = new DefaultEventExecutorGroup(HttpConstant.SWIFT_EXECUTOR_THREADS, threadFactoryBuilder.setNameFormat("executor-group-%d").build());
+        /**
+         *  备注：
+         *  netty推荐耗时业务handler放到单独的线程池
+         *  但该线程池是顺序执行的，如果当前线程被阻塞，则本次请求会被放进当前线程队列，而不是找空闲的线程执行
+         *  因此，使用自己的线程池会更加灵活
+         */
+        // EventExecutorGroup executorGroup = new DefaultEventExecutorGroup(HttpConstant.SWIFT_BUSINESS_THREADS, threadFactoryBuilder.setNameFormat("executor-group-%d").build());
         try {
             ServerBootstrap bootstrap = new ServerBootstrap();
             bootstrap.group(bossGroup, workerGroup)
@@ -93,7 +97,8 @@ public class HttpServer {
                             // 压缩处理
                             pipeline.addLast(new HttpContentCompressor(HttpConstant.SWIFT_COMPRESSION_LEVEL));
                             // 自定义http服务
-                            pipeline.addLast(executorGroup, "http-handler", new HttpChannelHandler(handlerMapping));
+                            // pipeline.addLast(executorGroup, "http-handler", new HttpChannelHandler(handlerMapping));
+                            pipeline.addLast(new HttpChannelHandler(handlerMapping));
                         }
                     });
             Channel channel = bootstrap.bind(port).sync().channel();
@@ -103,7 +108,8 @@ public class HttpServer {
         } finally {
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();
-            executorGroup.shutdownGracefully();
+            //executorGroup.shutdownGracefully();
+            HttpThreadPoolExecutor.shutdownGracefully();
         }
     }
 

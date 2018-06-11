@@ -111,7 +111,7 @@ public class TestController {
     public void getOrPost(HttpRequest request, HttpResponse response) throws InterruptedException {
         logger.info("----------come into TestCtrl[get_or_post]");
         // response
-        Thread.sleep(30000);
+        Thread.sleep(300000);
         response.setResponseContentTypePlain();
         response.setResult("TestCtrl[get_or_post] OK !");
     }
