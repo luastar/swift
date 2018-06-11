@@ -54,7 +54,7 @@ public class HttpServer {
         logger.info("spring配置文件路径:{}", HttpConstant.SWIFT_CONFIG_LOCATION);
         logger.info("超时时间:{}秒", HttpConstant.SWIFT_TIMEOUT);
         logger.info("最大包大小:{}KB, 输出日志大小:{}KB", HttpConstant.SWIFT_MAX_CONTENT_LENGTH / 1024, HttpConstant.SWIFT_MAX_LOG_LENGTH / 1024);
-        logger.info("boss线程数:{}，worker线程数:{}, executor线程数:{}", HttpConstant.SWIFT_BOSS_THREADS, HttpConstant.SWIFT_WORKER_THREADS, HttpConstant.SWIFT_BUSINESS_THREADS);
+        logger.info("boss线程数:{}，worker线程数:{}, business线程数:{}", HttpConstant.SWIFT_BOSS_THREADS, HttpConstant.SWIFT_WORKER_THREADS, HttpConstant.SWIFT_BUSINESS_THREADS);
         logger.info("返回结果压缩级别:{}", HttpConstant.SWIFT_COMPRESSION_LEVEL);
         ApplicationContext applicationContext = new ClassPathXmlApplicationContext(HttpConstant.SWIFT_CONFIG_LOCATION);
         SpringUtils.setApplicationContext(applicationContext);
