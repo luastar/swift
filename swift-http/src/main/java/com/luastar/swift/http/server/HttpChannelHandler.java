@@ -1,6 +1,5 @@
 package com.luastar.swift.http.server;
 
-
 import com.luastar.swift.http.constant.HttpMediaType;
 import com.luastar.swift.http.route.HandlerExecutionChain;
 import com.luastar.swift.http.route.HandlerMethod;
@@ -39,12 +38,11 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<HttpObject> 
     private final HttpHandlerMapping handlerMapping;
     private HttpRequest httpRequest;
     private HttpResponse httpResponse;
-    private HandlerExecutionChain mappedHandler;
 
     public HttpChannelHandler(HttpHandlerMapping handlerMapping) {
         logger.info("初始化HttpChannelHandler");
         if (handlerMapping == null) {
-            throw new IllegalArgumentException("handlerMapping can't be null.");
+            throw new IllegalArgumentException("handlerMapping不能为空！");
         }
         this.handlerMapping = handlerMapping;
     }
@@ -71,32 +69,27 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<HttpObject> 
             // 初始化HttpRequest
             httpRequest = new HttpRequest(fullHttpRequest, requestId, getSocketAddressIp(ctx));
             httpRequest.logRequest();
-            // 查找处理类方法
-            mappedHandler = handlerMapping.getHandler(httpRequest);
-            if (mappedHandler == null) {
-                logger.warn("handler not find.");
-                FullHttpResponse fullHttpResponse = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.NOT_FOUND);
-                ctx.writeAndFlush(fullHttpResponse).addListener(ChannelFutureListener.CLOSE);
-                return;
-            }
             // 初始化HttpResponse
             httpResponse = new HttpResponse(httpRequest.getRequestId());
             // 异步处理业务逻辑
             HttpThreadPoolExecutor.getThreadPoolExecutor().submit(() -> handleBusinessLogic(ctx));
             logger.info("业务线程池信息：{}", HttpThreadPoolExecutor.getThreadPoolInfo());
         } catch (Exception exception) {
-            // 处理异常
-            handlerMapping.exceptionHandler(httpRequest, httpResponse, exception);
-            // 返回处理结果
-            handleHttpResponse(ctx);
-            // 销毁数据
-            destroy();
+            try {
+                // 处理异常
+                handlerMapping.exceptionHandler(httpRequest, httpResponse, exception);
+                // 处理返回结果
+                handleHttpResponse(ctx);
+            } finally {
+                // 销毁数据
+                destroy();
+            }
         }
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-        logger.error(cause.getMessage(), cause);
+        logger.error("业务逻辑处理异常......" + cause.getMessage(), cause);
         if (ctx.channel().isActive()) {
             ByteBuf buf = Unpooled.copiedBuffer("Failure: " + cause.getMessage() + "\r\n", CharsetUtil.UTF_8);
             FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.INTERNAL_SERVER_ERROR, buf);
@@ -129,6 +122,13 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<HttpObject> 
     protected void handleBusinessLogic(ChannelHandlerContext ctx) {
         try {
             logger.info("业务逻辑处理开始......");
+            // 查找处理类方法
+            HandlerExecutionChain mappedHandler = handlerMapping.getHandler(httpRequest);
+            if (mappedHandler == null) {
+                FullHttpResponse fullHttpResponse = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.NOT_FOUND);
+                ctx.writeAndFlush(fullHttpResponse).addListener(ChannelFutureListener.CLOSE);
+                return;
+            }
             // 拦截器处理前
             if (!mappedHandler.applyPreHandle(httpRequest, httpResponse)) {
                 handleHttpResponse(ctx);
@@ -150,20 +150,20 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<HttpObject> 
             }
             // 拦截器处理后
             mappedHandler.applyPostHandle(httpRequest, httpResponse);
-            // 返回处理结果
+            // 处理返回结果
             handleHttpResponse(ctx);
         } catch (Exception exception) {
             try {
-                logger.info("业务逻辑处理异常......");
                 // 处理异常
                 handlerMapping.exceptionHandler(httpRequest, httpResponse, exception);
-                // 返回处理结果
+                // 处理返回结果
                 handleHttpResponse(ctx);
             } catch (Exception e) {
                 exceptionCaught(ctx, e);
             }
         } finally {
             logger.info("业务逻辑处理结束......");
+            // 销毁数据
             destroy();
         }
     }
@@ -176,8 +176,8 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<HttpObject> 
     protected void handleHttpResponse(ChannelHandlerContext ctx) {
         // 请求体日志
         httpResponse.logResponse();
-        // 返回值处理
-        FullHttpResponse response = null;
+        // 处理返回值
+        FullHttpResponse response;
         int contentLength = 0;
         if (StringUtils.isEmpty(httpResponse.getResult())) {
             // 输出流
@@ -222,9 +222,6 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<HttpObject> 
         if (httpResponse != null) {
             IOUtils.closeQuietly(httpResponse.getOutputStream());
             httpResponse = null;
-        }
-        if (mappedHandler != null) {
-            mappedHandler = null;
         }
         MDC.remove(MDC_KEY);
     }
