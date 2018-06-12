@@ -33,7 +33,6 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<FullHttpRequ
     private final HttpHandlerMapping handlerMapping;
     private HttpRequest httpRequest;
     private HttpResponse httpResponse;
-    private HandlerExecutionChain mappedHandler;
 
     public HttpChannelHandler(HttpHandlerMapping handlerMapping) {
         logger.info("初始化HttpChannelHandler");
@@ -60,25 +59,22 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<FullHttpRequ
             // 初始化HttpRequest
             httpRequest = new HttpRequest(fullHttpRequest, requestId, getSocketAddressIp(ctx));
             httpRequest.logRequest();
-            // 查找处理类方法
-            mappedHandler = handlerMapping.getActualHandler(httpRequest);
-            if (mappedHandler == null) {
-                logger.warn("handler not find");
-                ctx.writeAndFlush(new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.NOT_FOUND)).addListener(ChannelFutureListener.CLOSE);
-                return;
-            }
             // 初始化HttpResponse
             httpResponse = new HttpResponse(httpRequest.getRequestId());
             // 异步处理业务逻辑
             HttpThreadPoolExecutor.getThreadPoolExecutor().submit(() -> handleBusinessLogic(ctx));
             logger.info("业务线程池信息：{}", HttpThreadPoolExecutor.getThreadPoolInfo());
         } catch (Exception exception) {
-            // 处理异常
-            if (handlerMapping.getExceptionHandler() != null) {
-                handlerMapping.getExceptionHandler().exceptionHandle(httpRequest, httpResponse, exception);
+            try {
+                // 处理异常
+                if (handlerMapping.getExceptionHandler() != null) {
+                    handlerMapping.getExceptionHandler().exceptionHandle(httpRequest, httpResponse, exception);
+                }
+                // 处理返回结果
+                handleHttpResponse(ctx);
+            } finally {
+                destroy();
             }
-            handleHttpResponse(ctx);
-            destroy();
         }
     }
 
@@ -116,6 +112,12 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<FullHttpRequ
     protected void handleBusinessLogic(ChannelHandlerContext ctx) {
         try {
             logger.info("业务逻辑处理开始......");
+            // 查找处理类方法
+            HandlerExecutionChain mappedHandler = handlerMapping.getActualHandler(httpRequest);
+            if (mappedHandler == null) {
+                ctx.writeAndFlush(new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.NOT_FOUND)).addListener(ChannelFutureListener.CLOSE);
+                return;
+            }
             // 拦截器处理前
             if (!mappedHandler.applyPreHandle(httpRequest, httpResponse)) {
                 handleHttpResponse(ctx);
@@ -137,15 +139,15 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<FullHttpRequ
             }
             // 拦截器处理后
             mappedHandler.applyPostHandle(httpRequest, httpResponse);
-            // 返回处理结果
+            // 处理返回结果
             handleHttpResponse(ctx);
         } catch (Exception exception) {
             try {
-                logger.info("业务逻辑处理异常......");
                 // 处理异常
                 if (handlerMapping.getExceptionHandler() != null) {
                     handlerMapping.getExceptionHandler().exceptionHandle(httpRequest, httpResponse, exception);
                 }
+                // 处理返回结果
                 handleHttpResponse(ctx);
             } catch (Exception e) {
                 exceptionCaught(ctx, e);
@@ -179,9 +181,6 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<FullHttpRequ
         if (httpResponse != null) {
             IOUtils.closeQuietly(httpResponse.getOutputStream());
             httpResponse = null;
-        }
-        if (mappedHandler != null) {
-            mappedHandler = null;
         }
         MDC.remove(MDC_KEY);
     }
