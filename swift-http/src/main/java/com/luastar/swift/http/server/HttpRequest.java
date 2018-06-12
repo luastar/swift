@@ -61,7 +61,7 @@ public class HttpRequest {
     private Map<String, Object> attributeMap = Maps.newLinkedHashMap();
 
     public HttpRequest(FullHttpRequest request, String requestId, String socketIp) {
-        this.request = request;
+        this.request = request.copy();
         this.requestId = requestId;
         this.socketIp = socketIp;
         initRequestHeader();
@@ -144,7 +144,7 @@ public class HttpRequest {
         String body = getBody();
         if (StringUtils.isNotEmpty(body)) {
             if (body.length() <= HttpConstant.SWIFT_MAX_LOG_LENGTH) {
-                logger.info("request body : {}", getBody());
+                logger.info("request body : {}", body);
             } else {
                 logger.info("request body is too long to log out");
             }
@@ -360,10 +360,16 @@ public class HttpRequest {
     }
 
     public void destroy() {
+        headerMap.clear();
+        cookieMap.clear();
+        parameterMap.clear();
+        fileMap.clear();
+        attributeMap.clear();
         if (postRequestDecoder != null) {
             postRequestDecoder.destroy();
             postRequestDecoder = null;
         }
+        request = null;
     }
 
 }

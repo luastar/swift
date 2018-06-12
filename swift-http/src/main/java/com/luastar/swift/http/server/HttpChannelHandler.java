@@ -62,8 +62,7 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<HttpObject> 
                 return;
             }
             if (URI_FAVICON_ICO.equals(fullHttpRequest.uri())) {
-                FullHttpResponse fullHttpResponse = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.NOT_FOUND);
-                ctx.writeAndFlush(fullHttpResponse).addListener(ChannelFutureListener.CLOSE);
+                ctx.writeAndFlush(new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.NOT_FOUND)).addListener(ChannelFutureListener.CLOSE);
                 return;
             }
             // 初始化HttpRequest
@@ -72,8 +71,12 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<HttpObject> 
             // 初始化HttpResponse
             httpResponse = new HttpResponse(httpRequest.getRequestId());
             // 异步处理业务逻辑
-            HttpThreadPoolExecutor.getThreadPoolExecutor().submit(() -> handleBusinessLogic(ctx));
             logger.info("业务线程池信息：{}", HttpThreadPoolExecutor.getThreadPoolInfo());
+            HttpThreadPoolExecutor.getThreadPoolExecutor().submit(() -> {
+                MDC.put(MDC_KEY, httpRequest.getRequestId());
+                handleBusinessLogic(ctx);
+                MDC.remove(MDC_KEY);
+            });
         } catch (Exception exception) {
             try {
                 // 处理异常
@@ -84,6 +87,8 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<HttpObject> 
                 // 销毁数据
                 destroy();
             }
+        } finally {
+            MDC.remove(MDC_KEY);
         }
     }
 
@@ -125,8 +130,7 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<HttpObject> 
             // 查找处理类方法
             HandlerExecutionChain mappedHandler = handlerMapping.getHandler(httpRequest);
             if (mappedHandler == null) {
-                FullHttpResponse fullHttpResponse = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.NOT_FOUND);
-                ctx.writeAndFlush(fullHttpResponse).addListener(ChannelFutureListener.CLOSE);
+                ctx.writeAndFlush(new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.NOT_FOUND)).addListener(ChannelFutureListener.CLOSE);
                 return;
             }
             // 拦截器处理前
@@ -223,7 +227,6 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<HttpObject> 
             IOUtils.closeQuietly(httpResponse.getOutputStream());
             httpResponse = null;
         }
-        MDC.remove(MDC_KEY);
     }
 
 }
