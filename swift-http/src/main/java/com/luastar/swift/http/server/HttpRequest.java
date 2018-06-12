@@ -45,14 +45,13 @@ public class HttpRequest {
     private QueryStringDecoder queryStringDecoder;
     private HttpPostRequestDecoder postRequestDecoder;
 
-    private HttpHeaders headers;
     private Map<String, Cookie> cookieMap = Maps.newLinkedHashMap();
     private Map<String, String> parameterMap = Maps.newLinkedHashMap();
     private Map<String, HttpFileUpload> fileMap = Maps.newLinkedHashMap();
     private Map<String, Object> attributeMap = Maps.newLinkedHashMap();
 
     public HttpRequest(FullHttpRequest request, String requestId, String socketIp) {
-        this.request = request;
+        this.request = request.copy();
         this.requestId = requestId;
         this.socketIp = socketIp;
         initRequestHeader();
@@ -61,8 +60,7 @@ public class HttpRequest {
     }
 
     protected void initRequestHeader() {
-        this.headers = request.headers();
-        String cookieString = this.headers.get(HttpHeaderNames.COOKIE);
+        String cookieString = request.headers().get(HttpHeaderNames.COOKIE);
         if (StringUtils.isNotEmpty(cookieString)) {
             Set<Cookie> cookieSet = ServerCookieDecoder.STRICT.decode(cookieString);
             for (Cookie cookie : cookieSet) {
@@ -133,7 +131,7 @@ public class HttpRequest {
         String body = getBody();
         if (StringUtils.isNotEmpty(body)) {
             if (body.length() <= HttpConstant.SWIFT_MAX_LOG_LENGTH) {
-                logger.info("request body : {}", getBody());
+                logger.info("request body : {}", body);
             } else {
                 logger.info("request body is too long to log out");
             }
@@ -173,19 +171,19 @@ public class HttpRequest {
     }
 
     public HttpHeaders getHeaders() {
-        return this.headers;
+        return request.headers();
     }
 
     public String getHeader(CharSequence key) {
-        return this.headers.get(key);
+        return request.headers().get(key);
     }
 
     public void setHeader(CharSequence key, Object value) {
-        this.headers.set(key, value);
+        request.headers().set(key, value);
     }
 
     public void addHeader(CharSequence key, Object value) {
-        this.headers.add(key, value);
+        request.headers().add(key, value);
     }
 
     public Map<String, Cookie> getCookieMap() {
@@ -347,9 +345,14 @@ public class HttpRequest {
 
     public void destroy() {
         if (postRequestDecoder != null) {
-            postRequestDecoder.destroy();
+            postRequestDecoder.cleanFiles();
             postRequestDecoder = null;
         }
+        cookieMap.clear();
+        parameterMap.clear();
+        fileMap.clear();
+        attributeMap.clear();
+        request.release();
     }
 
 }

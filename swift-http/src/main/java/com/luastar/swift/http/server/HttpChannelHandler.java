@@ -13,7 +13,6 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.*;
 import io.netty.util.CharsetUtil;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,7 +53,6 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<FullHttpRequ
             }
             if (HttpUtil.is100ContinueExpected(fullHttpRequest)) {
                 ctx.write(new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE));
-                return;
             }
             // 初始化HttpRequest
             httpRequest = new HttpRequest(fullHttpRequest, requestId, getSocketAddressIp(ctx));
@@ -62,8 +60,12 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<FullHttpRequ
             // 初始化HttpResponse
             httpResponse = new HttpResponse(httpRequest.getRequestId());
             // 异步处理业务逻辑
-            HttpThreadPoolExecutor.getThreadPoolExecutor().submit(() -> handleBusinessLogic(ctx));
             logger.info("业务线程池信息：{}", HttpThreadPoolExecutor.getThreadPoolInfo());
+            HttpThreadPoolExecutor.getThreadPoolExecutor().submit(() -> {
+                MDC.put(MDC_KEY, httpRequest.getRequestId());
+                handleBusinessLogic(ctx);
+                MDC.remove(MDC_KEY);
+            });
         } catch (Exception exception) {
             try {
                 // 处理异常
@@ -75,6 +77,8 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<FullHttpRequ
             } finally {
                 destroy();
             }
+        } finally {
+            MDC.remove(MDC_KEY);
         }
     }
 
@@ -179,10 +183,9 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<FullHttpRequ
             httpRequest = null;
         }
         if (httpResponse != null) {
-            IOUtils.closeQuietly(httpResponse.getOutputStream());
+            httpResponse.destroy();
             httpResponse = null;
         }
-        MDC.remove(MDC_KEY);
     }
 
 }

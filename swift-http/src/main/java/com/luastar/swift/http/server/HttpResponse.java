@@ -9,6 +9,7 @@ import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.handler.codec.http.cookie.ServerCookieEncoder;
 import io.netty.util.CharsetUtil;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -140,6 +141,10 @@ public class HttpResponse {
         }
         HttpUtil.setContentLength(fullHttpResponse, contentLength);
         return fullHttpResponse;
+    }
+
+    public void destroy() {
+        IOUtils.closeQuietly(outputStream);
     }
 
 }
