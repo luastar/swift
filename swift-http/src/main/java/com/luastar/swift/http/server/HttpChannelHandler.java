@@ -15,7 +15,6 @@ import io.netty.handler.codec.http.cookie.Cookie;
 import io.netty.handler.codec.http.cookie.ServerCookieEncoder;
 import io.netty.util.CharsetUtil;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -224,7 +223,7 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<HttpObject> 
             httpRequest = null;
         }
         if (httpResponse != null) {
-            IOUtils.closeQuietly(httpResponse.getOutputStream());
+            httpResponse.destroy();
             httpResponse = null;
         }
     }

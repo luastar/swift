@@ -8,6 +8,7 @@ import com.luastar.swift.http.constant.HttpMediaType;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.cookie.Cookie;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -134,6 +135,10 @@ public class HttpResponse {
 
     public void setStatus(HttpResponseStatus status) {
         this.status = status;
+    }
+
+    public void destroy() {
+        IOUtils.closeQuietly(outputStream);
     }
 
 }

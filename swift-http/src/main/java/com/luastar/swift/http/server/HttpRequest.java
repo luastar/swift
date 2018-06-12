@@ -360,16 +360,16 @@ public class HttpRequest {
     }
 
     public void destroy() {
+        if (postRequestDecoder != null) {
+            postRequestDecoder.destroy();
+            postRequestDecoder = null;
+        }
         headerMap.clear();
         cookieMap.clear();
         parameterMap.clear();
         fileMap.clear();
         attributeMap.clear();
-        if (postRequestDecoder != null) {
-            postRequestDecoder.destroy();
-            postRequestDecoder = null;
-        }
-        request = null;
+        request.release();
     }
 
 }
