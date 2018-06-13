@@ -28,7 +28,7 @@ public class HttpThreadPoolExecutor {
                             HttpConstant.SWIFT_BUSINESS_THREADS,
                             HttpConstant.SWIFT_BUSINESS_THREADS,
                             0L, TimeUnit.MILLISECONDS,
-                            new LinkedBlockingQueue<>(20480),
+                            new LinkedBlockingQueue<>(102400),
                             new ThreadFactoryBuilder().setNameFormat("business-%d").build(),
                             new ThreadPoolExecutor.AbortPolicy());
                 }

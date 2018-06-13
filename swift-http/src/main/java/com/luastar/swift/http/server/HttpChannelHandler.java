@@ -34,6 +34,8 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<FullHttpRequ
     private HttpResponse httpResponse;
 
     public HttpChannelHandler(HttpHandlerMapping handlerMapping) {
+        // 使用自定义线程池异步执行时不能自动释放
+        super(false);
         logger.info("初始化HttpChannelHandler");
         if (handlerMapping == null) {
             throw new IllegalArgumentException("handlerMapping can't be null.");
@@ -178,6 +180,8 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<FullHttpRequ
      * 销毁对象
      */
     protected void destroy() {
+        logger.info("业务数据销毁......");
+        // 销毁数据
         if (httpRequest != null) {
             httpRequest.destroy();
             httpRequest = null;
