@@ -61,7 +61,7 @@ public class HttpRequest {
     private Map<String, Object> attributeMap = Maps.newLinkedHashMap();
 
     public HttpRequest(FullHttpRequest request, String requestId, String socketIp) {
-        this.request = request.copy();
+        this.request = request;
         this.requestId = requestId;
         this.socketIp = socketIp;
         initRequestHeader();

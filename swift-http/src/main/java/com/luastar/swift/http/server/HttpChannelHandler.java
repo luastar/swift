@@ -39,6 +39,8 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<HttpObject> 
     private HttpResponse httpResponse;
 
     public HttpChannelHandler(HttpHandlerMapping handlerMapping) {
+        // 使用自定义线程池异步执行时不能自动释放
+        super(false);
         logger.info("初始化HttpChannelHandler");
         if (handlerMapping == null) {
             throw new IllegalArgumentException("handlerMapping不能为空！");
@@ -217,7 +219,8 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<HttpObject> 
      * 销毁数据
      */
     protected void destroy() {
-        // 清空swiftRequest
+        logger.info("业务数据销毁......");
+        // 销毁数据
         if (httpRequest != null) {
             httpRequest.destroy();
             httpRequest = null;

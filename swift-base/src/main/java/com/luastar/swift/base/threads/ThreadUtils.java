@@ -76,7 +76,7 @@ public class ThreadUtils {
                 maximumPoolSize,
                 0L,
                 TimeUnit.MILLISECONDS,
-                new LinkedBlockingQueue<>(20480),
+                new LinkedBlockingQueue<>(10240),
                 namedThreadFactory(namePrefix),
                 new ThreadPoolExecutor.AbortPolicy());
     }

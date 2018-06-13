@@ -88,9 +88,9 @@ public interface HttpConstant {
      */
     int SWIFT_WORKER_THREADS = PropertyUtils.getInt("swift.workerThreads", 0);
     /**
-     * 业务线程数，默认值64
+     * 业务线程数，默认值128
      */
-    int SWIFT_BUSINESS_THREADS = PropertyUtils.getInt("swift.businessThreads", 64);
+    int SWIFT_BUSINESS_THREADS = PropertyUtils.getInt("swift.businessThreads", 128);
     /**
      * 返回结果压缩级别，0~9，默认6
      */
