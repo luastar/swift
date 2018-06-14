@@ -64,13 +64,18 @@ public interface HttpConstant {
     String PRODUCIBLE_MEDIA_TYPES_ATTRIBUTE = HttpConstant.class.getName() + ".producibleMediaTypes";
 
     /**
+     * requestId 日志标记
+     */
+    String MDC_KEY = "requestId";
+
+    /**
      * 启动spring配置文件地址
      */
     String SWIFT_CONFIG_LOCATION = PropertyUtils.getString("swift.config.location", "spring-swift.xml");
     /**
-     * 链接超时时间
+     * 任务执行超时时间（秒），默认值 86400（24小时）
      */
-    int SWIFT_TIMEOUT = PropertyUtils.getInt("swift.timeout", 30);
+    int SWIFT_EXECUTE_TIMEOUT = PropertyUtils.getInt("swift.executeTimeout", 86400);
     /**
      * 请求体最大值
      */
@@ -80,17 +85,17 @@ public interface HttpConstant {
      */
     int SWIFT_MAX_LOG_LENGTH = PropertyUtils.getInt("swift.maxLogLength", 1024 * 512);
     /**
-     * 分发线程数，默认值1（为0表示cpu个数 * 2）
+     * 分发线程数，默认值 1（为0表示cpu个数 * 2）
      */
     int SWIFT_BOSS_THREADS = PropertyUtils.getInt("swift.bossThreads", 1);
     /**
-     * 工作线程数，默认值0（为0表示cpu个数 * 2）
+     * 工作线程数，默认值 0（为0表示cpu个数 * 2）
      */
     int SWIFT_WORKER_THREADS = PropertyUtils.getInt("swift.workerThreads", 0);
     /**
-     * 业务线程数，默认值128
+     * 业务线程数，默认值 64
      */
-    int SWIFT_BUSINESS_THREADS = PropertyUtils.getInt("swift.businessThreads", 128);
+    int SWIFT_BUSINESS_THREADS = PropertyUtils.getInt("swift.businessThreads", 64);
     /**
      * 返回结果压缩级别，0~9，默认6
      */

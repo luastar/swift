@@ -124,18 +124,22 @@ public class HttpRequest {
     }
 
     public void logRequest() {
-        logger.info("request ip : {}, socketIp : {}", getIp(), getSocketIp());
-        logger.info("request method : {}, uri : {}", getMethod(), getUri());
-        logger.info("request headers : {}", JSON.toJSONString(getHeaders()));
-        logger.info("request attributes : {}", JSON.toJSONString(getAttributeMap()));
+        StringBuilder info = new StringBuilder()
+                .append("当前请求信息：").append("\n")
+                .append("============================================================").append("\n")
+                .append("== request ip : ").append(getIp()).append(", socketIp : ").append(getSocketIp()).append("\n")
+                .append("== request method : ").append(getMethod()).append(", uri : ").append(getUri()).append("\n")
+                .append("== request headers : ").append(JSON.toJSONString(getHeaders())).append("\n");
         String body = getBody();
         if (StringUtils.isNotEmpty(body)) {
             if (body.length() <= HttpConstant.SWIFT_MAX_LOG_LENGTH) {
-                logger.info("request body : {}", body);
+                info.append("== request body : ").append(body).append("\n");;
             } else {
-                logger.info("request body is too long to log out");
+                info.append("== request body is too long to log out.").append("\n");;
             }
         }
+        info.append("============================================================").append("\n");
+        logger.info(info.toString());
     }
 
     public String getUri() {

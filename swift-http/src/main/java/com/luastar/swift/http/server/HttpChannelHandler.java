@@ -1,6 +1,7 @@
 package com.luastar.swift.http.server;
 
 
+import com.luastar.swift.http.constant.HttpConstant;
 import com.luastar.swift.http.constant.HttpMediaType;
 import com.luastar.swift.http.route.HttpHandlerMapping;
 import com.luastar.swift.http.route.HttpRequestHandler;
@@ -27,8 +28,7 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<FullHttpRequ
 
     private static final Logger logger = LoggerFactory.getLogger(HttpChannelHandler.class);
 
-    private static final String MDC_KEY = "requestId";
-
+    private final String requestId;
     private final HttpHandlerMapping handlerMapping;
     private HttpRequest httpRequest;
     private HttpResponse httpResponse;
@@ -36,19 +36,20 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<FullHttpRequ
     public HttpChannelHandler(HttpHandlerMapping handlerMapping) {
         // 使用自定义线程池异步执行时不能自动释放
         super(false);
-        logger.info("初始化HttpChannelHandler");
         if (handlerMapping == null) {
             throw new IllegalArgumentException("handlerMapping can't be null.");
         }
+        this.requestId = RandomStringUtils.random(20, true, true);
         this.handlerMapping = handlerMapping;
+        MDC.put(HttpConstant.MDC_KEY, requestId);
+        logger.info("初始化HttpChannelHandler");
+        MDC.remove(HttpConstant.MDC_KEY);
     }
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest fullHttpRequest) throws Exception {
         try {
-            // requestId
-            String requestId = RandomStringUtils.random(20, true, true);
-            MDC.put(MDC_KEY, requestId);
+            MDC.put(HttpConstant.MDC_KEY, requestId);
             if (!fullHttpRequest.decoderResult().isSuccess()) {
                 ctx.writeAndFlush(new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.BAD_REQUEST)).addListener(ChannelFutureListener.CLOSE);
                 return;
@@ -62,12 +63,7 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<FullHttpRequ
             // 初始化HttpResponse
             httpResponse = new HttpResponse(httpRequest.getRequestId());
             // 异步处理业务逻辑
-            logger.info("业务线程池信息：{}", HttpThreadPoolExecutor.getThreadPoolInfo());
-            HttpThreadPoolExecutor.getThreadPoolExecutor().submit(() -> {
-                MDC.put(MDC_KEY, httpRequest.getRequestId());
-                handleBusinessLogic(ctx);
-                MDC.remove(MDC_KEY);
-            });
+            HttpThreadPoolExecutor.submit(requestId, () -> handleBusinessLogic(ctx));
         } catch (Exception exception) {
             try {
                 // 处理异常
@@ -80,7 +76,7 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<FullHttpRequ
                 destroy();
             }
         } finally {
-            MDC.remove(MDC_KEY);
+            MDC.remove(HttpConstant.MDC_KEY);
         }
     }
 
