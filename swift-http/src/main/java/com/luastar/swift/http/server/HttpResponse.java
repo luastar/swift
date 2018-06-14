@@ -59,22 +59,28 @@ public class HttpResponse {
     }
 
     public void logResponse() {
-        logger.info("response status: {}", getStatus());
-        logger.info("response headers : {}, cookie : {}", JSON.toJSONString(getHeaderMap()), JSON.toJSONString(getCookieSet()));
+        StringBuilder info = new StringBuilder()
+                .append("当前结果信息：").append("\n")
+                .append("============================================================").append("\n")
+                .append("== response status: ").append(getStatus()).append("\n")
+                .append("== response headers : ").append(JSON.toJSONString(headerMap)).append("\n")
+                .append("== response cookie : ").append(JSON.toJSONString(cookieSet)).append("\n");
         String body = getResult();
         if (StringUtils.isEmpty(body)) {
             if (getOutputStream() == null) {
-                logger.info("response body is empty");
+                info.append("== response body is empty.").append("\n");
             } else {
-                logger.info("response body is stream");
+                info.append("== response body is stream.").append("\n");
             }
         } else {
             if (body.length() <= HttpConstant.SWIFT_MAX_LOG_LENGTH) {
-                logger.info("response body : {}", body);
+                info.append("== response body : ").append(body).append("\n");
             } else {
-                logger.info("response body is too long to log out");
+                info.append("== response body is too long to log out.").append("\n");
             }
         }
+        info.append("============================================================").append("\n");
+        logger.info(info.toString());
     }
 
     public String getHeader(String key) {

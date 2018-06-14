@@ -60,24 +60,11 @@ public class TestController {
         response.setResult("TestCtrl[index] OK !");
     }
 
-    @HttpService("/redis")
-    public void redis(HttpRequest request, HttpResponse response) {
-        logger.info("----------come into TestCtrl[redis]");
-        String result = "";
-        Map<String, String> userMap = redisTemplate.opsForHash().entries("user:info:10001");
-        if (userMap != null) {
-            result = JsonUtils.toJson(userMap);
-        }
-        logger.info("TestCtrl[redis] result:{}", result);
-        // response
-        response.setResponseContentTypePlain();
-        response.setResult(result);
-    }
-
-    @HttpService("/hello/{p1}")
-    public void hello(HttpRequest request, HttpResponse response) {
-        logger.info("----------come into TestCtrl[hello][{}]", request.getPathValue("p1"));
+    @HttpService("/path/{p1}")
+    public void path(HttpRequest request, HttpResponse response) {
+        logger.info("----------come into TestCtrl[path][{}]", request.getPathValue("p1"));
         // request info
+        logger.info("requestId is : {}", request.getRequestId());
         logger.info("client ip is : {}", request.getIp());
         for (Map.Entry<String, String> header : request.getHeaderMap().entrySet()) {
             logger.info("request header : {}={}", header.getKey(), header.getValue());
@@ -88,6 +75,7 @@ public class TestController {
         for (Map.Entry<String, FileUpload> file : request.getFileMap().entrySet()) {
             logger.info("request parameter : {}={}", file.getKey(), file.getValue().getFilename());
         }
+        logger.info("request to user : {}", request.bindObj(new User()));
         logger.info("request body is : {}", request.getBody());
         // response
         response.setResponseContentTypePlain();
@@ -97,6 +85,20 @@ public class TestController {
     @HttpService(value = "/getpost", method = RequestMethod.GET)
     public void get(HttpRequest request, HttpResponse response) {
         logger.info("----------come into TestCtrl[get]");
+        // request info
+        logger.info("requestId is : {}", request.getRequestId());
+        logger.info("client ip is : {}", request.getIp());
+        for (Map.Entry<String, String> header : request.getHeaderMap().entrySet()) {
+            logger.info("request header : {}={}", header.getKey(), header.getValue());
+        }
+        for (Map.Entry<String, String> parameter : request.getParameterMap().entrySet()) {
+            logger.info("request parameter : {}={}", parameter.getKey(), parameter.getValue());
+        }
+        for (Map.Entry<String, FileUpload> file : request.getFileMap().entrySet()) {
+            logger.info("request parameter : {}={}", file.getKey(), file.getValue().getFilename());
+        }
+        logger.info("request to user : {}", request.bindObj(new User()));
+        logger.info("request body is : {}", request.getBody());
         // response
         response.setResponseContentTypePlain();
         response.setResult("TestCtrl[get] OK !");
@@ -105,6 +107,20 @@ public class TestController {
     @HttpService(value = "/getpost", method = RequestMethod.POST)
     public void post(HttpRequest request, HttpResponse response) {
         logger.info("----------come into TestCtrl[post]");
+        // request info
+        logger.info("requestId is : {}", request.getRequestId());
+        logger.info("client ip is : {}", request.getIp());
+        for (Map.Entry<String, String> header : request.getHeaderMap().entrySet()) {
+            logger.info("request header : {}={}", header.getKey(), header.getValue());
+        }
+        for (Map.Entry<String, String> parameter : request.getParameterMap().entrySet()) {
+            logger.info("request parameter : {}={}", parameter.getKey(), parameter.getValue());
+        }
+        for (Map.Entry<String, FileUpload> file : request.getFileMap().entrySet()) {
+            logger.info("request parameter : {}={}", file.getKey(), file.getValue().getFilename());
+        }
+        logger.info("request to user : {}", request.bindObj(new User()));
+        logger.info("request body is : {}", request.getBody());
         // response
         response.setResponseContentTypePlain();
         response.setResult("TestCtrl[post] OK !");
@@ -113,6 +129,20 @@ public class TestController {
     @HttpService(value = "/getpost")
     public void getpost(HttpRequest request, HttpResponse response) {
         logger.info("----------come into TestCtrl[getpost]");
+        // request info
+        logger.info("requestId is : {}", request.getRequestId());
+        logger.info("client ip is : {}", request.getIp());
+        for (Map.Entry<String, String> header : request.getHeaderMap().entrySet()) {
+            logger.info("request header : {}={}", header.getKey(), header.getValue());
+        }
+        for (Map.Entry<String, String> parameter : request.getParameterMap().entrySet()) {
+            logger.info("request parameter : {}={}", parameter.getKey(), parameter.getValue());
+        }
+        for (Map.Entry<String, FileUpload> file : request.getFileMap().entrySet()) {
+            logger.info("request parameter : {}={}", file.getKey(), file.getValue().getFilename());
+        }
+        logger.info("request to user : {}", request.bindObj(new User()));
+        logger.info("request body is : {}", request.getBody());
         // response
         response.setResponseContentTypePlain();
         response.setResult("TestCtrl[getpost] OK !");
@@ -121,8 +151,22 @@ public class TestController {
     @HttpService(value = "/get_or_post", method = {RequestMethod.GET, RequestMethod.POST})
     public void getOrPost(HttpRequest request, HttpResponse response) throws InterruptedException {
         logger.info("----------come into TestCtrl[get_or_post]");
+        // request info
+        logger.info("requestId is : {}", request.getRequestId());
+        logger.info("client ip is : {}", request.getIp());
+        for (Map.Entry<String, String> header : request.getHeaderMap().entrySet()) {
+            logger.info("request header : {}={}", header.getKey(), header.getValue());
+        }
+        for (Map.Entry<String, String> parameter : request.getParameterMap().entrySet()) {
+            logger.info("request parameter : {}={}", parameter.getKey(), parameter.getValue());
+        }
+        for (Map.Entry<String, FileUpload> file : request.getFileMap().entrySet()) {
+            logger.info("request parameter : {}={}", file.getKey(), file.getValue().getFilename());
+        }
+        logger.info("request to user : {}", request.bindObj(new User()));
+        logger.info("request body is : {}", request.getBody());
         // response
-        Thread.sleep(300000);
+        Thread.sleep(60000);
         response.setResponseContentTypePlain();
         response.setResult("TestCtrl[get_or_post] OK !");
     }
@@ -171,6 +215,20 @@ public class TestController {
         } catch (IOException e) {
             logger.error(e.getMessage(), e);
         }
+    }
+
+    @HttpService("/redis")
+    public void redis(HttpRequest request, HttpResponse response) {
+        logger.info("----------come into TestCtrl[redis]");
+        String result = "";
+        Map<String, String> userMap = redisTemplate.opsForHash().entries("user:info:10001");
+        if (userMap != null) {
+            result = JsonUtils.toJson(userMap);
+        }
+        logger.info("TestCtrl[redis] result:{}", result);
+        // response
+        response.setResponseContentTypePlain();
+        response.setResult(result);
     }
 
 }
