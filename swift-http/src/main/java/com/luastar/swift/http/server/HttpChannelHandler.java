@@ -41,6 +41,7 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<FullHttpRequ
         }
         this.requestId = RandomStringUtils.random(20, true, true);
         this.handlerMapping = handlerMapping;
+        // 在 worker-group 线程池中执行
         MDC.put(HttpConstant.MDC_KEY, requestId);
         logger.info("初始化HttpChannelHandler");
         MDC.remove(HttpConstant.MDC_KEY);
@@ -49,6 +50,7 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<FullHttpRequ
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest fullHttpRequest) throws Exception {
         try {
+            // 在  worker-group 或 executor-group 线程池中执行
             MDC.put(HttpConstant.MDC_KEY, requestId);
             if (!fullHttpRequest.decoderResult().isSuccess()) {
                 ctx.writeAndFlush(new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.BAD_REQUEST)).addListener(ChannelFutureListener.CLOSE);
@@ -64,6 +66,7 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<FullHttpRequ
             httpResponse = new HttpResponse(httpRequest.getRequestId());
             // 异步处理业务逻辑
             HttpThreadPoolExecutor.submit(requestId, () -> {
+                // 在自定义线程池中执行
                 MDC.put(HttpConstant.MDC_KEY, requestId);
                 handleBusinessLogic(ctx);
                 MDC.remove(HttpConstant.MDC_KEY);
