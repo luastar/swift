@@ -28,9 +28,9 @@ public class HttpThreadPoolExecutor {
             synchronized (HttpThreadPoolExecutor.class) {
                 if (mainThreadPoolExecutor == null) {
                     mainThreadPoolExecutor = new ThreadPoolExecutor(
-                            HttpConstant.SWIFT_BUSINESS_THREADS,
-                            HttpConstant.SWIFT_BUSINESS_THREADS,
-                            0L, TimeUnit.MILLISECONDS,
+                            HttpConstant.SWIFT_BUSINESS_CORE_THREADS,
+                            HttpConstant.SWIFT_BUSINESS_MAX_THREADS,
+                            1, TimeUnit.HOURS,
                             new LinkedBlockingQueue<>(102400),
                             new ThreadFactoryBuilder().setNameFormat("business-%d").build(),
                             new ThreadPoolExecutor.AbortPolicy());
@@ -50,9 +50,9 @@ public class HttpThreadPoolExecutor {
             synchronized (HttpThreadPoolExecutor.class) {
                 if (killThreadPoolExecutor == null) {
                     killThreadPoolExecutor = new ThreadPoolExecutor(
-                            HttpConstant.SWIFT_BUSINESS_THREADS,
-                            HttpConstant.SWIFT_BUSINESS_THREADS,
-                            0L, TimeUnit.MILLISECONDS,
+                            HttpConstant.SWIFT_BUSINESS_CORE_THREADS,
+                            HttpConstant.SWIFT_BUSINESS_MAX_THREADS,
+                            1, TimeUnit.HOURS,
                             new LinkedBlockingQueue<>(102400),
                             new ThreadFactoryBuilder().setNameFormat("business-kill-%d").setDaemon(true).build(),
                             new ThreadPoolExecutor.AbortPolicy());
@@ -75,13 +75,14 @@ public class HttpThreadPoolExecutor {
                     .append("============================================================").append("\n")
                     .append("== queueSize(线程队列大小) : ").append(getMainThreadPoolExecutor().getQueue().size()).append("\n")
                     .append("== queueRemainingCapacity(线程队列剩余) : ").append(getMainThreadPoolExecutor().getQueue().remainingCapacity()).append("\n")
+                    .append("== corePoolSize(核心线程数) : ").append(getMainThreadPoolExecutor().getCorePoolSize()).append("\n")
                     .append("== maxPoolSize(最大线程数) : ").append(getMainThreadPoolExecutor().getMaximumPoolSize()).append("\n")
                     .append("== poolSize(当前线程数) : ").append(getMainThreadPoolExecutor().getPoolSize()).append("\n")
                     .append("== activeCount(活动线程数) : ").append(getMainThreadPoolExecutor().getActiveCount()).append("\n")
                     .append("== taskCount(总任务数) : ").append(getMainThreadPoolExecutor().getTaskCount()).append("\n")
                     .append("== completedTaskCount(已完成任务数) : ").append(getMainThreadPoolExecutor().getCompletedTaskCount()).append("\n")
                     .append("============================================================").append("\n");
-            logger.debug(info.toString());
+            logger.info(info.toString());
         }
         Future<?> future = getMainThreadPoolExecutor().submit(task);
         getKillThreadPoolExecutor().submit(() -> {

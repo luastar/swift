@@ -2,6 +2,7 @@ package com.luastar.swift.http.server;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.luastar.swift.base.utils.SpringUtils;
+import com.luastar.swift.base.utils.StrUtils;
 import com.luastar.swift.http.constant.HttpConstant;
 import com.luastar.swift.http.route.HttpHandlerMapping;
 import io.netty.bootstrap.ServerBootstrap;
@@ -43,24 +44,27 @@ public class HttpServer {
     public HttpServer(int port, boolean ssl) {
         this.port = port;
         this.ssl = ssl;
-        initHandlerMapping();
+        initHttpServer();
     }
 
     /**
-     * 初始化handlerMapping
+     * 初始化
      */
-    protected void initHandlerMapping() {
+    protected void initHttpServer() {
         logger.info("启动端口号:{}", port);
         logger.info("spring配置文件路径:{}", HttpConstant.SWIFT_CONFIG_LOCATION);
         logger.info("业务执行超时时间:{}秒", HttpConstant.SWIFT_EXECUTE_TIMEOUT);
         logger.info("最大包大小:{}KB, 输出日志大小:{}KB", HttpConstant.SWIFT_MAX_CONTENT_LENGTH / 1024, HttpConstant.SWIFT_MAX_LOG_LENGTH / 1024);
-        logger.info("boss线程数:{}，worker线程数:{}, business线程数:{}", HttpConstant.SWIFT_BOSS_THREADS, HttpConstant.SWIFT_WORKER_THREADS, HttpConstant.SWIFT_BUSINESS_THREADS);
+        logger.info("boss线程数:{}，worker线程数:{}, business线程数:{}", HttpConstant.SWIFT_BOSS_THREADS, HttpConstant.SWIFT_WORKER_THREADS, HttpConstant.SWIFT_BUSINESS_MAX_THREADS);
         logger.info("返回结果压缩级别:{}", HttpConstant.SWIFT_COMPRESSION_LEVEL);
+        if (HttpConstant.SWIFT_BUSINESS_MAX_THREADS < HttpConstant.SWIFT_BUSINESS_CORE_THREADS) {
+            throw new RuntimeException(StrUtils.formatString("业务线程数[swift.businessThreads]不能小于{0}", HttpConstant.SWIFT_BUSINESS_CORE_THREADS));
+        }
         ApplicationContext applicationContext = new ClassPathXmlApplicationContext(HttpConstant.SWIFT_CONFIG_LOCATION);
         SpringUtils.setApplicationContext(applicationContext);
         this.handlerMapping = applicationContext.getBean(HttpHandlerMapping.class);
         if (handlerMapping == null) {
-            throw new RuntimeException("handlerMapping is null!");
+            throw new RuntimeException("handlerMapping不能为空!");
         }
     }
 
@@ -75,7 +79,7 @@ public class HttpServer {
          *  但该线程池是顺序执行的，如果当前线程被阻塞，则本次请求会被放进当前线程队列，而不是找空闲的线程执行
          *  因此，使用自己的线程池会更加灵活
          */
-        // EventExecutorGroup executorGroup = new DefaultEventExecutorGroup(HttpConstant.SWIFT_BUSINESS_THREADS, threadFactoryBuilder.setNameFormat("executor-group-%d").build());
+        // EventExecutorGroup executorGroup = new DefaultEventExecutorGroup(HttpConstant.SWIFT_BUSINESS_MAX_THREADS, threadFactoryBuilder.setNameFormat("executor-group-%d").build());
         try {
             ServerBootstrap bootstrap = new ServerBootstrap();
             bootstrap.group(bossGroup, workerGroup)
