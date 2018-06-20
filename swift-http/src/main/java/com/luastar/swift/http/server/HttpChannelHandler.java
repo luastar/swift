@@ -47,6 +47,7 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<HttpObject> 
         }
         this.requestId = RandomStringUtils.random(20, true, true);
         this.handlerMapping = handlerMapping;
+        // 在 worker-group 线程池中执行
         MDC.put(HttpConstant.MDC_KEY, requestId);
         logger.info("初始化HttpChannelHandler");
         MDC.remove(HttpConstant.MDC_KEY);
@@ -58,6 +59,7 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<HttpObject> 
             if (!(msg instanceof FullHttpRequest)) {
                 return;
             }
+            // 在  worker-group 或 executor-group 线程池中执行
             MDC.put(HttpConstant.MDC_KEY, requestId);
             FullHttpRequest fullHttpRequest = (FullHttpRequest) msg;
             if (HttpUtil.is100ContinueExpected(fullHttpRequest)) {
@@ -74,7 +76,12 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<HttpObject> 
             // 初始化HttpResponse
             httpResponse = new HttpResponse(httpRequest.getRequestId());
             // 异步处理业务逻辑
-            HttpThreadPoolExecutor.submit(requestId, () -> handleBusinessLogic(ctx));
+            HttpThreadPoolExecutor.submit(requestId, () -> {
+                // 在自定义线程池中执行
+                MDC.put(HttpConstant.MDC_KEY, requestId);
+                handleBusinessLogic(ctx);
+                MDC.remove(HttpConstant.MDC_KEY);
+            });
         } catch (Exception exception) {
             try {
                 // 处理异常

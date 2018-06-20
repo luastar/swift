@@ -69,8 +69,7 @@ public class HttpThreadPoolExecutor {
      * @return
      */
     public static Future<?> submit(String requestId, Runnable task) {
-        try {
-            MDC.put(HttpConstant.MDC_KEY, requestId);
+        if (logger.isDebugEnabled()) {
             StringBuilder info = new StringBuilder()
                     .append("当前业务线程池信息：").append("\n")
                     .append("============================================================").append("\n")
@@ -82,29 +81,28 @@ public class HttpThreadPoolExecutor {
                     .append("== taskCount(总任务数) : ").append(getMainThreadPoolExecutor().getTaskCount()).append("\n")
                     .append("== completedTaskCount(已完成任务数) : ").append(getMainThreadPoolExecutor().getCompletedTaskCount()).append("\n")
                     .append("============================================================").append("\n");
-            logger.info(info.toString());
-            Future<?> future = getMainThreadPoolExecutor().submit(task);
-            getKillThreadPoolExecutor().submit(() -> {
-                try {
-                    MDC.put(HttpConstant.MDC_KEY, requestId);
-                    future.get(HttpConstant.SWIFT_EXECUTE_TIMEOUT, TimeUnit.SECONDS);
-                } catch (InterruptedException e) {
-                    logger.error("任务执行中断，强制关闭线程......");
-                    future.cancel(true);
-                } catch (ExecutionException e) {
-                    logger.error("任务执行异常，强制关闭线程......");
-                    future.cancel(true);
-                } catch (TimeoutException e) {
-                    logger.error("任务执行超时，强制关闭线程......");
-                    future.cancel(true);
-                } finally {
-                    MDC.remove(HttpConstant.MDC_KEY);
-                }
-            });
-            return future;
-        } finally {
-            MDC.remove(HttpConstant.MDC_KEY);
+            logger.debug(info.toString());
         }
+        Future<?> future = getMainThreadPoolExecutor().submit(task);
+        getKillThreadPoolExecutor().submit(() -> {
+            try {
+                // 在自定义线程池中执行
+                MDC.put(HttpConstant.MDC_KEY, requestId);
+                future.get(HttpConstant.SWIFT_EXECUTE_TIMEOUT, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                logger.error("任务执行中断，强制关闭线程......");
+                future.cancel(true);
+            } catch (ExecutionException e) {
+                logger.error("任务执行异常，强制关闭线程......");
+                future.cancel(true);
+            } catch (TimeoutException e) {
+                logger.error("任务执行超时，强制关闭线程......");
+                future.cancel(true);
+            } finally {
+                MDC.remove(HttpConstant.MDC_KEY);
+            }
+        });
+        return future;
     }
 
     /**
