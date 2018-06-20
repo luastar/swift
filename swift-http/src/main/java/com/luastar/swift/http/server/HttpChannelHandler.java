@@ -63,7 +63,11 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<FullHttpRequ
             // 初始化HttpResponse
             httpResponse = new HttpResponse(httpRequest.getRequestId());
             // 异步处理业务逻辑
-            HttpThreadPoolExecutor.submit(requestId, () -> handleBusinessLogic(ctx));
+            HttpThreadPoolExecutor.submit(requestId, () -> {
+                MDC.put(HttpConstant.MDC_KEY, requestId);
+                handleBusinessLogic(ctx);
+                MDC.remove(HttpConstant.MDC_KEY);
+            });
         } catch (Exception exception) {
             try {
                 // 处理异常
