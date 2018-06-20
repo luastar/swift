@@ -69,21 +69,19 @@ public class HttpThreadPoolExecutor {
      * @return
      */
     public static Future<?> submit(String requestId, Runnable task) {
-        if (logger.isDebugEnabled()) {
-            StringBuilder info = new StringBuilder()
-                    .append("当前业务线程池信息：").append("\n")
-                    .append("============================================================").append("\n")
-                    .append("== queueSize(线程队列大小) : ").append(getMainThreadPoolExecutor().getQueue().size()).append("\n")
-                    .append("== queueRemainingCapacity(线程队列剩余) : ").append(getMainThreadPoolExecutor().getQueue().remainingCapacity()).append("\n")
-                    .append("== corePoolSize(核心线程数) : ").append(getMainThreadPoolExecutor().getCorePoolSize()).append("\n")
-                    .append("== maxPoolSize(最大线程数) : ").append(getMainThreadPoolExecutor().getMaximumPoolSize()).append("\n")
-                    .append("== poolSize(当前线程数) : ").append(getMainThreadPoolExecutor().getPoolSize()).append("\n")
-                    .append("== activeCount(活动线程数) : ").append(getMainThreadPoolExecutor().getActiveCount()).append("\n")
-                    .append("== taskCount(总任务数) : ").append(getMainThreadPoolExecutor().getTaskCount()).append("\n")
-                    .append("== completedTaskCount(已完成任务数) : ").append(getMainThreadPoolExecutor().getCompletedTaskCount()).append("\n")
-                    .append("============================================================").append("\n");
-            logger.info(info.toString());
-        }
+        StringBuilder info = new StringBuilder()
+                .append("当前业务线程池信息：").append("\n")
+                .append("============================================================").append("\n")
+                .append("== queueSize(线程队列大小) : ").append(getMainThreadPoolExecutor().getQueue().size()).append("\n")
+                .append("== queueRemainingCapacity(线程队列剩余) : ").append(getMainThreadPoolExecutor().getQueue().remainingCapacity()).append("\n")
+                .append("== corePoolSize(核心线程数) : ").append(getMainThreadPoolExecutor().getCorePoolSize()).append("\n")
+                .append("== maxPoolSize(最大线程数) : ").append(getMainThreadPoolExecutor().getMaximumPoolSize()).append("\n")
+                .append("== poolSize(当前线程数) : ").append(getMainThreadPoolExecutor().getPoolSize()).append("\n")
+                .append("== activeCount(活动线程数) : ").append(getMainThreadPoolExecutor().getActiveCount()).append("\n")
+                .append("== taskCount(总任务数) : ").append(getMainThreadPoolExecutor().getTaskCount()).append("\n")
+                .append("== completedTaskCount(已完成任务数) : ").append(getMainThreadPoolExecutor().getCompletedTaskCount()).append("\n")
+                .append("============================================================").append("\n");
+        logger.info(info.toString());
         Future<?> future = getMainThreadPoolExecutor().submit(task);
         getKillThreadPoolExecutor().submit(() -> {
             try {
