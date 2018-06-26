@@ -2,6 +2,7 @@ package com.luastar.swift.http.constant;
 
 
 import com.luastar.swift.base.config.PropertyUtils;
+import io.netty.util.NettyRuntime;
 
 public interface HttpConstant {
 
@@ -93,13 +94,9 @@ public interface HttpConstant {
      */
     int SWIFT_WORKER_THREADS = PropertyUtils.getInt("swift.workerThreads", 0);
     /**
-     * 业务核心线程数，默认值 16
+     * 业务线程数，默认值 max(16, cpu * 2)
      */
-    int SWIFT_BUSINESS_CORE_THREADS = 16;
-    /**
-     * 业务最大线程数，默认值 64
-     */
-    int SWIFT_BUSINESS_MAX_THREADS = PropertyUtils.getInt("swift.businessThreads", 64);
+    int SWIFT_BUSINESS_THREADS = PropertyUtils.getInt("swift.businessThreads", Math.max(16, NettyRuntime.availableProcessors() * 2));
     /**
      * 返回结果压缩级别，0~9，默认6
      */
