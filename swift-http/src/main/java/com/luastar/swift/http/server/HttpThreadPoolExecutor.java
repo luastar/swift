@@ -28,9 +28,9 @@ public class HttpThreadPoolExecutor {
             synchronized (HttpThreadPoolExecutor.class) {
                 if (mainThreadPoolExecutor == null) {
                     mainThreadPoolExecutor = new ThreadPoolExecutor(
-                            HttpConstant.SWIFT_BUSINESS_CORE_THREADS,
-                            HttpConstant.SWIFT_BUSINESS_MAX_THREADS,
-                            1, TimeUnit.HOURS,
+                            HttpConstant.SWIFT_BUSINESS_THREADS,
+                            HttpConstant.SWIFT_BUSINESS_THREADS,
+                            0L, TimeUnit.MILLISECONDS,
                             new LinkedBlockingQueue<>(102400),
                             new ThreadFactoryBuilder().setNameFormat("business-%d").build(),
                             new ThreadPoolExecutor.AbortPolicy());
@@ -50,9 +50,9 @@ public class HttpThreadPoolExecutor {
             synchronized (HttpThreadPoolExecutor.class) {
                 if (killThreadPoolExecutor == null) {
                     killThreadPoolExecutor = new ThreadPoolExecutor(
-                            HttpConstant.SWIFT_BUSINESS_CORE_THREADS,
-                            HttpConstant.SWIFT_BUSINESS_MAX_THREADS,
-                            1, TimeUnit.HOURS,
+                            HttpConstant.SWIFT_BUSINESS_THREADS,
+                            HttpConstant.SWIFT_BUSINESS_THREADS,
+                            0L, TimeUnit.MILLISECONDS,
                             new LinkedBlockingQueue<>(102400),
                             new ThreadFactoryBuilder().setNameFormat("business-kill-%d").setDaemon(true).build(),
                             new ThreadPoolExecutor.AbortPolicy());
