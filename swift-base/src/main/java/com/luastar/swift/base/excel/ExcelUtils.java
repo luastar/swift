@@ -114,21 +114,20 @@ public class ExcelUtils {
             for (int j = 0; j < columnNum; j++) {
                 ExportColumn column = columnList.get(j);
                 XSSFCell xssfCell = row.createCell(j);
+                // 是否偶数行
+                boolean even = (i + 1) % 2 == 0;
                 // 行样式
                 CellStyle rowCellStyle = ObjUtils.ifNull(column.getRowStyle(), sheetConfig.getRowStyle());
                 if (rowCellStyle == null) {
-                    if ((i + 1) % 2 == 0) {
+                    if (even) {
                         // 偶数行样式
-                        CellStyle evenRowCellStyle = ObjUtils.ifNull(column.getEvenRowStyle(), sheetConfig.getEvenRowStyle());
-                        xssfCell.setCellStyle(evenRowCellStyle);
+                        rowCellStyle = ObjUtils.ifNull(column.getEvenRowStyle(), sheetConfig.getEvenRowStyle());
                     } else {
                         // 奇数行样式
-                        CellStyle oddRowCellStyle = ObjUtils.ifNull(column.getOddRowStyle(), sheetConfig.getOddRowStyle());
-                        xssfCell.setCellStyle(oddRowCellStyle);
+                        rowCellStyle = ObjUtils.ifNull(column.getOddRowStyle(), sheetConfig.getOddRowStyle());
                     }
-                } else {
-                    xssfCell.setCellStyle(rowCellStyle);
                 }
+                xssfCell.setCellStyle(rowCellStyle);
                 // 设置下拉框
                 if (i == 0 && column.getType() == ExcelDataType.EnumValue && ArrayUtils.isNotEmpty(column.getValueArray())) {
                     XSSFDataValidationConstraint dvConstraint = (XSSFDataValidationConstraint) dvHelper.createExplicitListConstraint(column.getValueArray());
@@ -165,9 +164,26 @@ public class ExcelUtils {
                         || column.getType() == ExcelDataType.LongValue) {
                     BigDecimal value = ObjUtils.toBigDecimal(valueObj, BigDecimal.ZERO).setScale(0);
                     if (value.toString().length() <= 12) {
-                        XSSFCellStyle cellStyle = (XSSFCellStyle) xssfCell.getCellStyle().clone();
-                        cellStyle.setDataFormat(dataFormat.getFormat("#0"));
-                        xssfCell.setCellStyle(cellStyle);
+                        // 注意此处不要直接使用样式clone，excel对样式数量有限制，数据量大时会导致导出的文件打不开
+                        if (even) {
+                            if (column.getEvenRowStyle() == null) {
+                                XSSFCellStyle cellStyle = (XSSFCellStyle) xssfCell.getCellStyle().clone();
+                                cellStyle.setDataFormat(dataFormat.getFormat("#0"));
+                                column.setEvenRowStyle(cellStyle);
+                            } else {
+                                column.getEvenRowStyle().setDataFormat(dataFormat.getFormat("#0"));
+                            }
+                            xssfCell.setCellStyle(column.getEvenRowStyle());
+                        } else {
+                            if (column.getOddRowStyle() == null) {
+                                XSSFCellStyle cellStyle = (XSSFCellStyle) xssfCell.getCellStyle().clone();
+                                cellStyle.setDataFormat(dataFormat.getFormat("#0"));
+                                column.setOddRowStyle(cellStyle);
+                            } else {
+                                column.getOddRowStyle().setDataFormat(dataFormat.getFormat("#0"));
+                            }
+                            xssfCell.setCellStyle(column.getOddRowStyle());
+                        }
                         xssfCell.setCellValue(value.longValue());
                     } else {
                         xssfCell.setCellValue(value.toString());
@@ -178,9 +194,25 @@ public class ExcelUtils {
                     if (column.getScale() > 0 && column.getScale() <= 8) {
                         format = "#,##0." + StringUtils.repeat("0", column.getScale());
                     }
-                    XSSFCellStyle cellStyle = (XSSFCellStyle) xssfCell.getCellStyle().clone();
-                    cellStyle.setDataFormat(dataFormat.getFormat(format));
-                    xssfCell.setCellStyle(cellStyle);
+                    if (even) {
+                        if (column.getEvenRowStyle() == null) {
+                            XSSFCellStyle cellStyle = (XSSFCellStyle) xssfCell.getCellStyle().clone();
+                            cellStyle.setDataFormat(dataFormat.getFormat(format));
+                            column.setEvenRowStyle(cellStyle);
+                        } else {
+                            column.getEvenRowStyle().setDataFormat(dataFormat.getFormat(format));
+                        }
+                        xssfCell.setCellStyle(column.getEvenRowStyle());
+                    } else {
+                        if (column.getOddRowStyle() == null) {
+                            XSSFCellStyle cellStyle = (XSSFCellStyle) xssfCell.getCellStyle().clone();
+                            cellStyle.setDataFormat(dataFormat.getFormat(format));
+                            column.setOddRowStyle(cellStyle);
+                        } else {
+                            column.getOddRowStyle().setDataFormat(dataFormat.getFormat(format));
+                        }
+                        xssfCell.setCellStyle(column.getOddRowStyle());
+                    }
                     xssfCell.setCellValue(value.doubleValue());
                 } else if (column.getType() == ExcelDataType.DateValue) {
                     xssfCell.setCellValue(DateUtils.format((Date) (valueObj)));
@@ -783,8 +815,8 @@ public class ExcelUtils {
     }
 
     public static void main(String[] args) throws Exception {
-//        writeExample();
-        readExample();
+        writeExample();
+//        readExample();
     }
 
     /**
