@@ -1,6 +1,5 @@
 package com.luastar.swift.http.server;
 
-import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.luastar.swift.http.constant.HttpConstant;
@@ -59,28 +58,25 @@ public class HttpResponse {
     }
 
     public void logResponse() {
-        StringBuilder info = new StringBuilder()
-                .append("当前结果信息：").append("\n")
-                .append("============================================================").append("\n")
-                .append("== response status: ").append(getStatus()).append("\n")
-                .append("== response headers : ").append(JSON.toJSONString(headerMap)).append("\n")
-                .append("== response cookie : ").append(JSON.toJSONString(cookieSet)).append("\n");
+        logger.info("---返回信息开始---------------------------------------------------------");
+        logger.info("-- response status: {}", getStatus());
+        logger.info("-- response headers : {}", getHeaderMap());
+        logger.info("-- response cookie : {}", getCookieSet());
         String body = getResult();
         if (StringUtils.isEmpty(body)) {
             if (getOutputStream() == null) {
-                info.append("== response body is empty.").append("\n");
+                logger.info("-- response body is empty.");
             } else {
-                info.append("== response body is stream.").append("\n");
+                logger.info("-- response body is stream.");
             }
         } else {
             if (body.length() <= HttpConstant.SWIFT_MAX_LOG_LENGTH) {
-                info.append("== response body : ").append(body).append("\n");
+                logger.info("-- response body : {}", body);
             } else {
-                info.append("== response body is too long to log out.").append("\n");
+                logger.info("-- response body is too long to log out.");
             }
         }
-        info.append("============================================================").append("\n");
-        logger.info(info.toString());
+        logger.info("---返回信息结束---------------------------------------------------------");
     }
 
     public String getHeader(String key) {
