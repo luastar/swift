@@ -165,22 +165,23 @@ public class ExcelUtils {
                     BigDecimal value = ObjUtils.toBigDecimal(valueObj, BigDecimal.ZERO).setScale(0);
                     if (value.toString().length() <= 12) {
                         // 注意此处不要直接使用样式clone，excel对样式数量有限制，数据量大时会导致导出的文件打不开
+                        String format = "#0";
                         if (even) {
                             if (column.getEvenRowStyle() == null) {
                                 XSSFCellStyle cellStyle = (XSSFCellStyle) xssfCell.getCellStyle().clone();
-                                cellStyle.setDataFormat(dataFormat.getFormat("#0"));
+                                cellStyle.setDataFormat(dataFormat.getFormat(format));
                                 column.setEvenRowStyle(cellStyle);
                             } else {
-                                column.getEvenRowStyle().setDataFormat(dataFormat.getFormat("#0"));
+                                column.getEvenRowStyle().setDataFormat(dataFormat.getFormat(format));
                             }
                             xssfCell.setCellStyle(column.getEvenRowStyle());
                         } else {
                             if (column.getOddRowStyle() == null) {
                                 XSSFCellStyle cellStyle = (XSSFCellStyle) xssfCell.getCellStyle().clone();
-                                cellStyle.setDataFormat(dataFormat.getFormat("#0"));
+                                cellStyle.setDataFormat(dataFormat.getFormat(format));
                                 column.setOddRowStyle(cellStyle);
                             } else {
-                                column.getOddRowStyle().setDataFormat(dataFormat.getFormat("#0"));
+                                column.getOddRowStyle().setDataFormat(dataFormat.getFormat(format));
                             }
                             xssfCell.setCellStyle(column.getOddRowStyle());
                         }
