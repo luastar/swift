@@ -1,6 +1,7 @@
 package com.luastar.swift.base.excel;
 
 import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.xssf.usermodel.XSSFCellStyle;
 
 import java.util.List;
 
@@ -28,19 +29,19 @@ public class ExportSheet {
     /**
      * 标题样式
      */
-    private CellStyle titleStyle;
+    private XSSFCellStyle titleStyle;
     /**
      * 行样式
      */
-    private CellStyle rowStyle;
+    private XSSFCellStyle rowStyle;
     /**
      * 奇数行样式
      */
-    private CellStyle oddRowStyle;
+    private XSSFCellStyle oddRowStyle;
     /**
      * 偶数行样式
      */
-    private CellStyle evenRowStyle;
+    private XSSFCellStyle evenRowStyle;
 
     public ExportSheet(List<ExportColumn> columnList, List<?> dataList) {
         this.columnList = columnList;
@@ -90,34 +91,34 @@ public class ExportSheet {
         return titleStyle;
     }
 
-    public ExportSheet setTitleStyle(CellStyle titleStyle) {
+    public ExportSheet setTitleStyle(XSSFCellStyle titleStyle) {
         this.titleStyle = titleStyle;
         return this;
     }
 
-    public CellStyle getRowStyle() {
+    public XSSFCellStyle getRowStyle() {
         return rowStyle;
     }
 
-    public ExportSheet setRowStyle(CellStyle rowStyle) {
+    public ExportSheet setRowStyle(XSSFCellStyle rowStyle) {
         this.rowStyle = rowStyle;
         return this;
     }
 
-    public CellStyle getOddRowStyle() {
+    public XSSFCellStyle getOddRowStyle() {
         return oddRowStyle;
     }
 
-    public ExportSheet setOddRowStyle(CellStyle oddRowStyle) {
+    public ExportSheet setOddRowStyle(XSSFCellStyle oddRowStyle) {
         this.oddRowStyle = oddRowStyle;
         return this;
     }
 
-    public CellStyle getEvenRowStyle() {
+    public XSSFCellStyle getEvenRowStyle() {
         return evenRowStyle;
     }
 
-    public ExportSheet setEvenRowStyle(CellStyle evenRowStyle) {
+    public ExportSheet setEvenRowStyle(XSSFCellStyle evenRowStyle) {
         this.evenRowStyle = evenRowStyle;
         return this;
     }
