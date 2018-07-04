@@ -258,10 +258,6 @@ public class ExcelUtils {
                 format = "#,##0." + StringUtils.repeat("0", column.getScale());
             }
             cellStyle.setDataFormat(dataFormat.getFormat(format));
-        } else {
-            // 去掉特殊样式
-            cellStyle.setAlignment(HorizontalAlignment.LEFT);
-            cellStyle.setDataFormat(dataFormat.getFormat("General"));
         }
         // 保存列样式（1：数据样式，2：行样式，3：偶数行样式，4：奇数行样式）
         switch (styleType) {
