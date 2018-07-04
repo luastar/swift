@@ -28,10 +28,12 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<FullHttpRequ
 
     private static final Logger logger = LoggerFactory.getLogger(HttpChannelHandler.class);
 
+    private final long startTime;
     private final String requestId;
     private final HttpHandlerMapping handlerMapping;
     private HttpRequest httpRequest;
     private HttpResponse httpResponse;
+
 
     public HttpChannelHandler(HttpHandlerMapping handlerMapping) {
         // 使用自定义线程池异步执行时不能自动释放
@@ -39,6 +41,7 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<FullHttpRequ
         if (handlerMapping == null) {
             throw new IllegalArgumentException("handlerMapping can't be null.");
         }
+        this.startTime = System.currentTimeMillis();
         this.requestId = RandomStringUtils.random(20, true, true);
         this.handlerMapping = handlerMapping;
         // 在 worker-group 线程池中执行
@@ -162,7 +165,8 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<FullHttpRequ
                 exceptionCaught(ctx, e);
             }
         } finally {
-            logger.info("业务逻辑处理结束......");
+            logger.info("业务逻辑处理结束，耗时{}毫秒......", System.currentTimeMillis() - startTime);
+            // 销毁数据
             destroy();
         }
     }
