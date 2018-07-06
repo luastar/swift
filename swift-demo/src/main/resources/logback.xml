@@ -3,9 +3,9 @@
 <configuration>
 
     <!--属性定义-->
-    <property name="name" value="/Users/zhuminghua/logs/swift-demo/demo" />
-    <property name="port" value="${port:-80}" />
-    <property name="day" value="10" />
+    <property name="LOG_NAME" value="/Users/zhuminghua/logs/swift-demo/demo" />
+    <property name="LOG_PORT" value="${port:-80}" />
+    <property name="LOG_KEEP_DAY" value="10" />
 
     <!--控制台输出-->
     <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
@@ -16,10 +16,10 @@
 
     <!--文件输出-->
     <appender name="file" class="ch.qos.logback.core.rolling.RollingFileAppender">　　　　　　　　　　　　
-        <file>${name}-${port}.log</file>
+        <file>${LOG_NAME}-${LOG_PORT}.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">　　　　　　　　　　　　
-            <fileNamePattern>${name}-${port}-%d{yyyy-MM-dd}.zip</fileNamePattern>　　　　　　　　　　　　　
-            <maxHistory>${day}</maxHistory>　　　　　　　　　　　
+            <fileNamePattern>${LOG_NAME}-${LOG_PORT}-%d{yyyy-MM-dd}.zip</fileNamePattern>　　　　　　　　　　　　　
+            <maxHistory>${LOG_KEEP_DAY}</maxHistory>　　　　　　　　　　　
         </rollingPolicy>　　　　　
         <encoder>　　　　　　　　　　　
             <pattern>[%d{yyyy-MM-dd HH:mm:ss.SSS}][%thread][%level][%X{requestId}] %logger{50}:%line - %msg%n</pattern>　　　　　　　　　　　
