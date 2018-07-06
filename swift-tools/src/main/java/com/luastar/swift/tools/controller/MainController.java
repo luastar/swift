@@ -1,13 +1,13 @@
 package com.luastar.swift.tools.controller;
 
-import com.luastar.swift.tools.MainUI;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.Appender;
 import com.luastar.swift.tools.view.GuiLoggerAppender;
 import javafx.fxml.FXML;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextArea;
-import org.apache.log4j.Appender;
-import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.URL;
@@ -17,8 +17,6 @@ import java.util.ResourceBundle;
  * 主界面控制器
  */
 public class MainController extends AbstractController {
-
-    private static final Logger logger = LoggerFactory.getLogger(MainUI.class);
 
     @FXML
     private TextArea consoleTextArea;
@@ -41,12 +39,11 @@ public class MainController extends AbstractController {
         contextMenu.getItems().add(clear);
         consoleTextArea.setContextMenu(contextMenu);
         // 设置日志属性
-        Appender appender = org.apache.log4j.Logger.getRootLogger().getAppender("Gui");
-        if (appender == null || !(appender instanceof GuiLoggerAppender)) {
-            logger.warn("找不到名称为Gui的日志配置！");
-            return;
+        Logger rootLogger = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+        Appender<ILoggingEvent> appender = rootLogger.getAppender("gui");
+        if (appender != null && (appender instanceof GuiLoggerAppender)) {
+            ((GuiLoggerAppender) appender).setConsoleTextArea(consoleTextArea);
         }
-        ((GuiLoggerAppender) appender).setConsoleTextArea(consoleTextArea);
     }
 
 }

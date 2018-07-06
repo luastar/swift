@@ -9,6 +9,8 @@ public class HttpBootstrap {
         int port = 8081;
         if (args != null && args.length > 0) {
             port = ObjUtils.toInteger(args[0], port);
+        } else {
+            System.setProperty("port", String.valueOf(port));
         }
         new HttpServer(port).start();
     }
