@@ -97,31 +97,31 @@ public class ScheduleService {
         if (scheduleJob.getJobIndex() == null) {
             scheduleJob.setJobIndex(genJobIndex());
         }
-        // 任务是否存在
-        TriggerKey triggerKey = TriggerKey.triggerKey(scheduleJob.getJobCode(), DEFAULT_GROUP);
-        CronTrigger cronTrigger = (CronTrigger) scheduler.getTrigger(triggerKey);
-        if (cronTrigger == null) { // 新增
-            JobDetail jobDetail = JobBuilder.newJob(RemoteJob.class).withIdentity(scheduleJob.getJobCode(), DEFAULT_GROUP).build();
-            jobDetail.getJobDataMap().put(JOB_KEY, scheduleJob);
-            // 时间表达式
-            CronScheduleBuilder cronScheduleBuilder = CronScheduleBuilder.cronSchedule(scheduleJob.getCronExpression());
-            // 触发器
-            cronTrigger = TriggerBuilder.newTrigger().withIdentity(scheduleJob.getJobCode(), DEFAULT_GROUP).withSchedule(cronScheduleBuilder).build();
-            scheduler.scheduleJob(jobDetail, cronTrigger);
-            // 处理暂停状态
-            if (Trigger.TriggerState.PAUSED == Trigger.TriggerState.valueOf(scheduleJob.getJobStatus())) {
-                JobKey jobKey = JobKey.jobKey(scheduleJob.getJobCode(), DEFAULT_GROUP);
-                scheduler.pauseJob(jobKey);
-            }
-        } else { // 修改，注意jobDetail.getJobDataMap()中的数据不能修改
-            deleteJob(scheduleJob);
-            JobDetail jobDetail = JobBuilder.newJob(RemoteJob.class).withIdentity(scheduleJob.getJobCode(), DEFAULT_GROUP).build();
-            jobDetail.getJobDataMap().put(JOB_KEY, scheduleJob);
-            // 时间表达式
-            CronScheduleBuilder cronScheduleBuilder = CronScheduleBuilder.cronSchedule(scheduleJob.getCronExpression());
-            // 触发器
-            cronTrigger = TriggerBuilder.newTrigger().withIdentity(scheduleJob.getJobCode(), DEFAULT_GROUP).withSchedule(cronScheduleBuilder).build();
-            scheduler.scheduleJob(jobDetail, cronTrigger);
+        JobKey jobKey = JobKey.jobKey(scheduleJob.getJobCode(), DEFAULT_GROUP);
+        if (scheduler.checkExists(jobKey)) {
+            // 删除任务
+            scheduler.deleteJob(jobKey);
+        }
+        // 设置附加信息
+        JobDetail jobDetail = JobBuilder
+                .newJob(RemoteJob.class)
+                .withIdentity(scheduleJob.getJobCode(), DEFAULT_GROUP)
+                .build();
+        jobDetail.getJobDataMap().put(JOB_KEY, scheduleJob);
+        // 时间表达式
+        CronScheduleBuilder cronScheduleBuilder = CronScheduleBuilder
+                .cronSchedule(scheduleJob.getCronExpression())
+                .withMisfireHandlingInstructionDoNothing();
+        // 触发器
+        CronTrigger cronTrigger = TriggerBuilder
+                .newTrigger()
+                .withIdentity(scheduleJob.getJobCode(), DEFAULT_GROUP)
+                .withSchedule(cronScheduleBuilder)
+                .build();
+        scheduler.scheduleJob(jobDetail, cronTrigger);
+        // 处理暂停状态
+        if (Trigger.TriggerState.PAUSED == Trigger.TriggerState.valueOf(scheduleJob.getJobStatus())) {
+            scheduler.pauseJob(jobKey);
         }
     }
 
@@ -154,13 +154,15 @@ public class ScheduleService {
             List<? extends Trigger> triggers = scheduler.getTriggersOfJob(jobKey);
             for (Trigger trigger : triggers) {
                 JobDetail jobDetail = scheduler.getJobDetail(jobKey);
+                // 表达式
                 ScheduleJob job = (ScheduleJob) jobDetail.getJobDataMap().get(JOB_KEY);
-                Trigger.TriggerState triggerState = scheduler.getTriggerState(trigger.getKey());
-                job.setJobStatus(triggerState.name());
                 if (trigger instanceof CronTrigger) {
                     String cronExpression = ((CronTrigger) trigger).getCronExpression();
                     job.setCronExpression(cronExpression);
                 }
+                // 状态
+                Trigger.TriggerState triggerState = scheduler.getTriggerState(trigger.getKey());
+                job.setJobStatus(triggerState.name());
                 jobList.add(job);
             }
         }
