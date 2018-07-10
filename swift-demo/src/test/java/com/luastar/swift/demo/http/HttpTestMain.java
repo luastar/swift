@@ -34,7 +34,7 @@ public class HttpTestMain {
             testThreadPoolExecutor.submit(() -> {
                 testPostJson();
             });
-            if (i <= 30) {
+            if (i <= 5) {
                 testThreadPoolExecutor.submit(() -> {
                     testTimeConsuming();
                 });
