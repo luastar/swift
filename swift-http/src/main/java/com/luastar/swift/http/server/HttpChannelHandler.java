@@ -33,8 +33,6 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<HttpObject> 
 
     private static final Logger logger = LoggerFactory.getLogger(HttpChannelHandler.class);
 
-    private static final String URI_FAVICON_ICO = "/favicon.ico";
-
     private final long startTime;
     private final String requestId;
     private final HttpHandlerMapping handlerMapping;
@@ -68,10 +66,6 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<HttpObject> 
             FullHttpRequest fullHttpRequest = (FullHttpRequest) msg;
             if (HttpUtil.is100ContinueExpected(fullHttpRequest)) {
                 ctx.write(new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE));
-                return;
-            }
-            if (URI_FAVICON_ICO.equals(fullHttpRequest.uri())) {
-                ctx.writeAndFlush(new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.NOT_FOUND)).addListener(ChannelFutureListener.CLOSE);
                 return;
             }
             // 初始化HttpRequest

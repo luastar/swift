@@ -31,12 +31,12 @@ public class HttpThreadPoolExecutor {
             synchronized (HttpThreadPoolExecutor.class) {
                 if (threadPoolExecutor == null) {
                     threadPoolExecutor = ThreadPoolBuilder.queuableCachedPool()
-                            .setThreadNamePrefix("business-")
+                            .setThreadNamePrefix("business=group=")
                             .setDaemon(true)
                             .setMinSize(HttpConstant.SWIFT_BUSINESS_THREADS)
-                            .setMaxSize(HttpConstant.SWIFT_BUSINESS_THREADS * 8)
-                            .setKeepAliveSecs(120)
-                            .setQueueSize(102400)
+                            .setMaxSize(Math.min(HttpConstant.SWIFT_BUSINESS_THREADS * 8, 256))
+                            .setKeepAliveSecs(60)
+                            .setQueueSize(1024000)
                             .build();
                 }
             }
@@ -51,24 +51,26 @@ public class HttpThreadPoolExecutor {
      * @return
      */
     public static void submit(String requestId, Runnable task) throws Exception {
+        /*
         if (logger.isDebugEnabled()) {
-            logger.debug("---线程池信息开始---------------------------------------------------------");
-            logger.debug("-- queueSize(当前线程队列大小) : {}", getThreadPoolExecutor().getQueue().size());
-            logger.debug("-- queueRemainingCapacity(剩余线程队列大小) : {}", getThreadPoolExecutor().getQueue().remainingCapacity());
-            logger.debug("-- minThreads(核心线程数) : {}", getThreadPoolExecutor().getCorePoolSize());
-            logger.debug("-- maxThreads(最大线程数) : {}", getThreadPoolExecutor().getMaximumPoolSize());
-            logger.debug("-- poolSize(当前线程数) : {}", getThreadPoolExecutor().getPoolSize());
-            logger.debug("-- activeCount(活动线程数) : {}", getThreadPoolExecutor().getActiveCount());
-            logger.debug("---线程池信息结束---------------------------------------------------------");
+            logger.debug("===线程池信息开始=========================================================");
+            logger.debug("== queueSize(当前线程队列大小) : {}", getThreadPoolExecutor().getQueue().size());
+            logger.debug("== queueRemainingCapacity(剩余线程队列大小) : {}", getThreadPoolExecutor().getQueue().remainingCapacity());
+            logger.debug("== minThreads(核心线程数) : {}", getThreadPoolExecutor().getCorePoolSize());
+            logger.debug("== maxThreads(最大线程数) : {}", getThreadPoolExecutor().getMaximumPoolSize());
+            logger.debug("== poolSize(当前线程数) : {}", getThreadPoolExecutor().getPoolSize());
+            logger.debug("== activeCount(活动线程数) : {}", getThreadPoolExecutor().getActiveCount());
+            logger.debug("===线程池信息结束=========================================================");
         }
-        getThreadPoolExecutor().execute(task);
+        */
+        getThreadPoolExecutor().submit(task);
     }
 
     /**
      * 关闭线程池
      */
     public static void shutdownGracefully() {
-        ThreadPoolUtils.gracefulShutdown(getThreadPoolExecutor(), 120, TimeUnit.SECONDS);
+        ThreadPoolUtils.gracefulShutdown(getThreadPoolExecutor(), 60, TimeUnit.SECONDS);
     }
 
 }
