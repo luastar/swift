@@ -51,24 +51,24 @@ public class HttpResponse {
     }
 
     public void logResponse() {
-        logger.info("---返回信息开始---------------------------------------------------------");
-        logger.info("-- response status: {}", getStatus());
-        logger.info("-- response headers : {}", getHeaders());
+        logger.info("===返回信息开始=========================================================");
+        logger.info("== response status: {}", getStatus());
+        logger.info("== response headers : {}", getHeaders());
         String body = getResult();
         if (StringUtils.isEmpty(body)) {
             if (getOutputStream() == null) {
-                logger.info("-- response body is empty.");
+                logger.info("== response body is empty.");
             } else {
-                logger.info("-- response body is stream.");
+                logger.info("== response body is stream.");
             }
         } else {
             if (body.length() <= HttpConstant.SWIFT_MAX_LOG_LENGTH) {
-                logger.info("-- response body : {}", body);
+                logger.info("== response body : {}", body);
             } else {
-                logger.info("-- response body is too long to log out.");
+                logger.info("== response body is too long to log out.");
             }
         }
-        logger.info("---返回信息结束---------------------------------------------------------");
+        logger.info("===返回信息结束=========================================================");
     }
 
     public String getRequestId() {

@@ -124,19 +124,19 @@ public class HttpRequest {
     }
 
     public void logRequest() {
-        logger.info("---请求信息开始---------------------------------------------------------");
-        logger.info("-- request ip : {}, socketIp : {}", getIp(), getSocketIp());
-        logger.info("-- request method : {}, uri : {}", getMethod(), getUri());
-        logger.info("-- request headers : {}", JSON.toJSONString(getHeaders()));
+        logger.info("===请求信息开始=========================================================");
+        logger.info("== request ip : {}, socketIp : {}", getIp(), getSocketIp());
+        logger.info("== request method : {}, uri : {}", getMethod(), getUri());
+        logger.info("== request headers : {}", JSON.toJSONString(getHeaders()));
         String body = getBody();
         if (StringUtils.isNotEmpty(body)) {
             if (body.length() <= HttpConstant.SWIFT_MAX_LOG_LENGTH) {
-                logger.info("-- request body : {}", body);
+                logger.info("== request body : {}", body);
             } else {
-                logger.info("-- request body is too long to log out.");
+                logger.info("== request body is too long to log out.");
             }
         }
-        logger.info("---请求信息结束---------------------------------------------------------");
+        logger.info("===请求信息结束=========================================================");
     }
 
     public String getUri() {
