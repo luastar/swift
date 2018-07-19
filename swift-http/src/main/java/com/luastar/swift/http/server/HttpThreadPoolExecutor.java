@@ -31,7 +31,7 @@ public class HttpThreadPoolExecutor {
             synchronized (HttpThreadPoolExecutor.class) {
                 if (threadPoolExecutor == null) {
                     threadPoolExecutor = ThreadPoolBuilder.queuableCachedPool()
-                            .setThreadNamePrefix("business=group=")
+                            .setThreadNamePrefix("business-group")
                             .setDaemon(true)
                             .setMinSize(HttpConstant.SWIFT_BUSINESS_THREADS)
                             .setMaxSize(Math.min(HttpConstant.SWIFT_BUSINESS_THREADS * 8, 256))
