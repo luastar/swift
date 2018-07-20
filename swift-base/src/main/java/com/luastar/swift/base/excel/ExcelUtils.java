@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.LinkedHashMap;
@@ -111,20 +112,16 @@ public class ExcelUtils {
                 // 数据值和样式
                 Object dataValue = null;
                 XSSFCellStyle dataStyle = null;
-                String nullValue = ObjUtils.ifNull(column.getIfNull(), sheetConfig.getIfNull());
-                if (data instanceof Map) {
-                    dataValue = ((Map) data).get(column.getProp());
-                    Object cellStyle = ((Map) data).get("cellStyle");
-                    if (cellStyle != null && cellStyle instanceof XSSFCellStyle) {
-                        dataStyle = (XSSFCellStyle) cellStyle;
-                    }
-                } else {
+                try {
                     dataValue = PropertyUtils.getProperty(data, column.getProp());
                     Object cellStyle = PropertyUtils.getProperty(data, "cellStyle");
                     if (cellStyle != null && cellStyle instanceof XSSFCellStyle) {
                         dataStyle = (XSSFCellStyle) cellStyle;
                     }
+                } catch (Exception e) {
+                    // 忽略获取数据异常
                 }
+                String nullValue = ObjUtils.ifNull(column.getIfNull(), sheetConfig.getIfNull());
                 // 设置样式
                 setCellStyle(dataFormat, sheetConfig, column, xssfCell, i, dataStyle);
                 // 设置宽度
