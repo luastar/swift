@@ -92,6 +92,11 @@
             <artifactId>jbcrypt</artifactId>
             <version>0.4</version>
         </dependency>
+        <dependency>
+            <groupId>cn.hutool</groupId>
+            <artifactId>hutool-crypto</artifactId>
+            <version>4.1.6</version>
+        </dependency>
         <!-- commons end -->
         <!-- httpclient begin -->
         <dependency>
