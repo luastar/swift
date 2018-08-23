@@ -118,20 +118,14 @@ public class DataBaseUtils {
                 schema = dbUsername.toUpperCase();
             }
             if (StringUtils.isNotEmpty(table)) {
-                table = "%" + table.toUpperCase() + "%";
+                table = "%" + table + "%";
             } else {
                 table = null;
             }
             rs_table = dmd.getTables(catalog, schema, table, new String[]{TABLE});
-            TableVO tbVO = null;
-            String temp = null;
             while (rs_table.next()) {
-                tbVO = new TableVO();
-                temp = rs_table.getString("table_name");
-                if (StringUtils.isNotEmpty(temp)) {
-                    temp = temp.toUpperCase();
-                }
-                tbVO.setTableName(temp);
+                TableVO tbVO = new TableVO();
+                tbVO.setTableName(rs_table.getString("table_name"));
                 tbVO.setRemark(rs_table.getString("remarks"));
                 tableList.add(tbVO);
             }
