@@ -41,6 +41,7 @@ public class HttpHandlerMapping implements ApplicationContextAware, Initializing
 
     private final List<MappedInterceptor> mappedInterceptorList = new ArrayList<MappedInterceptor>();
 
+    @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;
     }
@@ -53,6 +54,7 @@ public class HttpHandlerMapping implements ApplicationContextAware, Initializing
         this.exceptionHandler = exceptionHandler;
     }
 
+    @Override
     public void afterPropertiesSet() throws Exception {
         initInterceptors();
         initHandlerMethods();
@@ -155,6 +157,7 @@ public class HttpHandlerMapping implements ApplicationContextAware, Initializing
         for (Class<?> currentHandlerType : handlerTypes) {
             final Class<?> targetClass = (specificHandlerType != null ? specificHandlerType : currentHandlerType);
             ReflectionUtils.doWithMethods(currentHandlerType, new ReflectionUtils.MethodCallback() {
+                @Override
                 public void doWith(Method method) {
                     Method specificMethod = ClassUtils.getMostSpecificMethod(method, targetClass);
                     Method bridgedMethod = BridgeMethodResolver.findBridgedMethod(specificMethod);
@@ -252,6 +255,7 @@ public class HttpHandlerMapping implements ApplicationContextAware, Initializing
         return handlerMethod;
     }
 
+    @Override
     public HandlerExecutionChain getHandler(HttpRequest request) throws Exception {
         Object handler = getHandlerInternal(request);
         if (handler == null) {
@@ -350,6 +354,7 @@ public class HttpHandlerMapping implements ApplicationContextAware, Initializing
      */
     protected Comparator<RequestMappingInfo> getMappingComparator(final HttpRequest request) {
         return new Comparator<RequestMappingInfo>() {
+            @Override
             public int compare(RequestMappingInfo info1, RequestMappingInfo info2) {
                 return info1.compareTo(info2, request);
             }
@@ -464,6 +469,7 @@ public class HttpHandlerMapping implements ApplicationContextAware, Initializing
             this.comparator = comparator;
         }
 
+        @Override
         public int compare(Match match1, Match match2) {
             return this.comparator.compare(match1.mapping, match2.mapping);
         }

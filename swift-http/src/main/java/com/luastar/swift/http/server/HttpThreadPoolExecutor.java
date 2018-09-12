@@ -50,7 +50,7 @@ public class HttpThreadPoolExecutor {
      * @param task
      * @return
      */
-    public static void submit(String requestId, Runnable task) throws Exception {
+    public static void submit(Runnable task) throws Exception {
         /*
         if (logger.isDebugEnabled()) {
             logger.debug("===线程池信息开始=========================================================");
