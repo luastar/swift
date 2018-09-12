@@ -34,7 +34,7 @@ public class HttpThreadPoolExecutor {
                             .setThreadNamePrefix("business-group")
                             .setDaemon(true)
                             .setMinSize(HttpConstant.SWIFT_BUSINESS_THREADS)
-                            .setMaxSize(Math.min(HttpConstant.SWIFT_BUSINESS_THREADS * 8, 256))
+                            .setMaxSize(Math.min(HttpConstant.SWIFT_BUSINESS_THREADS * 8, 512))
                             .setKeepAliveSecs(60)
                             .setQueueSize(1024000)
                             .build();
@@ -50,7 +50,7 @@ public class HttpThreadPoolExecutor {
      * @param task
      * @return
      */
-    public static void submit(String requestId, Runnable task) throws Exception {
+    public static void submit(Runnable task) throws Exception {
         /*
         if (logger.isDebugEnabled()) {
             logger.debug("===线程池信息开始=========================================================");
