@@ -2,6 +2,7 @@ package com.luastar.swift.demo.http.controller;
 
 import com.luastar.swift.base.json.JsonUtils;
 import com.luastar.swift.base.utils.ClassLoaderUtils;
+import com.luastar.swift.demo.http.entity.Book;
 import com.luastar.swift.demo.http.entity.User;
 import com.luastar.swift.http.route.RequestMethod;
 import com.luastar.swift.http.server.HttpRequest;
@@ -229,6 +230,24 @@ public class TestController {
         // response
         response.setResponseContentTypePlain();
         response.setResult(result);
+    }
+
+    @HttpService("/validate/form")
+    public void validateForm(HttpRequest request, HttpResponse response) {
+        Book book = request.bindObj(new Book());
+        logger.info(book.toString());
+        // response
+        response.setResponseContentTypePlain();
+        response.setResult(book.toString());
+    }
+
+    @HttpService("/validate/json")
+    public void validateJson(HttpRequest request, HttpResponse response) {
+        Book book = request.getBodyObject(Book.class);
+        logger.info(book.toString());
+        // response
+        response.setResponseContentTypePlain();
+        response.setResult(book.toString());
     }
 
 }
