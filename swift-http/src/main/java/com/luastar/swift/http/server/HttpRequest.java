@@ -5,6 +5,7 @@ import com.google.common.collect.Maps;
 import com.luastar.swift.base.entity.SwiftHashMap;
 import com.luastar.swift.base.utils.DateUtils;
 import com.luastar.swift.base.utils.ObjUtils;
+import com.luastar.swift.base.utils.ValidateUtils;
 import com.luastar.swift.http.constant.HttpConstant;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
@@ -328,12 +329,13 @@ public class HttpRequest {
         if (StringUtils.isEmpty(body)) {
             return null;
         }
+        T obj = null;
         try {
-            return JSON.parseObject(body, clazz);
+            obj = JSON.parseObject(body, clazz);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
-            return null;
         }
+        return ValidateUtils.validate(obj);
     }
 
     public <T> List<T> getBodyArray(Class<T> clazz) {
@@ -365,7 +367,7 @@ public class HttpRequest {
         DataBinder dataBinder = new DataBinder(obj);
         dataBinder.registerCustomEditor(Date.class, new CustomDateEditor(DateUtils.NORMAL_FORMAT, true));
         dataBinder.bind(new MutablePropertyValues(parameterMap));
-        return obj;
+        return ValidateUtils.validate(obj);
     }
 
     public void destroy() {

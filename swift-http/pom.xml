@@ -13,7 +13,6 @@
 
     <properties>
         <netty.version>4.1.19.Final</netty.version>
-        <tomcat.version>9.0.10</tomcat.version>
     </properties>
 
     <dependencies>
