@@ -65,9 +65,49 @@ public interface HttpConstant {
     String PRODUCIBLE_MEDIA_TYPES_ATTRIBUTE = HttpConstant.class.getName() + ".producibleMediaTypes";
 
     /**
-     * requestId 日志标记
+     * 日志标记 请求id
      */
-    String MDC_KEY = "requestId";
+    String MDC_KEY_REQUESTID = "requestId";
+    /**
+     * 日志标记 请求id
+     */
+    String MDC_KEY_REQUEST_ID = "request_id";
+    /**
+     * 日志标记 请求ip
+     */
+    String MDC_KEY_REQUEST_IP = "request_ip";
+    /**
+     * 日志标记 请求路由
+     */
+    String MDC_KEY_REQUEST_URI = "request_uri";
+    /**
+     * 日志标记 请求方式
+     */
+    String MDC_KEY_REQUEST_METHOD = "request_method";
+    /**
+     * 日志标记 请求头
+     */
+    String MDC_KEY_REQUEST_HEADER = "request_header";
+    /**
+     * 日志标记 请求体
+     */
+    String MDC_KEY_REQUEST_BODY = "request_body";
+    /**
+     * 日志标记 返回状态
+     */
+    String MDC_KEY_RESPONSE_STATUS = "response_status";
+    /**
+     * 日志标记 返回头
+     */
+    String MDC_KEY_RESPONSE_HEADER = "response_header";
+    /**
+     * 日志标记 返回体
+     */
+    String MDC_KEY_RESPONSE_BODY = "response_body";
+    /**
+     * 日志标记 耗时
+     */
+    String MDC_KEY_REQUEST_COST = "request_cost";
 
     /**
      * 启动spring配置文件地址

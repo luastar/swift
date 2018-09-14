@@ -13,12 +13,8 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.*;
-import io.netty.handler.codec.http.cookie.Cookie;
-import io.netty.handler.codec.http.cookie.ServerCookieEncoder;
 import io.netty.util.CharsetUtil;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -27,7 +23,6 @@ import org.springframework.util.ReflectionUtils;
 import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
-import java.util.Map;
 
 public class HttpChannelHandler extends SimpleChannelInboundHandler<HttpObject> {
 
@@ -70,7 +65,9 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<HttpObject> 
             HttpRequest httpRequest = null;
             HttpResponse httpResponse = null;
             try {
-                MDC.put(HttpConstant.MDC_KEY, requestId);
+                MDC.clear();
+                MDC.put(HttpConstant.MDC_KEY_REQUESTID, requestId);
+                MDC.put(HttpConstant.MDC_KEY_REQUEST_ID, requestId);
                 FullHttpRequest fullHttpRequest = (FullHttpRequest) msg;
                 if (HttpUtil.is100ContinueExpected(fullHttpRequest)) {
                     ctx.write(new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE));
@@ -85,7 +82,8 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<HttpObject> 
                 // 查找处理类方法
                 HandlerExecutionChain mappedHandler = handlerMapping.getHandler(httpRequest);
                 if (mappedHandler == null) {
-                    ctx.writeAndFlush(new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.NOT_FOUND)).addListener(ChannelFutureListener.CLOSE);
+                    httpResponse.setStatus(HttpResponseStatus.NOT_FOUND);
+                    handleHttpResponse(ctx, httpRequest, httpResponse);
                     return;
                 }
                 // 拦截器处理前
@@ -130,8 +128,10 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<HttpObject> 
                 if (httpResponse != null) {
                     httpResponse.destroy();
                 }
-                logger.info("业务逻辑处理结束，耗时{}毫秒......", System.currentTimeMillis() - startTime);
-                MDC.remove(HttpConstant.MDC_KEY);
+                long cost = System.currentTimeMillis() - startTime;
+                MDC.put(HttpConstant.MDC_KEY_REQUEST_COST, String.valueOf(cost));
+                logger.info("业务逻辑处理结束，耗时{}毫秒......", cost);
+                logger.info("[swift][access]");
             }
         });
     }
@@ -170,45 +170,13 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<HttpObject> 
      * @param ctx
      */
     protected void handleHttpResponse(ChannelHandlerContext ctx, HttpRequest httpRequest, HttpResponse httpResponse) {
-        // 请求体日志
-        httpResponse.logResponse();
-        // 处理返回值
-        FullHttpResponse response;
-        int contentLength = 0;
-        if (StringUtils.isEmpty(httpResponse.getResult())) {
-            // 输出流
-            if (httpResponse.getOutputStream() == null) {
-                response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, httpResponse.getStatus());
-            } else {
-                // 使用copiedBuffer会导致excel等文档打不开
-                ByteBuf buf = Unpooled.wrappedBuffer(httpResponse.getOutputStream().toByteArray());
-                response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, httpResponse.getStatus(), buf);
-                contentLength = buf.readableBytes();
-            }
-        } else {
-            // 输出结果
-            ByteBuf buf = Unpooled.copiedBuffer(httpResponse.getResult(), CharsetUtil.UTF_8);
-            response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, httpResponse.getStatus(), buf);
-            contentLength = buf.readableBytes();
-        }
-        // 处理返回头信息
-        for (Map.Entry<String, String> resHeader : httpResponse.getHeaderMap().entrySet()) {
-            response.headers().set(resHeader.getKey(), resHeader.getValue());
-        }
-        // 处理cookie
-        if (CollectionUtils.isNotEmpty(httpResponse.getCookieSet())) {
-            for (Cookie cookie : httpResponse.getCookieSet()) {
-                response.headers().add(HttpHeaderNames.SET_COOKIE, ServerCookieEncoder.STRICT.encode(cookie));
-            }
-        }
-        // 输出返回结果
-        HttpUtil.setContentLength(response, contentLength);
         if (HttpUtil.isKeepAlive(httpRequest.getFullHttpRequest())) {
-            response.headers().set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
-            ctx.writeAndFlush(response);
+            httpResponse.setHeader(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
+            ctx.writeAndFlush(httpResponse.getFullHttpResponse());
         } else {
-            ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
+            ctx.writeAndFlush(httpResponse.getFullHttpResponse()).addListener(ChannelFutureListener.CLOSE);
         }
+        httpResponse.logResponse();
     }
 
 }

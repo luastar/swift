@@ -1,20 +1,21 @@
 package com.luastar.swift.http.server;
 
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
+import com.alibaba.fastjson.JSON;
 import com.luastar.swift.http.constant.HttpConstant;
 import com.luastar.swift.http.constant.HttpMediaType;
-import io.netty.handler.codec.http.HttpHeaderNames;
-import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.cookie.Cookie;
+import io.netty.handler.codec.http.cookie.ServerCookieEncoder;
+import io.netty.util.CharsetUtil;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 import java.io.ByteArrayOutputStream;
-import java.util.Map;
-import java.util.Set;
 
 public class HttpResponse {
 
@@ -26,17 +27,11 @@ public class HttpResponse {
 
     private ByteArrayOutputStream outputStream;
 
-    private Map<String, String> headerMap;
-
-    private Set<Cookie> cookieSet;
-
-    private HttpResponseStatus status;
+    private FullHttpResponse fullHttpResponse;
 
     public HttpResponse(String requestId) {
         this.requestId = requestId;
-        this.status = HttpResponseStatus.OK;
-        this.headerMap = Maps.newLinkedHashMap();
-        this.cookieSet = Sets.newLinkedHashSet();
+        this.fullHttpResponse = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
         setResponseContentTypeJson();
     }
 
@@ -58,33 +53,31 @@ public class HttpResponse {
     }
 
     public void logResponse() {
+        String resHeaderJson = JSON.toJSONString(getHeaders());
+        MDC.put(HttpConstant.MDC_KEY_RESPONSE_STATUS, String.valueOf(getStatus().code()));
+        MDC.put(HttpConstant.MDC_KEY_RESPONSE_HEADER, resHeaderJson);
         logger.info("===返回信息开始=========================================================");
         logger.info("== response status: {}", getStatus());
-        logger.info("== response headers : {}", getHeaderMap());
-        logger.info("== response cookie : {}", getCookieSet());
+        logger.info("== response headers : {}", resHeaderJson);
         String body = getResult();
         if (StringUtils.isEmpty(body)) {
             if (getOutputStream() == null) {
+                MDC.put(HttpConstant.MDC_KEY_RESPONSE_BODY, "response body is empty");
                 logger.info("== response body is empty.");
             } else {
+                MDC.put(HttpConstant.MDC_KEY_RESPONSE_BODY, "response body is stream");
                 logger.info("== response body is stream.");
             }
         } else {
             if (body.length() <= HttpConstant.SWIFT_MAX_LOG_LENGTH) {
+                MDC.put(HttpConstant.MDC_KEY_RESPONSE_BODY, body);
                 logger.info("== response body : {}", body);
             } else {
+                MDC.put(HttpConstant.MDC_KEY_RESPONSE_BODY, "response body is too long to log out");
                 logger.info("== response body is too long to log out.");
             }
         }
         logger.info("===返回信息结束=========================================================");
-    }
-
-    public String getHeader(String key) {
-        return headerMap.get(key);
-    }
-
-    public void setHeader(String key, String value) {
-        headerMap.put(key, value);
     }
 
     public String getRequestId() {
@@ -93,6 +86,38 @@ public class HttpResponse {
 
     public void setRequestId(String requestId) {
         this.requestId = requestId;
+    }
+
+    public HttpResponseStatus getStatus() {
+        return fullHttpResponse.status();
+    }
+
+    public void setStatus(HttpResponseStatus status) {
+        fullHttpResponse.setStatus(status);
+    }
+
+    public String getHeader(CharSequence key) {
+        return fullHttpResponse.headers().get(key);
+    }
+
+    public HttpHeaders getHeaders() {
+        return fullHttpResponse.headers();
+    }
+
+    public void setHeader(CharSequence key, Object value) {
+        fullHttpResponse.headers().set(key, value);
+    }
+
+    public void addHeader(CharSequence key, Object value) {
+        fullHttpResponse.headers().add(key, value);
+    }
+
+    public void setCookie(Cookie cookie) {
+        setHeader(HttpHeaderNames.SET_COOKIE, ServerCookieEncoder.STRICT.encode(cookie));
+    }
+
+    public void addCookie(Cookie cookie) {
+        addHeader(HttpHeaderNames.SET_COOKIE, ServerCookieEncoder.STRICT.encode(cookie));
     }
 
     public String getResult() {
@@ -111,32 +136,21 @@ public class HttpResponse {
         this.outputStream = outputStream;
     }
 
-    public Map<String, String> getHeaderMap() {
-        return headerMap;
-    }
-
-    public void setHeaderMap(Map<String, String> headerMap) {
-        this.headerMap = headerMap;
-    }
-
-    public Set<Cookie> getCookieSet() {
-        return cookieSet;
-    }
-
-    public void setCookieSet(Set<Cookie> cookieSet) {
-        this.cookieSet = cookieSet;
-    }
-
-    public void addCookie(Cookie cookie) {
-        this.cookieSet.add(cookie);
-    }
-
-    public HttpResponseStatus getStatus() {
-        return status;
-    }
-
-    public void setStatus(HttpResponseStatus status) {
-        this.status = status;
+    public FullHttpResponse getFullHttpResponse() {
+        int contentLength = 0;
+        // 输出流
+        if (getOutputStream() != null) {
+            // 此处使用copiedBuffer会导致excel等文档有问题
+            ByteBuf buf = Unpooled.wrappedBuffer(getOutputStream().toByteArray());
+            fullHttpResponse = fullHttpResponse.replace(buf);
+            contentLength = buf.readableBytes();
+        } else if (StringUtils.isNotEmpty(getResult())) {
+            ByteBuf buf = Unpooled.copiedBuffer(getResult(), CharsetUtil.UTF_8);
+            fullHttpResponse = fullHttpResponse.replace(buf);
+            contentLength = buf.readableBytes();
+        }
+        HttpUtil.setContentLength(fullHttpResponse, contentLength);
+        return fullHttpResponse;
     }
 
     public void destroy() {

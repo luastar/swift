@@ -17,6 +17,7 @@ import org.apache.commons.collections4.map.CaseInsensitiveMap;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.beans.MutablePropertyValues;
 import org.springframework.beans.propertyeditors.CustomDateEditor;
 import org.springframework.validation.DataBinder;
@@ -137,15 +138,22 @@ public class HttpRequest {
     }
 
     public void logRequest() {
+        String reqHeaderJson = JSON.toJSONString(getHeaderMap());
+        MDC.put(HttpConstant.MDC_KEY_REQUEST_IP, getIp());
+        MDC.put(HttpConstant.MDC_KEY_REQUEST_URI, getUri());
+        MDC.put(HttpConstant.MDC_KEY_REQUEST_METHOD, getMethod());
+        MDC.put(HttpConstant.MDC_KEY_REQUEST_HEADER, reqHeaderJson);
         logger.info("===请求信息开始=========================================================");
         logger.info("== request ip : {}, socketIp : {}", getIp(), getSocketIp());
         logger.info("== request method : {}, uri : {}", getMethod(), getUri());
-        logger.info("== request headers : {}", JSON.toJSONString(getHeaderMap()));
+        logger.info("== request headers : {}", reqHeaderJson);
         String body = getBody();
         if (StringUtils.isNotEmpty(body)) {
             if (body.length() <= HttpConstant.SWIFT_MAX_LOG_LENGTH) {
+                MDC.put(HttpConstant.MDC_KEY_REQUEST_BODY, body);
                 logger.info("== request body : {}", body);
             } else {
+                MDC.put(HttpConstant.MDC_KEY_REQUEST_BODY, "request body is too long to log out");
                 logger.info("== request body is too long to log out.");
             }
         }
