@@ -247,12 +247,10 @@ public class StrUtils {
                 Enumeration inetAddresses = networkInterface.getInetAddresses();
                 while (inetAddresses.hasMoreElements()) {
                     InetAddress inetAddress = (InetAddress) inetAddresses.nextElement();
-                    logger.info("【getLocalHostAddress】==1=={}", inetAddress.toString());
                     if (!inetAddress.isLoopbackAddress()) {
                         // 排除loopback类型地址
                         if (inetAddress.isSiteLocalAddress()) {
                             // 如果是site-local地址，就是它了
-                            logger.info("【getLocalHostAddress】==2==");
                             return inetAddress.getHostAddress();
                         } else if (candidateAddress == null) {
                             // site-local类型的地址未被发现，记录为候选地址
@@ -262,11 +260,9 @@ public class StrUtils {
                 }
             }
             if (candidateAddress != null) {
-                logger.info("【getLocalHostAddress】==3==");
                 return candidateAddress.getHostAddress();
             }
             // 如果没有发现non-loopback地址，只能用最次选的方案
-            logger.info("【getLocalHostAddress】==4==");
             return InetAddress.getLocalHost().getHostAddress();
         } catch (Exception e) {
             logger.error("获取本机ip地址异常：" + e.getMessage(), e);
