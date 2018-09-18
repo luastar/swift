@@ -4,6 +4,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.bson.types.ObjectId;
 
 import java.security.SecureRandom;
+import java.util.Date;
 import java.util.UUID;
 
 /**
@@ -41,6 +42,19 @@ public class RandomUtils {
      */
     public static String bsonId() {
         return ObjectId.get().toString();
+    }
+
+    /**
+     * 生成bson id
+     *
+     * @return
+     */
+    public static String bsonId(Date date) {
+        if (date == null) {
+            return bsonId();
+        } else {
+            return new ObjectId(date).toString();
+        }
     }
 
     /**
