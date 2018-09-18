@@ -170,8 +170,6 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<FullHttpRequ
      * @param ctx
      */
     protected void handleHttpResponse(ChannelHandlerContext ctx, HttpRequest httpRequest, HttpResponse httpResponse) {
-        // 请求体日志
-        httpResponse.logResponse();
         // 返回值处理
         if (HttpUtil.isKeepAlive(httpRequest.getFullHttpRequest())) {
             httpResponse.setHeader(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE);
@@ -179,6 +177,8 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<FullHttpRequ
         } else {
             ctx.writeAndFlush(httpResponse.getFullHttpResponse()).addListener(ChannelFutureListener.CLOSE);
         }
+        // 请求体日志
+        httpResponse.logResponse();
     }
 
 }
