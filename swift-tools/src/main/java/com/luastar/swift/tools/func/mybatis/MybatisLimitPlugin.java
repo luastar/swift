@@ -15,12 +15,6 @@ import java.util.List;
  */
 public class MybatisLimitPlugin extends PluginAdapter {
 
-    private String dbType = DbType.MySQL.getName();
-
-    public void setDbType(String dbType) {
-        this.dbType = dbType;
-    }
-
     @Override
     public boolean validate(List<String> warnings) {
         return true;
@@ -98,7 +92,7 @@ public class MybatisLimitPlugin extends PluginAdapter {
         // limit 和 offset 都不为空
         XmlElement ifOffsetNotNullElement = new XmlElement("if");
         ifOffsetNotNullElement.addAttribute(new Attribute("test", "offset != null"));
-        if (DbType.parse(dbType) == DbType.PostgreSQL) {
+        if (DbType.parse(properties.getProperty("dbType")) == DbType.PostgreSQL) {
             ifOffsetNotNullElement.addElement(new TextElement("limit ${limit} offset ${offset}"));
         } else {
             ifOffsetNotNullElement.addElement(new TextElement("limit ${offset}, ${limit}"));
