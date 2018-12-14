@@ -1,7 +1,7 @@
 package com.luastar.swift.base.excel;
 
 import com.google.common.collect.Maps;
-import org.apache.poi.xssf.usermodel.XSSFCellStyle;
+import org.apache.poi.ss.usermodel.CellStyle;
 
 import java.util.Map;
 
@@ -49,23 +49,23 @@ public class ExportColumn {
     /**
      * 标题样式
      */
-    private XSSFCellStyle titleStyle;
+    private CellStyle titleStyle;
     /**
      * 行样式
      */
-    private XSSFCellStyle rowStyle;
+    private CellStyle rowStyle;
     /**
      * 奇数行样式
      */
-    private XSSFCellStyle oddRowStyle;
+    private CellStyle oddRowStyle;
     /**
      * 偶数行样式
      */
-    private XSSFCellStyle evenRowStyle;
+    private CellStyle evenRowStyle;
     /**
      * 数据行样式
      */
-    private Map<Integer, XSSFCellStyle> dataStyleMap;
+    private Map<Integer, CellStyle> dataStyleMap;
 
     public ExportColumn(String title, String prop, ExcelDataType type) {
         this.title = title;
@@ -167,50 +167,50 @@ public class ExportColumn {
         return this;
     }
 
-    public XSSFCellStyle getTitleStyle() {
+    public CellStyle getTitleStyle() {
         return titleStyle;
     }
 
-    public ExportColumn setTitleStyle(XSSFCellStyle titleStyle) {
+    public ExportColumn setTitleStyle(CellStyle titleStyle) {
         this.titleStyle = titleStyle;
         return this;
     }
 
-    public XSSFCellStyle getRowStyle() {
+    public CellStyle getRowStyle() {
         return rowStyle;
     }
 
-    public ExportColumn setRowStyle(XSSFCellStyle rowStyle) {
+    public ExportColumn setRowStyle(CellStyle rowStyle) {
         this.rowStyle = rowStyle;
         return this;
     }
 
-    public XSSFCellStyle getOddRowStyle() {
+    public CellStyle getOddRowStyle() {
         return oddRowStyle;
     }
 
-    public ExportColumn setOddRowStyle(XSSFCellStyle oddRowStyle) {
+    public ExportColumn setOddRowStyle(CellStyle oddRowStyle) {
         this.oddRowStyle = oddRowStyle;
         return this;
     }
 
-    public XSSFCellStyle getEvenRowStyle() {
+    public CellStyle getEvenRowStyle() {
         return evenRowStyle;
     }
 
-    public ExportColumn setEvenRowStyle(XSSFCellStyle evenRowStyle) {
+    public ExportColumn setEvenRowStyle(CellStyle evenRowStyle) {
         this.evenRowStyle = evenRowStyle;
         return this;
     }
 
-    public synchronized void setDataStyle(int row, XSSFCellStyle dataStyle) {
+    public synchronized void setDataStyle(int row, CellStyle dataStyle) {
         if (dataStyleMap == null) {
             dataStyleMap = Maps.newHashMap();
         }
         dataStyleMap.put(row, dataStyle);
     }
 
-    public XSSFCellStyle getDataStyle(int row) {
+    public CellStyle getDataStyle(int row) {
         if (dataStyleMap == null) {
             return null;
         }
