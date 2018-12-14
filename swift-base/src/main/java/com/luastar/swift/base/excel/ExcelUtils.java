@@ -17,11 +17,19 @@ import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddressList;
-import org.apache.poi.xssf.usermodel.*;
+import org.apache.poi.xssf.streaming.SXSSFSheet;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+import org.apache.poi.xssf.usermodel.XSSFCell;
+import org.apache.poi.xssf.usermodel.XSSFRow;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.LinkedHashMap;
@@ -48,6 +56,26 @@ public class ExcelUtils {
     }
 
     /**
+     * 初始化一个SXSSFWorkbook（.xlsx文件）
+     * 支持大数据量导出，注意使用完后调用dispose()方法
+     * <code>
+     * try {
+     * ExcelUtils.writeBigXlsxWorkbook(workbook, exportSheet);
+     * workbook.write(new FileOutputStream(new File("/Users/zhuminghua/Downloads/test.xlsx")));
+     * } finally {
+     * workbook.dispose();
+     * }
+     * </code>
+     *
+     * @return
+     */
+    public static SXSSFWorkbook newBigXlsxWorkbook() {
+        SXSSFWorkbook sxssfWorkbook = new SXSSFWorkbook();
+        sxssfWorkbook.setCompressTempFiles(true);
+        return sxssfWorkbook;
+    }
+
+    /**
      * 将数据写入workbook
      *
      * @param workbook
@@ -67,12 +95,31 @@ public class ExcelUtils {
     }
 
     /**
+     * 将数据写入workbook
+     *
+     * @param workbook
+     * @param sheetConfig
+     * @throws Exception
+     */
+    public static void writeBigXlsxWorkbook(SXSSFWorkbook workbook, ExportSheet... sheetConfig) throws Exception {
+        if (workbook == null || ArrayUtils.isEmpty(sheetConfig)) {
+            throw new IllegalArgumentException("excel导出参数错误！");
+        }
+        for (int i = 0, l = sheetConfig.length; i < l; i++) {
+            if (StringUtils.isEmpty(sheetConfig[i].getName())) {
+                sheetConfig[i].setName("sheet" + (i + 1));
+            }
+            writeXlsxSheet(workbook, sheetConfig[i]);
+        }
+    }
+
+    /**
      * 将数据写入sheet
      *
      * @param workbook
      * @param sheetConfig
      */
-    private static void writeXlsxSheet(XSSFWorkbook workbook, ExportSheet sheetConfig) throws Exception {
+    private static void writeXlsxSheet(Workbook workbook, ExportSheet sheetConfig) throws Exception {
         if (workbook == null
                 || sheetConfig == null
                 || CollectionUtils.isEmpty(sheetConfig.getColumnList())) {
@@ -80,89 +127,97 @@ public class ExcelUtils {
         }
         CreationHelper createHelper = workbook.getCreationHelper();
         DataFormat dataFormat = createHelper.createDataFormat();
-        XSSFSheet sheet = workbook.createSheet(ObjUtils.ifNull(sheetConfig.getName(), "sheet1"));
-        XSSFDataValidationHelper dvHelper = new XSSFDataValidationHelper(sheet);
+        Sheet sheet = workbook.createSheet(ObjUtils.ifNull(sheetConfig.getName(), "sheet1"));
+        DataValidationHelper dvHelper = sheet.getDataValidationHelper();
         // 设置标题
         int columnNum = sheetConfig.getColumnList().size();
         List<ExportColumn> columnList = sheetConfig.getColumnList();
-        XSSFRow rowTitle = sheet.createRow(0);
+        Row rowTitle = sheet.createRow(0);
         for (int i = 0; i < columnNum; i++) {
             ExportColumn column = columnList.get(i);
             String title = ObjUtils.ifNull(column.getTitle(), "");
-            XSSFCell cell = rowTitle.createCell(i);
+            Cell cell = rowTitle.createCell(i);
             cell.setCellStyle(ObjUtils.ifNull(column.getTitleStyle(), sheetConfig.getTitleStyle()));
             cell.setCellValue(createHelper.createRichTextString(title));
-            ExcelUtils.setColumnWidthTitle(column, sheet, i, title);
+            // 设置隐藏列
             sheet.setColumnHidden(i, column.isHidden());
         }
-        if (CollectionUtils.isEmpty(sheetConfig.getDataList())) {
-            logger.info("sheet {} 数据为空", sheet.getSheetName());
-            return;
-        }
         // 设置内容
-        int rowNum = sheetConfig.getDataList().size();
-        for (int i = 0; i < rowNum; i++) {
-            XSSFRow row = sheet.createRow(i + 1);
-            logger.info("写入第{}/{}条数据", row.getRowNum(), rowNum);
-            Object data = sheetConfig.getDataList().get(i);
-            for (int j = 0; j < columnNum; j++) {
-                ExportColumn column = columnList.get(j);
-                XSSFCell xssfCell = row.createCell(j);
-                // 数据值和样式
-                Object dataValue = null;
-                XSSFCellStyle dataStyle = null;
-                try {
-                    dataValue = PropertyUtils.getProperty(data, column.getProp());
-                    Object cellStyle = PropertyUtils.getProperty(data, "cellStyle");
-                    if (cellStyle != null && cellStyle instanceof XSSFCellStyle) {
-                        dataStyle = (XSSFCellStyle) cellStyle;
+        if (CollectionUtils.isNotEmpty(sheetConfig.getDataList())) {
+            int rowNum = sheetConfig.getDataList().size();
+            for (int i = 0; i < rowNum; i++) {
+                Row row = sheet.createRow(i + 1);
+                logger.info("写入第{}/{}条数据", row.getRowNum(), rowNum);
+                Object data = sheetConfig.getDataList().get(i);
+                for (int j = 0; j < columnNum; j++) {
+                    ExportColumn column = columnList.get(j);
+                    Cell cell = row.createCell(j);
+                    // 数据值和样式
+                    Object dataValue = null;
+                    CellStyle dataStyle = null;
+                    try {
+                        dataValue = PropertyUtils.getProperty(data, column.getProp());
+                        Object cellStyle = PropertyUtils.getProperty(data, "cellStyle");
+                        if (cellStyle != null && cellStyle instanceof CellStyle) {
+                            dataStyle = (CellStyle) cellStyle;
+                        }
+                    } catch (Exception e) {
+                        // 忽略获取数据异常
                     }
-                } catch (Exception e) {
-                    // 忽略获取数据异常
-                }
-                String nullValue = ObjUtils.ifNull(column.getIfNull(), sheetConfig.getIfNull());
-                // 设置样式
-                setCellStyle(dataFormat, sheetConfig, column, xssfCell, i, dataStyle);
-                // 设置宽度
-                ExcelUtils.setColumnWidthRow(column, sheet, j, ObjUtils.toString(dataValue, nullValue));
-                // 设置下拉框
-                if (i == 0
-                        && column.getType() == ExcelDataType.EnumValue
-                        && ArrayUtils.isNotEmpty(column.getValueArray())) {
-                    XSSFDataValidationConstraint dvConstraint = (XSSFDataValidationConstraint) dvHelper.createExplicitListConstraint(column.getValueArray());
-                    CellRangeAddressList addressList = new CellRangeAddressList(1, rowNum + 1, j, j);
-                    XSSFDataValidation validation = (XSSFDataValidation) dvHelper.createValidation(dvConstraint, addressList);
-                    validation.setSuppressDropDownArrow(true);
-                    validation.setShowErrorBox(true);
-                    sheet.addValidationData(validation);
-                }
-                if (dataValue == null) {
-                    if (nullValue != null) {
-                        // 设置为空时的显示值
-                        xssfCell.setCellValue(nullValue);
+                    String nullValue = ObjUtils.ifNull(column.getIfNull(), sheetConfig.getIfNull());
+                    // 设置样式
+                    setCellStyle(dataFormat, sheetConfig, column, cell, i, dataStyle);
+                    // 设置下拉框
+                    if (i == 0
+                            && column.getType() == ExcelDataType.EnumValue
+                            && ArrayUtils.isNotEmpty(column.getValueArray())) {
+                        DataValidationConstraint dvConstraint = dvHelper.createExplicitListConstraint(column.getValueArray());
+                        CellRangeAddressList addressList = new CellRangeAddressList(1, rowNum + 1, j, j);
+                        DataValidation validation = dvHelper.createValidation(dvConstraint, addressList);
+                        validation.setSuppressDropDownArrow(true);
+                        validation.setShowErrorBox(true);
+                        sheet.addValidationData(validation);
                     }
-                    continue;
-                }
-                // 设置不同类型的值
-                if (column.getType() == ExcelDataType.EnumValue && dataValue instanceof IExcelEnum) {
-                    String value = ((IExcelEnum) dataValue).getValue();
-                    xssfCell.setCellValue(ObjUtils.ifNull(value, ""));
-                } else if (column.getType() == ExcelDataType.IntegerValue
-                        || column.getType() == ExcelDataType.LongValue) {
-                    BigDecimal value = ObjUtils.toBigDecimal(dataValue, BigDecimal.ZERO).setScale(0);
-                    if (value.toString().length() <= 12) {
-                        xssfCell.setCellValue(value.doubleValue());
+                    if (dataValue == null) {
+                        if (nullValue != null) {
+                            // 设置为空时的显示值
+                            cell.setCellValue(nullValue);
+                        }
+                        continue;
+                    }
+                    // 设置不同类型的值
+                    if (column.getType() == ExcelDataType.EnumValue && dataValue instanceof IExcelEnum) {
+                        String value = ((IExcelEnum) dataValue).getValue();
+                        cell.setCellValue(ObjUtils.ifNull(value, ""));
+                    } else if (column.getType() == ExcelDataType.IntegerValue
+                            || column.getType() == ExcelDataType.LongValue) {
+                        BigDecimal value = ObjUtils.toBigDecimal(dataValue, BigDecimal.ZERO).setScale(0);
+                        if (value.toString().length() <= 12) {
+                            cell.setCellValue(value.doubleValue());
+                        } else {
+                            cell.setCellValue(value.toString());
+                        }
+                    } else if (column.getType() == ExcelDataType.BigDecimalValue) {
+                        BigDecimal value = ObjUtils.toBigDecimal(dataValue, BigDecimal.ZERO).setScale(column.getScale(), BigDecimal.ROUND_HALF_UP);
+                        cell.setCellValue(value.doubleValue());
+                    } else if (column.getType() == ExcelDataType.DateValue) {
+                        cell.setCellValue(DateUtils.format((Date) (dataValue)));
                     } else {
-                        xssfCell.setCellValue(value.toString());
+                        cell.setCellValue(ObjUtils.toString(dataValue, ""));
                     }
-                } else if (column.getType() == ExcelDataType.BigDecimalValue) {
-                    BigDecimal value = ObjUtils.toBigDecimal(dataValue, BigDecimal.ZERO).setScale(column.getScale(), BigDecimal.ROUND_HALF_UP);
-                    xssfCell.setCellValue(value.doubleValue());
-                } else if (column.getType() == ExcelDataType.DateValue) {
-                    xssfCell.setCellValue(DateUtils.format((Date) (dataValue)));
-                } else {
-                    xssfCell.setCellValue(ObjUtils.toString(dataValue, ""));
                 }
+            }
+        }
+        // 最后设置自动列宽
+        for (int i = 0; i < columnNum; i++) {
+            ExportColumn column = columnList.get(i);
+            if (column.getWidth() != null) {
+                sheet.setColumnWidth(i, column.getWidth());
+            } else {
+                if (sheet instanceof SXSSFSheet) {
+                    ((SXSSFSheet) sheet).trackAllColumnsForAutoSizing();
+                }
+                sheet.autoSizeColumn(i);
             }
         }
     }
@@ -176,36 +231,36 @@ public class ExcelUtils {
      * @param dataFormat
      * @param sheetConfig
      * @param column
-     * @param xssfCell
+     * @param cell
      * @param row
      * @param dataStyle
      */
     private static void setCellStyle(DataFormat dataFormat,
                                      ExportSheet sheetConfig,
                                      ExportColumn column,
-                                     XSSFCell xssfCell,
+                                     Cell cell,
                                      int row,
-                                     XSSFCellStyle dataStyle) {
+                                     CellStyle dataStyle) {
         // 是否偶数行
         boolean even = (row + 1) % 2 == 0;
         // 使用的样式类型（1：数据样式，2：行样式，3：偶数行样式，4：奇数行样式）
         int styleType = 2;
         // 单元格样式，优先使用数据样式，其次列样式，再其次行样式
-        XSSFCellStyle cellStyle;
+        CellStyle cellStyle;
         if (column.getDataStyle(row) == null) {
             if (dataStyle == null) {
                 if (column.getRowStyle() == null) {
-                    XSSFCellStyle rowStyle = ObjUtils.ifNull(column.getRowStyle(), sheetConfig.getRowStyle());
+                    CellStyle rowStyle = ObjUtils.ifNull(column.getRowStyle(), sheetConfig.getRowStyle());
                     if (rowStyle == null) {
                         if (even) {
                             // 偶数行样式
                             styleType = 3;
                             if (column.getEvenRowStyle() == null) {
-                                XSSFCellStyle evenStyle = ObjUtils.ifNull(column.getEvenRowStyle(), sheetConfig.getEvenRowStyle());
+                                CellStyle evenStyle = ObjUtils.ifNull(column.getEvenRowStyle(), sheetConfig.getEvenRowStyle());
                                 if (evenStyle == null) {
-                                    cellStyle = (XSSFCellStyle) xssfCell.getCellStyle().clone();
+                                    cellStyle = cloneStyleFrom(cell, cell.getCellStyle());
                                 } else {
-                                    cellStyle = (XSSFCellStyle) evenStyle.clone();
+                                    cellStyle = cloneStyleFrom(cell, evenStyle);
                                 }
                             } else {
                                 cellStyle = column.getEvenRowStyle();
@@ -214,11 +269,11 @@ public class ExcelUtils {
                             // 奇数行样式
                             styleType = 4;
                             if (column.getOddRowStyle() == null) {
-                                XSSFCellStyle oddStyle = ObjUtils.ifNull(column.getOddRowStyle(), sheetConfig.getOddRowStyle());
+                                CellStyle oddStyle = ObjUtils.ifNull(column.getOddRowStyle(), sheetConfig.getOddRowStyle());
                                 if (oddStyle == null) {
-                                    cellStyle = (XSSFCellStyle) xssfCell.getCellStyle().clone();
+                                    cellStyle = cloneStyleFrom(cell, cell.getCellStyle());
                                 } else {
-                                    cellStyle = (XSSFCellStyle) oddStyle.clone();
+                                    cellStyle = cloneStyleFrom(cell, oddStyle);
                                 }
                             } else {
                                 cellStyle = column.getOddRowStyle();
@@ -226,7 +281,7 @@ public class ExcelUtils {
                         }
                     } else {
                         styleType = 2;
-                        cellStyle = (XSSFCellStyle) rowStyle.clone();
+                        cellStyle = cloneStyleFrom(cell, rowStyle);
                     }
                 } else {
                     styleType = 2;
@@ -234,7 +289,7 @@ public class ExcelUtils {
                 }
             } else {
                 styleType = 1;
-                cellStyle = (XSSFCellStyle) dataStyle.clone();
+                cellStyle = cloneStyleFrom(cell, dataStyle);
             }
         } else {
             styleType = 1;
@@ -274,7 +329,23 @@ public class ExcelUtils {
                 break;
         }
         // 设置单元格样式
-        xssfCell.setCellStyle(cellStyle);
+        cell.setCellStyle(cellStyle);
+    }
+
+    /**
+     * 样式复制
+     *
+     * @param cell
+     * @param src
+     * @return
+     */
+    private static CellStyle cloneStyleFrom(Cell cell, CellStyle src) {
+        if (cell == null || src == null) {
+            return null;
+        }
+        CellStyle cellStyle = cell.getSheet().getWorkbook().createCellStyle();
+        cellStyle.cloneStyleFrom(src);
+        return cellStyle;
     }
 
     /**
@@ -383,7 +454,7 @@ public class ExcelUtils {
             for (int j = 0; j < titleNum; j++) {
                 ImportColumn column = columnList.get(j);
                 XSSFCell cell = row.getCell(column.getColumnIndex());
-                setPropList.add(ExcelUtils.setProperty(column, cell, data, formulaEvaluator));
+                setPropList.add(setProperty(column, cell, data, formulaEvaluator));
             }
             ExcelData excelData = new ExcelData(i, data);
             // 赋值失败的列
@@ -505,7 +576,7 @@ public class ExcelUtils {
             for (int j = 0; j < titleNum; j++) {
                 ImportColumn column = columnList.get(j);
                 HSSFCell cell = row.getCell(column.getColumnIndex());
-                setPropList.add(ExcelUtils.setProperty(column, cell, data, formulaEvaluator));
+                setPropList.add(setProperty(column, cell, data, formulaEvaluator));
             }
             ExcelData excelData = new ExcelData(row.getRowNum(), data);
             // 赋值失败的列
@@ -607,50 +678,6 @@ public class ExcelUtils {
     }
 
     /**
-     * 设置标题的宽度
-     *
-     * @param column
-     * @param sheet
-     * @param colIndex
-     * @param title
-     * @throws UnsupportedEncodingException
-     */
-    private static void setColumnWidthTitle(ExportColumn column, Sheet sheet, int colIndex, String title) throws UnsupportedEncodingException {
-        if (column.getWidth() == null) {
-            column.setAutoWidth(true);
-            column.setWidth(sheet.getDefaultColumnWidth());
-        }
-        setColumnWidthRow(column, sheet, colIndex, title);
-    }
-
-    /**
-     * 设置数据行的宽度
-     *
-     * @param column
-     * @param sheet
-     * @param colIndex
-     * @param value
-     * @throws UnsupportedEncodingException
-     */
-    private static void setColumnWidthRow(ExportColumn column, Sheet sheet, int colIndex, String value) throws UnsupportedEncodingException {
-        if (column.isAutoWidth()) {
-            if (StringUtils.isNotEmpty(value)) {
-                // 前后加几个字符的边距，跟字体大小有关，先设置成固定的
-                int width = value.getBytes("UTF-8").length + 5;
-                // 最大设置成最大值，太长了也难看
-                if (width >= MAX_COLUMN_WIDTH) {
-                    width = MAX_COLUMN_WIDTH;
-                }
-                // 如果比默认值大，则设置更大的值
-                if (width > column.getWidth()) {
-                    column.setWidth(width);
-                    sheet.setColumnWidth(colIndex, width * 256);
-                }
-            }
-        }
-    }
-
-    /**
      * 从cell读取属性赋值给对象
      * 返回赋值失败的列名
      *
@@ -742,7 +769,8 @@ public class ExcelUtils {
      * @throws Exception
      */
     private static void writeExample() throws Exception {
-        XSSFWorkbook workbook = ExcelUtils.newXlsxWorkbook();
+        XSSFWorkbook workbook = newXlsxWorkbook();
+//        SXSSFWorkbook workbook = newBigXlsxWorkbook();
         List<Map<String, Object>> resultList = Lists.newArrayList();
         resultList.add(new ImmutableMap.Builder<String, Object>()
                 .put("col1", "row1")
@@ -752,6 +780,7 @@ public class ExcelUtils {
                 .put("col5", 123456)
                 .put("col6", true)
                 .put("col7", new Date())
+                .put("col8", "好长好长的值哈哈哈，好长好长的值哈哈哈")
                 .build());
         resultList.add(new ImmutableMap.Builder<String, Object>()
                 .put("col1", "row2")
@@ -760,6 +789,7 @@ public class ExcelUtils {
                 .put("col5", -123456.123456)
                 .put("col6", false)
                 .put("col7", new Date())
+                .put("col8", "123")
                 .build());
         resultList.add(new ImmutableMap.Builder<String, Object>()
                 .put("col1", "row1")
@@ -769,6 +799,7 @@ public class ExcelUtils {
                 .put("col5", 123456)
                 .put("col6", true)
                 .put("col7", new Date())
+                .put("col8", "123")
                 .build());
         resultList.add(new ImmutableMap.Builder<String, Object>()
                 .put("col1", "row2")
@@ -778,24 +809,26 @@ public class ExcelUtils {
                 .put("col5", -123456.123456)
                 .put("col6", false)
                 .put("col7", new Date())
+                .put("col8", "123")
                 .put("cellStyle", workbook.createCellStyle())
                 .build());
         List<ExportColumn> columnList = Lists.newArrayList(
                 new ExportColumn("测试列1", "col1", ExcelDataType.StringValue, true),
                 new ExportColumn("测试列2", "col2", ExcelDataType.EnumValue, SexEnum.getValues()),
                 new ExportColumn("测试列3", "col3", ExcelDataType.LongValue),
-                new ExportColumn("测试列4", "col4", ExcelDataType.BigDecimalValue, 3).setIfNull("-"),
+                new ExportColumn("测试列4测试列4测试列4测试列4测试列4测试列4", "col4", ExcelDataType.BigDecimalValue, 3).setIfNull("-"),
                 new ExportColumn("测试列5", "col5", ExcelDataType.BigDecimalValue, 5),
                 new ExportColumn("测试列6", "col6", ExcelDataType.BooleanValue),
-                new ExportColumn("测试列7", "col7", ExcelDataType.DateValue)
+                new ExportColumn("测试列7", "col7", ExcelDataType.DateValue),
+                new ExportColumn("测试列8", "col8", ExcelDataType.StringValue)
         );
-        XSSFCellStyle oddStyle = workbook.createCellStyle();
+        CellStyle oddStyle = workbook.createCellStyle();
         oddStyle.setWrapText(true); // 设置自动换行
         oddStyle.setAlignment(HorizontalAlignment.LEFT); // 左右对齐
         oddStyle.setVerticalAlignment(VerticalAlignment.CENTER); // 垂直对齐
         oddStyle.setFillForegroundColor(IndexedColors.BLUE.getIndex());
         oddStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-        XSSFCellStyle evenStyle = workbook.createCellStyle();
+        CellStyle evenStyle = workbook.createCellStyle();
         evenStyle.setWrapText(true); // 设置自动换行
         evenStyle.setAlignment(HorizontalAlignment.LEFT); // 左右对齐
         evenStyle.setVerticalAlignment(VerticalAlignment.CENTER); // 垂直对齐
@@ -804,8 +837,13 @@ public class ExcelUtils {
         ExportSheet exportSheet = new ExportSheet(columnList, resultList)
                 .setOddRowStyle(oddStyle)
                 .setEvenRowStyle(evenStyle);
-        ExcelUtils.writeXlsxWorkbook(workbook, exportSheet);
-        workbook.write(new FileOutputStream(new File("/Users/zhuminghua/Downloads/test.xlsx")));
+        try {
+            writeXlsxSheet(workbook, exportSheet);
+//            writeBigXlsxWorkbook(workbook, exportSheet);
+            workbook.write(new FileOutputStream(new File("/Users/zhuminghua/Downloads/test.xlsx")));
+        } finally {
+//            workbook.dispose();
+        }
     }
 
     /**
@@ -821,7 +859,7 @@ public class ExcelUtils {
                 new ImportColumn("测试列3", "col3", ExcelDataType.StringValue)
         );
         ImportSheet importSheet = new ImportSheet(columnList, LinkedHashMap.class);
-        ExcelUtils.readXlsxExcel(file, importSheet);
+        readXlsxExcel(file, importSheet);
         System.out.println(JSON.toJSONString(importSheet.getDataList()));
     }
 
