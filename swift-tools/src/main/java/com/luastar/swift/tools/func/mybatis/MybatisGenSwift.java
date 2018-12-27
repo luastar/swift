@@ -31,7 +31,6 @@ public class MybatisGenSwift {
     private String dbUrl;
     private String dbUsername;
     private String dbPassword;
-    private boolean needSchema;
     private DataBaseUtils dbUtils;
     private BeetlUtils beetlUtils;
 
@@ -67,10 +66,6 @@ public class MybatisGenSwift {
         this.beetlUtils = new BeetlUtils();
     }
 
-    public void setNeedSchema(boolean needSchema) {
-        this.needSchema = needSchema;
-    }
-
     public void gen() {
         if (ArrayUtils.isEmpty(tableNameArray)) {
             logger.error("表不能为空！");
@@ -92,7 +87,7 @@ public class MybatisGenSwift {
     }
 
     private void gen_model(String tableName) {
-        TableVO tableVO = dbUtils.getDbTableInfo(tableName, needSchema);
+        TableVO tableVO = dbUtils.getDbTable(tableName);
         String className = getClassName(tableName);
         beetlUtils.setTemplate(TEMP_MODEL);
         beetlUtils.binding("classPackage", modelPackageName);
@@ -117,7 +112,7 @@ public class MybatisGenSwift {
     }
 
     private void gen_xml(String tableName) {
-        TableVO tableVO = dbUtils.getDbTableInfo(tableName, needSchema);
+        TableVO tableVO = dbUtils.getDbTable(tableName);
         String className = getClassName(tableName);
         beetlUtils.setTemplate(TEMP_MAPPER);
         if (StringUtils.containsIgnoreCase(dbDriver, DbType.PostgreSQL.getName())) {

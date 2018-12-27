@@ -194,7 +194,7 @@ public class MybatisGen {
             // 如果设置为true，生成的model类会直接使用column本身的名字，而不会再使用驼峰命名方法，比如BORN_DATE，生成的属性名字就是BORN_DATE,而不会是bornDate
             tableConfig.addProperty("useActualColumnNames", useActualColumnNames);
             // 自增插入时返回主键值
-            TableVO tableVO = dataBaseUtils.getDbTableInfo(tableName, false);
+            TableVO tableVO = dataBaseUtils.getDbTable(tableName);
             ColumnVO primaryKey = tableVO.getPrimaryKey();
             if (primaryKey != null) {
                 if (ColumnVO.JAVA_INT.equalsIgnoreCase(primaryKey.getJavaType())

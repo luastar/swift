@@ -21,8 +21,6 @@ public class PropBaseVO implements PropertyChangeListener {
 
     private static final Logger logger = LoggerFactory.getLogger(PropBaseVO.class);
 
-    public static final Object[] NULL_ARGUMENTS = {};
-
     protected PropertyChangeSupport pcs;
     protected List<String> allPropertyList;
     protected Map<String, Object> tempPropMap;
@@ -31,8 +29,8 @@ public class PropBaseVO implements PropertyChangeListener {
     public PropBaseVO() {
         pcs = new PropertyChangeSupport(this);
         pcs.addPropertyChangeListener(this);
-        changedPropertyList = new ArrayList<String>();
-        tempPropMap = new HashMap<String, Object>();
+        changedPropertyList = new ArrayList<>();
+        tempPropMap = new HashMap<>();
     }
 
     public void firePropertyChange(String propertyName) {
@@ -101,6 +99,7 @@ public class PropBaseVO implements PropertyChangeListener {
         return changedPropertyList;
     }
 
+    @Override
     public void propertyChange(PropertyChangeEvent evt) {
         String property = evt.getPropertyName();
         if (!changedPropertyList.contains(property)) {

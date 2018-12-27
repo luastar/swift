@@ -5,15 +5,15 @@ import org.apache.commons.lang3.StringUtils;
 public class ColumnVO extends PropBaseVO {
 
     public static final String DB_INT = "INT";
-    public static final String DB_INT2 = "INT2"; //postgresql
-    public static final String DB_INT4 = "INT4"; //postgresql
-    public static final String DB_INT8 = "INT8"; //postgresql
+    public static final String DB_INT2 = "INT2"; // PostgreSQL
+    public static final String DB_INT4 = "INT4"; // PostgreSQL
+    public static final String DB_INT8 = "INT8"; // PostgreSQL
     public static final String DB_TINYINT = "TINYINT";
     public static final String DB_SMALLINT = "SMALLINT";
     public static final String DB_INTEGER = "INTEGER";
     public static final String DB_BIGINT = "BIGINT";
-    public static final String DB_SERIAL = "SERIAL"; //postgresql
-    public static final String DB_BIGSERIAL = "BIGSERIAL"; //postgresql
+    public static final String DB_SERIAL = "SERIAL"; // PostgreSQL
+    public static final String DB_BIGSERIAL = "BIGSERIAL"; // PostgreSQL
     public static final String DB_NUMBER = "NUMBER";
     public static final String DB_NUMERIC = "NUMERIC";
     public static final String DB_DECIMAL = "DECIMAL";
@@ -30,32 +30,57 @@ public class ColumnVO extends PropBaseVO {
     public static final String JAVA_STRING = "String";
     public static final String JAVA_DATE = "Date";
 
-    // 数据库字段名
+    /**
+     * 数据库字段名
+     */
     private String dbColumnName;
-    // 属性名
+    /**
+     * 属性名
+     */
     private String columnName;
-    // 数据库字段类型
+    /**
+     * 数据库字段类型
+     */
     private String columnType;
-    // java类型
+    /**
+     * java类型
+     */
     private String javaType;
-    // 字段长度
+    /**
+     * 字段长度
+     */
     private int columnSize;
-    // 字段小数位长度
+    /**
+     * 字段小数位长度
+     */
     private int columnDecimalDigits;
-    // 字段显示长度(mysql int 特殊)
+    /**
+     * 字段显示长度(mysql int 特殊)
+     */
     private int columnDisSize;
-    // 备注
+    /**
+     * 备注
+     */
     private String remark;
-    // 是否为主键
+    /**
+     * 是否为主键
+     */
     private boolean prikey;
-    // 是否允许为空
+    /**
+     * 是否允许为空
+     */
     private boolean nullable;
-    // 默认值
+    /**
+     * 默认值
+     */
     private String defaultValue;
-
-    // get方法名
+    /**
+     * get方法名
+     */
     private String getMethodName;
-    // set方法名
+    /**
+     * set方法名
+     */
     private String setMethodName;
 
     public String getDbColumnName() {
@@ -186,7 +211,6 @@ public class ColumnVO extends PropBaseVO {
     public String getGetMethodName() {
         if (StringUtils.isNotEmpty(columnName)) {
             try {
-                // getMethodName = BeanUtilsBean.getInstance().getPropertyUtils().getPropertyDescriptor(this, columnName).getReadMethod().getName();
                 getMethodName = "get" + columnName.substring(0, 1).toUpperCase().concat(columnName.substring(1));
             } catch (Exception e) {
                 getMethodName = "get" + columnName.substring(0, 1).toUpperCase().concat(columnName.substring(1));
@@ -197,11 +221,6 @@ public class ColumnVO extends PropBaseVO {
 
     public String getSetMethodName() {
         if (StringUtils.isNotEmpty(columnName)) {
-//			try {
-//				setMethodName = BeanUtilsBean.getInstance().getPropertyUtils().getPropertyDescriptor(this, columnName).getWriteMethod().getName();
-//			} catch (Exception e) {
-//				setMethodName = "set" + columnName.substring(0, 1).toUpperCase().concat(columnName.substring(1));
-//			} 
             setMethodName = "set" + columnName.substring(0, 1).toUpperCase().concat(columnName.substring(1));
         }
         return setMethodName;

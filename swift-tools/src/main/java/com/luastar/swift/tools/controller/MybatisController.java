@@ -144,7 +144,7 @@ public class MybatisController extends AbstractController {
                 DbType.parse(dbConfig.getDb_type()).getDriver(),
                 dbConfig.getJdbc_url(),
                 dbConfig.getUser_name(),
-                dbConfig.getPassword()).getDbTables(table, false);
+                dbConfig.getPassword()).getDbTableList(table);
         if (ObjUtils.isNotEmpty(tableVOList)) {
             tableListView.getItems().addAll(tableVOList.stream().map(TableVO::getTableName).collect(Collectors.toList()));
         }
