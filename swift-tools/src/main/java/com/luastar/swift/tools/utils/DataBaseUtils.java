@@ -98,93 +98,95 @@ public class DataBaseUtils {
      * 得到数据库表信息
      *
      * @param table 表名前缀
-     * @param needSchema 是否需要匹配模式 注：这个参数主要是因为在使用oracle时，不同用户下有相同表时，会查出所有表的属性，
-     *                   为true时，将使用表名的用户进行匹配，过滤掉其他表，一般置为false就行了。
      * @return 返回表信息
      */
-    public List<TableVO> getDbTables(String table, boolean needSchema) {
-        logger.info("获取数据库所有表信息...");
+    public List<TableVO> getDbTableList(String table) {
+        logger.info("获取数据库表信息...");
         Connection conn = null;
-        ResultSet rs_table = null;
+        ResultSet rs_table1 = null;
+        ResultSet rs_table2 = null;
         List<TableVO> tableList = new ArrayList<TableVO>();
         try {
             conn = getConn();
             DatabaseMetaData dmd = conn.getMetaData();
-            // 要获得表所在的编目。串“""”意味着没有任何编目，Null表示所有编目。
             String catalog = getConn().getCatalog();
-            // 要获得表所在的模式。串“""”意味着没有任何模式，Null表示所有模式。该参数可以包含单字符的通配符（“_”）,也可以包含多字符的通配符（“%”）。
-            String schema = null;
-            if (needSchema) {
-                schema = dbUsername.toUpperCase();
-            }
-            if (StringUtils.isNotEmpty(table)) {
-                table = "%" + table + "%";
+            String schema = getConn().getSchema();
+            if (StringUtils.isEmpty(table)) {
+                // 所有表
+                rs_table1 = dmd.getTables(catalog, schema, null, new String[]{TABLE});
+                while (rs_table1.next()) {
+                    tableList.add(rs2TableVO(rs_table1));
+                }
             } else {
-                table = null;
-            }
-            rs_table = dmd.getTables(catalog, schema, table, new String[]{TABLE});
-            while (rs_table.next()) {
-                TableVO tbVO = new TableVO();
-                tbVO.setTableName(rs_table.getString("table_name"));
-                tbVO.setRemark(rs_table.getString("remarks"));
-                tableList.add(tbVO);
+                // 匹配大写表名
+                rs_table1 = dmd.getTables(catalog, schema, "%" + table.toUpperCase() + "%", new String[]{TABLE});
+                while (rs_table1.next()) {
+                    tableList.add(rs2TableVO(rs_table1));
+                }
+                // 匹配小写表名
+                rs_table2 = dmd.getTables(catalog, schema, "%" + table.toLowerCase() + "%", new String[]{TABLE});
+                while (rs_table2.next()) {
+                    tableList.add(rs2TableVO(rs_table2));
+                }
             }
         } catch (SQLException e) {
             logger.error(e.getMessage(), e);
             throw new RuntimeException(e.getMessage());
         } finally {
-            DbUtils.closeQuietly(rs_table);
+            DbUtils.closeQuietly(rs_table1);
+            DbUtils.closeQuietly(rs_table2);
             DbUtils.closeQuietly(conn);
         }
         return tableList;
     }
 
     /**
+     * 数据转换
+     * @param rs
+     * @return
+     * @throws SQLException
+     */
+    private TableVO rs2TableVO(ResultSet rs) throws SQLException {
+        TableVO tbVO = new TableVO();
+        tbVO.setTableName(rs.getString("table_name"));
+        tbVO.setRemark(rs.getString("remarks"));
+        return tbVO;
+    }
+
+    /**
      * 得到数据库表信息
      *
-     * @param tableName  表名
-     * @param needSchema 是否需要匹配模式 注：这个参数主要是因为在使用oracle时，不同用户下有相同表时，会查出所有表的属性，
-     *                   为true时，将使用表名的用户进行匹配，过滤掉其他表，一般置为false就行了。
+     * @param table 表名
      * @return 返回表信息
      */
-    public TableVO getDbTableInfo(String tableName, boolean needSchema) {
-
-        if (StringUtils.isEmpty(tableName)) {
+    public TableVO getDbTable(String table) {
+        if (StringUtils.isEmpty(table)) {
             return null;
         }
-        logger.info("获取数据库表" + tableName + "信息...");
+        logger.info("获取数据库表" + table + "信息...");
         TableVO tableVO = new TableVO();
-        tableVO.setTableName(tableName);
-
+        tableVO.setTableName(table);
         Connection conn = null;
         PreparedStatement stmt = null;
-        ResultSetMetaData rsmd = null;
         ResultSet prikey = null;
         ResultSet columns = null;
         ResultSet rs = null;
         try {
             conn = getConn();
             DatabaseMetaData dmd = conn.getMetaData();
-            // 要获得表所在的编目。串“""”意味着没有任何编目，Null表示所有编目。
             String catalog = getConn().getCatalog();
-            // 要获得表所在的模式。串“""”意味着没有任何模式，Null表示所有模式。该参数可以包含单字符的通配符（“_”）,也可以包含多字符的通配符（“%”）。
-            String schema = null;
-            if (needSchema) {
-                schema = dbUsername.toUpperCase();
-            }
-            prikey = dmd.getPrimaryKeys(catalog, schema, tableName);
-            List<String> pkList = new ArrayList<String>();
+            String schema = getConn().getSchema();
+            prikey = dmd.getPrimaryKeys(catalog, schema, table);
+            List<String> pkList = new ArrayList<>();
             while (prikey.next()) {
                 pkList.add(prikey.getString(COLUMN_NAME));
             }
-            columns = dmd.getColumns(catalog, schema, tableName, null);
-            List<ColumnVO> pkColList = new ArrayList<ColumnVO>();
-            Map<String, ColumnVO> colMap = new HashMap<String, ColumnVO>();
-            ColumnVO colVO = null;
-            String colName = null;
+            columns = dmd.getColumns(catalog, schema, table, null);
+            List<ColumnVO> pkColList = new ArrayList<>();
+            Map<String, ColumnVO> colMap = new HashMap<>();
             while (columns.next()) {
-                colVO = new ColumnVO();
-                colName = columns.getString(COLUMN_NAME);
+                ColumnVO colVO = new ColumnVO();
+                String colName = columns.getString(COLUMN_NAME);
                 colVO.setDbColumnName(colName);
                 colVO.setColumnName(StrUtils.getCamelCaseString(colName.toLowerCase(), false));
                 colVO.setColumnType(columns.getString(TYPE_NAME));
@@ -203,16 +205,16 @@ public class DataBaseUtils {
             }
             tableVO.setPrimaryKeys(pkColList);
             // 通过sql语句获取 ResultSetMetaData
-            String sql = "select * from " + tableName + " where 1=2";
-            stmt = conn.prepareStatement(sql);
+            String sql = "select * from " + table + " where 1=2";
             logger.info("执行SQL语句：" + sql);
+            stmt = conn.prepareStatement(sql);
             rs = stmt.executeQuery();
-            rsmd = rs.getMetaData();
-            int count = rsmd.getColumnCount();
+            ResultSetMetaData rsmd = rs.getMetaData();
             List<ColumnVO> allColList = new ArrayList<ColumnVO>();
+            int count = rsmd.getColumnCount();
             for (int i = 0; i < count; i++) {
-                colName = rsmd.getColumnName(i + 1);
-                colVO = colMap.get(colName);
+                String colName = rsmd.getColumnName(i + 1);
+                ColumnVO colVO = colMap.get(colName);
                 if (colVO == null) {
                     colVO = new ColumnVO();
                     colVO.setDbColumnName(colName);
@@ -252,7 +254,6 @@ public class DataBaseUtils {
      * @throws SQLException
      */
     public ColAndRsVO queryColAndRs(String sql, Object... params) throws SQLException {
-
         ColAndRsVO rsVO = new ColAndRsVO();
         Connection conn = null;
         PreparedStatement stmt = null;
@@ -264,9 +265,8 @@ public class DataBaseUtils {
             logger.info("执行SQL语句：" + sql);
             rs = stmt.executeQuery();
             ResultSetMetaData rsmd = rs.getMetaData();
-            // 获取列名
+            List<ColumnVO> colList = new ArrayList<>();
             int count = rsmd.getColumnCount();
-            List<ColumnVO> colList = new ArrayList<ColumnVO>();
             for (int i = 0; i < count; i++) {
                 ColumnVO col = new ColumnVO();
                 String colName = rsmd.getColumnName(i + 1);

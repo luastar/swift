@@ -9,6 +9,7 @@ import com.luastar.swift.tools.func.mybatis.MybatisGen;
 import com.luastar.swift.tools.model.db.TableVO;
 import com.luastar.swift.tools.model.gui.DbConfig;
 import com.luastar.swift.tools.model.gui.PubConfig;
+import com.luastar.swift.tools.utils.DataBaseUtils;
 import com.luastar.swift.tools.utils.H2Utils;
 import com.luastar.swift.tools.view.AlertUI;
 import javafx.fxml.FXML;
@@ -122,7 +123,12 @@ public class MybatisController extends AbstractController {
     public void loadTableListAction() {
         tableListView.getItems().clear();
         String table = tableTextField.getText();
-        List<TableVO> tableVOList = H2Utils.getInstance().getDbTables(table, false);
+        DbConfig dbConfig = dbChoiceBox.getSelectionModel().getSelectedItem();
+        List<TableVO> tableVOList = new DataBaseUtils(
+                DbType.parse(dbConfig.getDb_type()).getDriver(),
+                dbConfig.getJdbc_url(),
+                dbConfig.getUser_name(),
+                dbConfig.getPassword()).getDbTableList(table);
         if (ObjUtils.isNotEmpty(tableVOList)) {
             tableListView.getItems().addAll(tableVOList.stream().map(TableVO::getTableName).collect(Collectors.toList()));
         }
