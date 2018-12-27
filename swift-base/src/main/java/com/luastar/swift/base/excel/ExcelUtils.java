@@ -211,8 +211,8 @@ public class ExcelUtils {
         // 最后设置自动列宽
         for (int i = 0; i < columnNum; i++) {
             ExportColumn column = columnList.get(i);
-            if (column.getWidth() != null) {
-                sheet.setColumnWidth(i, column.getWidth());
+            if (column.getWidth() != null && column.getWidth() > 0 && column.getWidth() <= 255) {
+                sheet.setColumnWidth(i, column.getWidth() * 256);
             } else {
                 if (sheet instanceof SXSSFSheet) {
                     ((SXSSFSheet) sheet).trackAllColumnsForAutoSizing();
