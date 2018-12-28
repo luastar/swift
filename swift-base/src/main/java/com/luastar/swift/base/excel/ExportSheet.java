@@ -26,6 +26,10 @@ public class ExportSheet {
      */
     private String ifNull;
     /**
+     * 是否追加数据
+     */
+    private Boolean isAppend;
+    /**
      * 标题样式
      */
     private CellStyle titleStyle;
@@ -83,6 +87,15 @@ public class ExportSheet {
 
     public ExportSheet setIfNull(String ifNull) {
         this.ifNull = ifNull;
+        return this;
+    }
+
+    public Boolean getAppend() {
+        return isAppend;
+    }
+
+    public ExportSheet setAppend(Boolean append) {
+        isAppend = append;
         return this;
     }
 
