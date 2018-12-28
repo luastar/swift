@@ -44,8 +44,6 @@ public class ExcelUtils {
 
     private static Logger logger = LoggerFactory.getLogger(ExcelUtils.class);
 
-    private static final int MAX_COLUMN_WIDTH = 50;
-
     /**
      * 初始化一个XSSFWorkbook（.xlsx文件）
      *
@@ -127,27 +125,39 @@ public class ExcelUtils {
         }
         CreationHelper createHelper = workbook.getCreationHelper();
         DataFormat dataFormat = createHelper.createDataFormat();
-        Sheet sheet = workbook.createSheet(ObjUtils.ifNull(sheetConfig.getName(), "sheet1"));
+        String sheetName = ObjUtils.ifNull(sheetConfig.getName(), "sheet1");
+        Sheet sheet = workbook.getSheet(sheetName);
+        if (sheet == null) {
+            sheet = workbook.createSheet(sheetName);
+        }
         DataValidationHelper dvHelper = sheet.getDataValidationHelper();
-        // 设置标题
-        int columnNum = sheetConfig.getColumnList().size();
         List<ExportColumn> columnList = sheetConfig.getColumnList();
-        Row rowTitle = sheet.createRow(0);
-        for (int i = 0; i < columnNum; i++) {
-            ExportColumn column = columnList.get(i);
-            String title = ObjUtils.ifNull(column.getTitle(), "");
-            Cell cell = rowTitle.createCell(i);
-            cell.setCellStyle(ObjUtils.ifNull(column.getTitleStyle(), sheetConfig.getTitleStyle()));
-            cell.setCellValue(createHelper.createRichTextString(title));
-            // 设置隐藏列
-            sheet.setColumnHidden(i, column.isHidden());
+        int columnNum = columnList.size();
+        // 开始行
+        int startRow = 0;
+        if (sheetConfig.getAppend() != null && sheetConfig.getAppend()) {
+            startRow = sheet.getLastRowNum() + 1;
+        }
+        if (startRow == 0) {
+            // 设置标题
+            Row rowTitle = sheet.createRow(0);
+            for (int i = 0; i < columnNum; i++) {
+                ExportColumn column = columnList.get(i);
+                String title = ObjUtils.ifNull(column.getTitle(), "");
+                Cell cell = rowTitle.createCell(i);
+                cell.setCellStyle(ObjUtils.ifNull(column.getTitleStyle(), sheetConfig.getTitleStyle()));
+                cell.setCellValue(createHelper.createRichTextString(title));
+                // 设置隐藏列
+                sheet.setColumnHidden(i, column.isHidden());
+            }
+            startRow = 1;
         }
         // 设置内容
         if (CollectionUtils.isNotEmpty(sheetConfig.getDataList())) {
             int rowNum = sheetConfig.getDataList().size();
             for (int i = 0; i < rowNum; i++) {
-                Row row = sheet.createRow(i + 1);
-                logger.info("写入第{}/{}条数据", row.getRowNum(), rowNum);
+                Row row = sheet.createRow(startRow + i);
+                logger.info("写入第{}/{}条数据", i + 1, rowNum);
                 Object data = sheetConfig.getDataList().get(i);
                 for (int j = 0; j < columnNum; j++) {
                     ExportColumn column = columnList.get(j);
@@ -166,13 +176,13 @@ public class ExcelUtils {
                     }
                     String nullValue = ObjUtils.ifNull(column.getIfNull(), sheetConfig.getIfNull());
                     // 设置样式
-                    setCellStyle(dataFormat, sheetConfig, column, cell, i, dataStyle);
+                    setCellStyle(dataFormat, sheetConfig, column, cell, row.getRowNum() + 1, dataStyle);
                     // 设置下拉框
                     if (i == 0
                             && column.getType() == ExcelDataType.EnumValue
                             && ArrayUtils.isNotEmpty(column.getValueArray())) {
                         DataValidationConstraint dvConstraint = dvHelper.createExplicitListConstraint(column.getValueArray());
-                        CellRangeAddressList addressList = new CellRangeAddressList(1, rowNum + 1, j, j);
+                        CellRangeAddressList addressList = new CellRangeAddressList(startRow, rowNum + 1, j, j);
                         DataValidation validation = dvHelper.createValidation(dvConstraint, addressList);
                         validation.setSuppressDropDownArrow(true);
                         validation.setShowErrorBox(true);
@@ -232,22 +242,22 @@ public class ExcelUtils {
      * @param sheetConfig
      * @param column
      * @param cell
-     * @param row
+     * @param rowNum
      * @param dataStyle
      */
     private static void setCellStyle(DataFormat dataFormat,
                                      ExportSheet sheetConfig,
                                      ExportColumn column,
                                      Cell cell,
-                                     int row,
+                                     int rowNum,
                                      CellStyle dataStyle) {
         // 是否偶数行
-        boolean even = (row + 1) % 2 == 0;
+        boolean even = rowNum % 2 == 0;
         // 使用的样式类型（1：数据样式，2：行样式，3：偶数行样式，4：奇数行样式）
         int styleType = 2;
         // 单元格样式，优先使用数据样式，其次列样式，再其次行样式
         CellStyle cellStyle;
-        if (column.getDataStyle(row) == null) {
+        if (column.getDataStyle(rowNum) == null) {
             if (dataStyle == null) {
                 if (column.getRowStyle() == null) {
                     CellStyle rowStyle = ObjUtils.ifNull(column.getRowStyle(), sheetConfig.getRowStyle());
@@ -293,7 +303,7 @@ public class ExcelUtils {
             }
         } else {
             styleType = 1;
-            cellStyle = column.getDataStyle(row);
+            cellStyle = column.getDataStyle(rowNum);
         }
         // 设置特殊样式
         if (column.getType() == ExcelDataType.IntegerValue
@@ -313,7 +323,7 @@ public class ExcelUtils {
         // 保存列样式（1：数据样式，2：行样式，3：偶数行样式，4：奇数行样式）
         switch (styleType) {
             case 1:
-                column.setDataStyle(row, cellStyle);
+                column.setDataStyle(rowNum, cellStyle);
                 break;
             case 2:
                 column.setRowStyle(cellStyle);
@@ -839,6 +849,7 @@ public class ExcelUtils {
                 .setEvenRowStyle(evenStyle);
         try {
             writeXlsxSheet(workbook, exportSheet);
+            writeXlsxSheet(workbook, exportSheet.setAppend(true));
 //            writeBigXlsxWorkbook(workbook, exportSheet);
             workbook.write(new FileOutputStream(new File("/Users/zhuminghua/Downloads/test.xlsx")));
         } finally {
