@@ -129,6 +129,9 @@ public class ExcelUtils {
         Sheet sheet = workbook.getSheet(sheetName);
         if (sheet == null) {
             sheet = workbook.createSheet(sheetName);
+            if (sheet instanceof SXSSFSheet) {
+                ((SXSSFSheet) sheet).trackAllColumnsForAutoSizing();
+            }
         }
         DataValidationHelper dvHelper = sheet.getDataValidationHelper();
         List<ExportColumn> columnList = sheetConfig.getColumnList();
@@ -224,9 +227,6 @@ public class ExcelUtils {
             if (column.getWidth() != null && column.getWidth() > 0 && column.getWidth() <= 255) {
                 sheet.setColumnWidth(i, column.getWidth() * 256);
             } else {
-                if (sheet instanceof SXSSFSheet) {
-                    ((SXSSFSheet) sheet).trackAllColumnsForAutoSizing();
-                }
                 sheet.autoSizeColumn(i);
             }
         }
