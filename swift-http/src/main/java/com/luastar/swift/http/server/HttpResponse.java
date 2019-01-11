@@ -1,5 +1,6 @@
 package com.luastar.swift.http.server;
 
+import com.alibaba.fastjson.JSON;
 import com.luastar.swift.http.constant.HttpConstant;
 import com.luastar.swift.http.constant.HttpMediaType;
 import io.netty.buffer.ByteBuf;
@@ -50,10 +51,15 @@ public class HttpResponse {
         setHeader(HttpHeaderNames.CONTENT_DISPOSITION, "attachment;filename=" + fileName);
     }
 
+    public void redirect(String url) {
+        fullHttpResponse.setStatus(HttpResponseStatus.FOUND);
+        setHeader(HttpHeaderNames.LOCATION.toString(), url);
+    }
+
     public void logResponse() {
         logger.info("===返回信息开始=========================================================");
         logger.info("== response status: {}", getStatus());
-        logger.info("== response headers : {}", getHeaders());
+        logger.info("== response headers : {}", JSON.toJSONString(getHeaders().entries()));
         String body = getResult();
         if (StringUtils.isEmpty(body)) {
             if (getOutputStream() == null) {
