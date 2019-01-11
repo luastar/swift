@@ -52,8 +52,13 @@ public class HttpResponse {
         setHeader(HttpHeaderNames.CONTENT_DISPOSITION.toString(), "attachment;filename=" + fileName);
     }
 
+    public void redirect(String url) {
+        fullHttpResponse.setStatus(HttpResponseStatus.FOUND);
+        setHeader(HttpHeaderNames.LOCATION.toString(), url);
+    }
+
     public void logResponse() {
-        String resHeaderJson = JSON.toJSONString(getHeaders());
+        String resHeaderJson = JSON.toJSONString(getHeaders().entries());
         MDC.put(HttpConstant.MDC_KEY_RESPONSE_STATUS, String.valueOf(getStatus().code()));
         MDC.put(HttpConstant.MDC_KEY_RESPONSE_HEADER, resHeaderJson);
         logger.info("===返回信息开始=========================================================");

@@ -250,4 +250,14 @@ public class TestController {
         response.setResult(book.toString());
     }
 
+    /**
+     * 注意重定向只支持GET和HEAD方法
+     * @param request
+     * @param response
+     */
+    @HttpService(value = "/redirect", method = {RequestMethod.GET, RequestMethod.HEAD})
+    public void redirect(HttpRequest request, HttpResponse response) {
+        response.redirect("http://www.baidu.com");
+    }
+
 }
