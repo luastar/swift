@@ -142,7 +142,7 @@ public class HttpClientUtils {
             // head设置
             if (ObjUtils.isNotEmpty(param.getHeaderMap())) {
                 for (Map.Entry<String, String> entry : param.getHeaderMap().entrySet()) {
-                    httpGet.addHeader(entry.getKey(), entry.getValue());
+                    httpGet.setHeader(entry.getKey(), entry.getValue());
                 }
             }
             httpclient = createHttpClient(param.getUrl());
