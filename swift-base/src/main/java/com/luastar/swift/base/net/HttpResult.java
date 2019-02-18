@@ -69,6 +69,8 @@ public class HttpResult {
                 result = IOUtils.toString(inputStream);
             } catch (IOException e) {
                 throw ExceptionUtils.unchecked(e);
+            } finally {
+                IOUtils.closeQuietly(inputStream);
             }
         }
         return result;
@@ -80,6 +82,8 @@ public class HttpResult {
                 result = IOUtils.toString(inputStream, charset);
             } catch (IOException e) {
                 throw ExceptionUtils.unchecked(e);
+            } finally {
+                IOUtils.closeQuietly(inputStream);
             }
         }
         return result;
