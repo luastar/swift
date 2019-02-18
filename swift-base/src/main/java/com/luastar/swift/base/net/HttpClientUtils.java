@@ -13,6 +13,7 @@ import org.apache.http.client.RedirectStrategy;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.protocol.HttpClientContext;
@@ -47,9 +48,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 public class HttpClientUtils {
 
     private static Logger logger = LoggerFactory.getLogger(HttpClientUtils.class);
-
-    public static final int DEFAULT_TIMEOUT = 120000;
-    public static final String DEFAULT_CHARSET = "UTF-8";
 
     public static final ContentType TEXT_PLAIN_UTF8 = ContentType.create("text/plain", UTF_8);
 
@@ -95,46 +93,67 @@ public class HttpClientUtils {
     }
 
     public static String get(String url) {
-        return get(url, DEFAULT_TIMEOUT, DEFAULT_CHARSET, null);
+        HttpParam param = HttpParam.builder()
+                .setUrl(url)
+                .build();
+        return get(param);
     }
 
     public static String get(String url, int timeout) {
-        return get(url, timeout, DEFAULT_CHARSET, null);
+        HttpParam param = HttpParam.builder()
+                .setUrl(url)
+                .setTimeout(timeout)
+                .build();
+        return get(param);
     }
 
     public static String get(String url, Map<String, String> headMap) {
-        return get(url, DEFAULT_TIMEOUT, DEFAULT_CHARSET, headMap);
+        HttpParam param = HttpParam.builder()
+                .setUrl(url)
+                .setHeaderMap(headMap)
+                .build();
+        return get(param);
     }
 
     public static String get(String url,
                              int timeout,
                              String charset,
                              Map<String, String> headMap) {
+        HttpParam param = HttpParam.builder()
+                .setUrl(url)
+                .setTimeout(timeout)
+                .setCharset(charset)
+                .setHeaderMap(headMap)
+                .build();
+        return get(param);
+    }
+
+    public static String get(HttpParam param) {
         CloseableHttpClient httpclient = null;
         CloseableHttpResponse response = null;
         try {
-            HttpGet httpGet = new HttpGet(url);
+            HttpGet httpGet = new HttpGet(param.getUrl());
             // 超时设置
             RequestConfig requestConfig = RequestConfig.custom()
-                    .setSocketTimeout(timeout)
-                    .setConnectTimeout(timeout)
-                    .setConnectionRequestTimeout(timeout).build();
+                    .setSocketTimeout(param.getTimeout())
+                    .setConnectTimeout(param.getTimeout())
+                    .setConnectionRequestTimeout(param.getTimeout()).build();
             httpGet.setConfig(requestConfig);
             // head设置
-            if (headMap != null && !headMap.isEmpty()) {
-                for (Map.Entry<String, String> entry : headMap.entrySet()) {
+            if (ObjUtils.isNotEmpty(param.getHeaderMap())) {
+                for (Map.Entry<String, String> entry : param.getHeaderMap().entrySet()) {
                     httpGet.addHeader(entry.getKey(), entry.getValue());
                 }
             }
-            httpclient = createHttpClient(url);
+            httpclient = createHttpClient(param.getUrl());
             long start = System.currentTimeMillis();
             response = httpclient.execute(httpGet);
             long end = System.currentTimeMillis();
             int status = response.getStatusLine().getStatusCode();
-            logger.info("请求url：{}，结果状态：{}，耗时：{}毫秒。", url, status, ((end - start)));
+            logger.info("请求url：{}，结果状态：{}，耗时：{}毫秒。", param.getUrl(), status, ((end - start)));
             if (status >= 200 && status < 300) {
                 HttpEntity entity = response.getEntity();
-                return entity != null ? EntityUtils.toString(entity, charset) : null;
+                return entity != null ? EntityUtils.toString(entity, param.getCharset()) : null;
             }
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
@@ -146,43 +165,63 @@ public class HttpClientUtils {
     }
 
     public static HttpResult getHttpResult(String url) {
-        return getHttpResult(url, DEFAULT_TIMEOUT);
+        HttpParam param = HttpParam.builder()
+                .setUrl(url)
+                .build();
+        return getHttpResult(param);
     }
 
     public static HttpResult getHttpResult(String url, int timeout) {
-        return getHttpResult(url, timeout, null);
+        HttpParam param = HttpParam.builder()
+                .setUrl(url)
+                .setTimeout(timeout)
+                .build();
+        return getHttpResult(param);
     }
 
     public static HttpResult getHttpResult(String url, Map<String, String> headMap) {
-        return getHttpResult(url, DEFAULT_TIMEOUT, headMap);
+        HttpParam param = HttpParam.builder()
+                .setUrl(url)
+                .setHeaderMap(headMap)
+                .build();
+        return getHttpResult(param);
     }
 
     public static HttpResult getHttpResult(String url,
                                            int timeout,
                                            Map<String, String> headMap) {
+        HttpParam param = HttpParam.builder()
+                .setUrl(url)
+                .setTimeout(timeout)
+                .setHeaderMap(headMap)
+                .build();
+        return getHttpResult(param);
+    }
+
+    public static HttpResult getHttpResult(HttpParam param) {
         CloseableHttpClient httpclient = null;
         CloseableHttpResponse response = null;
         HttpResult result = new HttpResult();
         try {
-            HttpGet httpGet = new HttpGet(url);
+            HttpGet httpGet = new HttpGet(param.getUrl());
             // 超时设置
             RequestConfig requestConfig = RequestConfig.custom()
-                    .setSocketTimeout(timeout)
-                    .setConnectTimeout(timeout)
-                    .setConnectionRequestTimeout(timeout).build();
+                    .setSocketTimeout(param.getTimeout())
+                    .setConnectTimeout(param.getTimeout())
+                    .setConnectionRequestTimeout(param.getTimeout()).build();
             httpGet.setConfig(requestConfig);
             // head设置
-            if (headMap != null && !headMap.isEmpty()) {
-                for (Map.Entry<String, String> entry : headMap.entrySet()) {
+            if (ObjUtils.isNotEmpty(param.getHeaderMap())) {
+                for (Map.Entry<String, String> entry : param.getHeaderMap().entrySet()) {
                     httpGet.setHeader(entry.getKey(), entry.getValue());
                 }
             }
-            httpclient = createHttpClient(url);
+            httpclient = createHttpClient(param.getUrl());
             long start = System.currentTimeMillis();
             response = httpclient.execute(httpGet);
             long end = System.currentTimeMillis();
             int status = response.getStatusLine().getStatusCode();
-            logger.info("请求url：{}，结果状态：{}，耗时：{}毫秒。", url, status, ((end - start)));
+            logger.info("请求url：{}，结果状态：{}，耗时：{}毫秒。", param.getUrl(), status, ((end - start)));
             result.setStatus(status);
             result.setCost(end - start);
             result.setHeaders(response.getAllHeaders());
@@ -206,19 +245,37 @@ public class HttpClientUtils {
     }
 
     public static byte[] getByte(String url) {
+        HttpParam param = HttpParam.builder()
+                .setUrl(url)
+                .build();
+        return getByte(param);
+    }
+
+    public static byte[] getByte(HttpParam param) {
         CloseableHttpClient httpclient = null;
         CloseableHttpResponse response = null;
         try {
-            HttpGet httpGet = new HttpGet(url);
-
-            httpclient = createHttpClient(url);
+            HttpGet httpGet = new HttpGet(param.getUrl());
+            // 超时设置
+            RequestConfig requestConfig = RequestConfig.custom()
+                    .setSocketTimeout(param.getTimeout())
+                    .setConnectTimeout(param.getTimeout())
+                    .setConnectionRequestTimeout(param.getTimeout()).build();
+            httpGet.setConfig(requestConfig);
+            // head设置
+            if (ObjUtils.isNotEmpty(param.getHeaderMap())) {
+                for (Map.Entry<String, String> entry : param.getHeaderMap().entrySet()) {
+                    httpGet.setHeader(entry.getKey(), entry.getValue());
+                }
+            }
+            httpclient = createHttpClient(param.getUrl());
             long start = System.currentTimeMillis();
             response = httpclient.execute(httpGet);
             long end = System.currentTimeMillis();
             int status = response.getStatusLine().getStatusCode();
-            logger.info("请求url：{}，结果状态：{}，耗时：{}毫秒。", url, status, ((end - start)));
+            logger.info("请求url：{}，结果状态：{}，耗时：{}毫秒。", param.getUrl(), status, ((end - start)));
             HttpEntity entity = response.getEntity();
-            return entity != null ? EntityUtils.toByteArray(entity) : null;
+            return EntityUtils.toByteArray(entity);
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
         } finally {
@@ -250,65 +307,99 @@ public class HttpClientUtils {
         return sb.toString();
     }
 
-    public static String post(String url, Map<String, String> params) {
-        return post(url, params, DEFAULT_TIMEOUT, DEFAULT_CHARSET, null);
-    }
-
-    public static String post(String url, Map<String, String> params, int timeout) {
-        return post(url, params, timeout, DEFAULT_CHARSET, null);
+    public static String post(String url,
+                              Map<String, String> paramMap) {
+        HttpParam param = HttpParam.builder()
+                .setUrl(url)
+                .setParamMap(paramMap)
+                .build();
+        return post(param);
     }
 
     public static String post(String url,
-                              Map<String, String> params,
+                              Map<String, String> paramMap,
+                              int timeout) {
+        HttpParam param = HttpParam.builder()
+                .setUrl(url)
+                .setParamMap(paramMap)
+                .setTimeout(timeout)
+                .build();
+        return post(param);
+    }
+
+    public static String post(String url,
+                              Map<String, String> paramMap,
                               Map<String, String> headMap) {
-        return post(url, params, DEFAULT_TIMEOUT, DEFAULT_CHARSET, headMap);
+        HttpParam param = HttpParam.builder()
+                .setUrl(url)
+                .setParamMap(paramMap)
+                .setHeaderMap(headMap)
+                .build();
+        return post(param);
     }
 
     public static String post(String url,
-                              Map<String, String> params,
+                              Map<String, String> paramMap,
                               Map<String, String> headMap,
                               int timeout) {
-        return post(url, params, timeout, DEFAULT_CHARSET, headMap);
+        HttpParam param = HttpParam.builder()
+                .setUrl(url)
+                .setParamMap(paramMap)
+                .setTimeout(timeout)
+                .setHeaderMap(headMap)
+                .build();
+        return post(param);
     }
 
     public static String post(String url,
-                              Map<String, String> params,
+                              Map<String, String> paramMap,
                               int timeout,
                               String charset,
                               Map<String, String> headMap) {
+        HttpParam param = HttpParam.builder()
+                .setUrl(url)
+                .setParamMap(paramMap)
+                .setTimeout(timeout)
+                .setCharset(charset)
+                .setHeaderMap(headMap)
+                .build();
+        return post(param);
+    }
+
+    public static String post(HttpParam param) {
         CloseableHttpClient httpclient = null;
         CloseableHttpResponse response = null;
         try {
-            HttpPost httpPost = new HttpPost(url);
+            HttpPost httpPost = new HttpPost(param.getUrl());
             // 超时设置
             RequestConfig requestConfig = RequestConfig.custom()
-                    .setSocketTimeout(timeout)
-                    .setConnectTimeout(timeout)
-                    .setConnectionRequestTimeout(timeout).build();
+                    .setSocketTimeout(param.getTimeout())
+                    .setConnectTimeout(param.getTimeout())
+                    .setConnectionRequestTimeout(param.getTimeout()).build();
             httpPost.setConfig(requestConfig);
             // head设置
-            if (headMap != null && !headMap.isEmpty()) {
-                for (Map.Entry<String, String> entry : headMap.entrySet()) {
+            if (ObjUtils.isNotEmpty(param.getHeaderMap())) {
+                for (Map.Entry<String, String> entry : param.getHeaderMap().entrySet()) {
                     httpPost.setHeader(entry.getKey(), entry.getValue());
                 }
             }
             // 参数设置
-            if (params != null && !params.isEmpty()) {
-                List<NameValuePair> nvps = new ArrayList<NameValuePair>();
-                for (Map.Entry<String, String> entry : params.entrySet()) {
+            if (ObjUtils.isNotEmpty(param.getParamMap())) {
+                List<NameValuePair> nvps = new ArrayList<>();
+                for (Map.Entry<String, String> entry : param.getParamMap().entrySet()) {
                     nvps.add(new BasicNameValuePair(entry.getKey(), entry.getValue()));
                 }
-                httpPost.setEntity(new UrlEncodedFormEntity(nvps, charset));
+                httpPost.setEntity(new UrlEncodedFormEntity(nvps, param.getCharset()));
             }
-            httpclient = createHttpClient(url);
+            httpclient = createHttpClient(param.getUrl());
             long start = System.currentTimeMillis();
             response = httpclient.execute(httpPost);
             long end = System.currentTimeMillis();
             int status = response.getStatusLine().getStatusCode();
-            logger.info("请求url：{}，结果状态：{}，耗时：{}毫秒。", url, status, (end - start));
+            logger.info("请求url：{}，结果状态：{}，耗时：{}毫秒。", param.getUrl(), status, (end - start));
             if (status >= 200 && status < 300) {
                 HttpEntity entity = response.getEntity();
-                return entity != null ? EntityUtils.toString(entity, charset) : null;
+                return entity != null ? EntityUtils.toString(entity, param.getCharset()) : null;
             }
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
@@ -319,65 +410,96 @@ public class HttpClientUtils {
         return null;
     }
 
-    public static HttpResult postHttpResult(String url, Map<String, String> params) {
-        return postHttpResult(url, params, DEFAULT_TIMEOUT);
+    public static HttpResult postHttpResult(String url, Map<String, String> paramMap) {
+        HttpParam param = HttpParam.builder()
+                .setUrl(url)
+                .setParamMap(paramMap)
+                .build();
+        return postHttpResult(param);
     }
 
     public static HttpResult postHttpResult(String url,
-                                            Map<String, String> params,
+                                            Map<String, String> paramMap,
                                             Map<String, String> headMap) {
-        return postHttpResult(url, params, DEFAULT_TIMEOUT, DEFAULT_CHARSET, headMap);
+        HttpParam param = HttpParam.builder()
+                .setUrl(url)
+                .setParamMap(paramMap)
+                .setHeaderMap(headMap)
+                .build();
+        return postHttpResult(param);
     }
 
     public static HttpResult postHttpResult(String url,
-                                            Map<String, String> params,
+                                            Map<String, String> paramMap,
                                             int timeout) {
-        return postHttpResult(url, params, timeout, DEFAULT_CHARSET, null);
+        HttpParam param = HttpParam.builder()
+                .setUrl(url)
+                .setParamMap(paramMap)
+                .setTimeout(timeout)
+                .build();
+        return postHttpResult(param);
     }
 
     public static HttpResult postHttpResult(String url,
-                                            Map<String, String> params,
+                                            Map<String, String> paramMap,
                                             Map<String, String> headMap,
                                             int timeout) {
-        return postHttpResult(url, params, timeout, DEFAULT_CHARSET, headMap);
+        HttpParam param = HttpParam.builder()
+                .setUrl(url)
+                .setParamMap(paramMap)
+                .setTimeout(timeout)
+                .setHeaderMap(headMap)
+                .build();
+        return postHttpResult(param);
     }
 
     public static HttpResult postHttpResult(String url,
-                                            Map<String, String> params,
+                                            Map<String, String> paramMap,
                                             int timeout,
                                             String charset,
                                             Map<String, String> headMap) {
+        HttpParam param = HttpParam.builder()
+                .setUrl(url)
+                .setParamMap(paramMap)
+                .setTimeout(timeout)
+                .setCharset(charset)
+                .setHeaderMap(headMap)
+                .build();
+        return postHttpResult(param);
+    }
+
+    public static HttpResult postHttpResult(HttpParam param) {
         CloseableHttpClient httpclient = null;
         CloseableHttpResponse response = null;
         HttpResult result = new HttpResult();
         try {
-            HttpPost httpPost = new HttpPost(url);
+            HttpPost httpPost = new HttpPost(param.getUrl());
             // 超时设置
             RequestConfig requestConfig = RequestConfig.custom()
-                    .setSocketTimeout(timeout)
-                    .setConnectTimeout(timeout)
-                    .setConnectionRequestTimeout(timeout).build();
+                    .setSocketTimeout(param.getTimeout())
+                    .setConnectTimeout(param.getTimeout())
+                    .setConnectionRequestTimeout(param.getTimeout()).build();
             httpPost.setConfig(requestConfig);
             // head设置
-            if (headMap != null && !headMap.isEmpty()) {
-                for (Map.Entry<String, String> entry : headMap.entrySet()) {
+            if (ObjUtils.isNotEmpty(param.getHeaderMap())) {
+                for (Map.Entry<String, String> entry : param.getHeaderMap().entrySet()) {
                     httpPost.setHeader(entry.getKey(), entry.getValue());
                 }
             }
             // 参数设置
-            if (params != null && !params.isEmpty()) {
-                List<NameValuePair> nvps = new ArrayList<NameValuePair>();
-                for (Map.Entry<String, String> entry : params.entrySet()) {
+            if (ObjUtils.isNotEmpty(param.getParamMap())) {
+                List<NameValuePair> nvps = new ArrayList<>();
+                for (Map.Entry<String, String> entry : param.getParamMap().entrySet()) {
                     nvps.add(new BasicNameValuePair(entry.getKey(), entry.getValue()));
                 }
-                httpPost.setEntity(new UrlEncodedFormEntity(nvps, charset));
+                httpPost.setEntity(new UrlEncodedFormEntity(nvps, param.getCharset()));
             }
-            httpclient = createHttpClient(url);
+            httpclient = createHttpClient(param.getUrl());
             long start = System.currentTimeMillis();
             response = httpclient.execute(httpPost);
             long end = System.currentTimeMillis();
             int status = response.getStatusLine().getStatusCode();
-            logger.info("请求url：{}，结果状态：{}，耗时：{}毫秒。", url, status, (end - start));
+            logger.info("请求url：{}，结果状态：{}，耗时：{}毫秒。", param.getUrl(), status, (end - start));
             result.setStatus(status);
             result.setCost(end - start);
             result.setHeaders(response.getAllHeaders());
@@ -413,30 +535,47 @@ public class HttpClientUtils {
                                            Map<String, Object> paramMap,
                                            Map<String, String> urlParamMap,
                                            Map<String, String> fileNameMap) {
+        HttpParam param = HttpParam.builder()
+                .setUrl(url)
+                .setFileMap(paramMap)
+                .setUrlParamMap(urlParamMap)
+                .setFileNameMap(fileNameMap)
+                .build();
+        return postMultipartForm(param);
+    }
+
+    /**
+     * 包含文件类型的POST提交,参数支持File,InputStream,byte[]和String
+     * 第三个参数支持远程文件，先将远程文件下载
+     *
+     * @param param
+     * @return
+     */
+    public static String postMultipartForm(HttpParam param) {
         CloseableHttpClient httpclient = null;
         CloseableHttpResponse response = null;
         try {
-            HttpPost httpPost = new HttpPost(url);
+            HttpPost httpPost = new HttpPost(param.getUrl());
             MultipartEntityBuilder builder = MultipartEntityBuilder
                     .create()
                     .setCharset(UTF_8)
                     .setMode(HttpMultipartMode.RFC6532);
             // 参数设置
-            if (paramMap != null && !paramMap.isEmpty()) {
-                for (Map.Entry<String, Object> entry : paramMap.entrySet()) {
+            if (ObjUtils.isNotEmpty(param.getFileMap())) {
+                for (Map.Entry<String, Object> entry : param.getFileMap().entrySet()) {
                     Object value = entry.getValue();
                     if (value instanceof File) {
                         builder.addBinaryBody(entry.getKey(), (File) value);
                     } else if (value instanceof InputStream) {
                         String fileName = null;
-                        if (fileNameMap != null) {
-                            fileName = fileNameMap.get(entry.getKey());
+                        if (param.getFileNameMap() != null) {
+                            fileName = param.getFileNameMap().get(entry.getKey());
                         }
                         builder.addBinaryBody(entry.getKey(), (InputStream) value, ContentType.DEFAULT_BINARY, fileName);
                     } else if (value instanceof byte[]) {
                         String fileName = null;
-                        if (fileNameMap != null) {
-                            fileName = fileNameMap.get(entry.getKey());
+                        if (param.getFileNameMap() != null) {
+                            fileName = param.getFileNameMap().get(entry.getKey());
                         }
                         builder.addBinaryBody(entry.getKey(), (byte[]) value, ContentType.DEFAULT_BINARY, fileName);
                     } else {
@@ -444,25 +583,25 @@ public class HttpClientUtils {
                     }
                 }
             }
-            if (urlParamMap != null && !urlParamMap.isEmpty()) {
-                for (Map.Entry<String, String> entry : urlParamMap.entrySet()) {
+            if (ObjUtils.isNotEmpty(param.getUrlParamMap())) {
+                for (Map.Entry<String, String> entry : param.getUrlParamMap().entrySet()) {
                     String fileName = null;
-                    if (fileNameMap != null) {
-                        fileName = fileNameMap.get(entry.getKey());
+                    if (param.getFileNameMap() != null) {
+                        fileName = param.getFileNameMap().get(entry.getKey());
                     }
                     builder.addBinaryBody(entry.getKey(), getByte(entry.getValue()), ContentType.DEFAULT_BINARY, fileName);
                 }
             }
             httpPost.setEntity(builder.build());
-            httpclient = createHttpClient(url);
+            httpclient = createHttpClient(param.getUrl());
             long start = System.currentTimeMillis();
             response = httpclient.execute(httpPost);
             long end = System.currentTimeMillis();
             int status = response.getStatusLine().getStatusCode();
-            logger.info("请求url：{}，结果状态：{}，耗时：{}毫秒。", url, status, (end - start));
+            logger.info("请求url：{}，结果状态：{}，耗时：{}毫秒。", param.getUrl(), status, (end - start));
             if (status >= 200 && status < 300) {
                 HttpEntity entity = response.getEntity();
-                return entity != null ? EntityUtils.toString(entity, DEFAULT_CHARSET) : null;
+                return entity != null ? EntityUtils.toString(entity, param.getCharset()) : null;
             }
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
@@ -486,31 +625,48 @@ public class HttpClientUtils {
                                                          Map<String, Object> paramMap,
                                                          Map<String, String> urlParamMap,
                                                          Map<String, String> fileNameMap) {
+        HttpParam param = HttpParam.builder()
+                .setUrl(url)
+                .setFileMap(paramMap)
+                .setUrlParamMap(urlParamMap)
+                .setFileNameMap(fileNameMap)
+                .build();
+        return postMultipartFormHttpResult(param);
+    }
+
+    /**
+     * 包含文件类型的POST提交,参数支持File,InputStream,byte[]和String
+     * 第三个参数支持远程文件，先将远程文件下载
+     *
+     * @param param
+     * @return
+     */
+    public static HttpResult postMultipartFormHttpResult(HttpParam param) {
         CloseableHttpClient httpclient = null;
         CloseableHttpResponse response = null;
         HttpResult result = new HttpResult();
         try {
-            HttpPost httpPost = new HttpPost(url);
+            HttpPost httpPost = new HttpPost(param.getUrl());
             MultipartEntityBuilder builder = MultipartEntityBuilder
                     .create()
                     .setCharset(UTF_8)
                     .setMode(HttpMultipartMode.RFC6532);
             // 参数设置
-            if (paramMap != null && !paramMap.isEmpty()) {
-                for (Map.Entry<String, Object> entry : paramMap.entrySet()) {
+            if (ObjUtils.isNotEmpty(param.getFileMap())) {
+                for (Map.Entry<String, Object> entry : param.getFileMap().entrySet()) {
                     Object value = entry.getValue();
                     if (value instanceof File) {
                         builder.addBinaryBody(entry.getKey(), (File) value);
                     } else if (value instanceof InputStream) {
                         String fileName = null;
-                        if (fileNameMap != null) {
-                            fileName = fileNameMap.get(entry.getKey());
+                        if (param.getFileNameMap() != null) {
+                            fileName = param.getFileNameMap().get(entry.getKey());
                         }
                         builder.addBinaryBody(entry.getKey(), (InputStream) value, ContentType.DEFAULT_BINARY, fileName);
                     } else if (value instanceof byte[]) {
                         String fileName = null;
-                        if (fileNameMap != null) {
-                            fileName = fileNameMap.get(entry.getKey());
+                        if (param.getFileNameMap() != null) {
+                            fileName = param.getFileNameMap().get(entry.getKey());
                         }
                         builder.addBinaryBody(entry.getKey(), (byte[]) value, ContentType.DEFAULT_BINARY, fileName);
                     } else {
@@ -518,22 +674,22 @@ public class HttpClientUtils {
                     }
                 }
             }
-            if (urlParamMap != null && !urlParamMap.isEmpty()) {
-                for (Map.Entry<String, String> entry : urlParamMap.entrySet()) {
+            if (ObjUtils.isNotEmpty(param.getUrlParamMap())) {
+                for (Map.Entry<String, String> entry : param.getUrlParamMap().entrySet()) {
                     String fileName = null;
-                    if (fileNameMap != null) {
-                        fileName = fileNameMap.get(entry.getKey());
+                    if (param.getFileNameMap() != null) {
+                        fileName = param.getFileNameMap().get(entry.getKey());
                     }
                     builder.addBinaryBody(entry.getKey(), getByte(entry.getValue()), ContentType.DEFAULT_BINARY, fileName);
                 }
             }
             httpPost.setEntity(builder.build());
-            httpclient = createHttpClient(url);
+            httpclient = createHttpClient(param.getUrl());
             long start = System.currentTimeMillis();
             response = httpclient.execute(httpPost);
             long end = System.currentTimeMillis();
             int status = response.getStatusLine().getStatusCode();
-            logger.info("请求url：{}，结果状态：{}，耗时：{}毫秒。", url, status, (end - start));
+            logger.info("请求url：{}，结果状态：{}，耗时：{}毫秒。", param.getUrl(), status, (end - start));
             result.setStatus(status);
             result.setCost(end - start);
             result.setHeaders(response.getAllHeaders());
@@ -557,11 +713,22 @@ public class HttpClientUtils {
     }
 
     public static String postBody(String url, String requestBody) {
-        return postBody(url, requestBody, null);
+        HttpParam param = HttpParam.builder()
+                .setUrl(url)
+                .setRequestBody(requestBody)
+                .build();
+        return postBody(param);
     }
 
-    public static String postBody(String url, String requestBody, Map<String, String> headMap) {
-        return postBody(url, requestBody, DEFAULT_TIMEOUT, DEFAULT_CHARSET, headMap);
+    public static String postBody(String url,
+                                  String requestBody,
+                                  Map<String, String> headMap) {
+        HttpParam param = HttpParam.builder()
+                .setUrl(url)
+                .setRequestBody(requestBody)
+                .setHeaderMap(headMap)
+                .build();
+        return postBody(param);
     }
 
     public static String postBody(String url,
@@ -569,36 +736,47 @@ public class HttpClientUtils {
                                   int timeout,
                                   String charset,
                                   Map<String, String> headMap) {
+        HttpParam param = HttpParam.builder()
+                .setUrl(url)
+                .setRequestBody(requestBody)
+                .setTimeout(timeout)
+                .setCharset(charset)
+                .setHeaderMap(headMap)
+                .build();
+        return postBody(param);
+    }
+
+    public static String postBody(HttpParam param) {
         CloseableHttpClient httpclient = null;
         CloseableHttpResponse response = null;
         try {
-            HttpPost httpPost = new HttpPost(url);
+            HttpPost httpPost = new HttpPost(param.getUrl());
             // 超时设置
             RequestConfig requestConfig = RequestConfig.custom()
-                    .setSocketTimeout(timeout)
-                    .setConnectTimeout(timeout)
-                    .setConnectionRequestTimeout(timeout).build();
+                    .setSocketTimeout(param.getTimeout())
+                    .setConnectTimeout(param.getTimeout())
+                    .setConnectionRequestTimeout(param.getTimeout()).build();
             httpPost.setConfig(requestConfig);
             // head设置
             httpPost.setHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString());
-            if (headMap != null && !headMap.isEmpty()) {
-                for (Map.Entry<String, String> entry : headMap.entrySet()) {
+            if (ObjUtils.isNotEmpty(param.getHeaderMap())) {
+                for (Map.Entry<String, String> entry : param.getHeaderMap().entrySet()) {
                     httpPost.setHeader(entry.getKey(), entry.getValue());
                 }
             }
             // 请求体设置
-            if (StringUtils.isNotBlank(requestBody)) {
-                httpPost.setEntity(new StringEntity(requestBody, charset));
+            if (StringUtils.isNotEmpty(param.getRequestBody())) {
+                httpPost.setEntity(new StringEntity(param.getRequestBody(), param.getCharset()));
             }
-            httpclient = createHttpClient(url);
+            httpclient = createHttpClient(param.getUrl());
             long start = System.currentTimeMillis();
             response = httpclient.execute(httpPost);
             long end = System.currentTimeMillis();
             int status = response.getStatusLine().getStatusCode();
-            logger.info("请求url：{}，结果状态：{}，耗时：{}毫秒。", url, status, ((end - start)));
+            logger.info("请求url：{}，结果状态：{}，耗时：{}毫秒。", param.getUrl(), status, ((end - start)));
             if (status >= 200 && status < 300) {
                 HttpEntity entity = response.getEntity();
-                return entity != null ? EntityUtils.toString(entity, charset) : null;
+                return entity != null ? EntityUtils.toString(entity, param.getCharset()) : null;
             }
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
@@ -610,11 +788,22 @@ public class HttpClientUtils {
     }
 
     public static HttpResult postBodyHttpResult(String url, String requestBody) {
-        return postBodyHttpResult(url, requestBody, null);
+        HttpParam param = HttpParam.builder()
+                .setUrl(url)
+                .setRequestBody(requestBody)
+                .build();
+        return postBodyHttpResult(param);
     }
 
-    public static HttpResult postBodyHttpResult(String url, String requestBody, Map<String, String> headMap) {
-        return postBodyHttpResult(url, requestBody, DEFAULT_TIMEOUT, DEFAULT_CHARSET, headMap);
+    public static HttpResult postBodyHttpResult(String url,
+                                                String requestBody,
+                                                Map<String, String> headMap) {
+        HttpParam param = HttpParam.builder()
+                .setUrl(url)
+                .setRequestBody(requestBody)
+                .setHeaderMap(headMap)
+                .build();
+        return postBodyHttpResult(param);
     }
 
     public static HttpResult postBodyHttpResult(String url,
@@ -622,34 +811,206 @@ public class HttpClientUtils {
                                                 int timeout,
                                                 String charset,
                                                 Map<String, String> headMap) {
+        HttpParam param = HttpParam.builder()
+                .setUrl(url)
+                .setRequestBody(requestBody)
+                .setTimeout(timeout)
+                .setCharset(charset)
+                .setHeaderMap(headMap)
+                .build();
+        return postBodyHttpResult(param);
+    }
+
+    public static HttpResult postBodyHttpResult(HttpParam param) {
         CloseableHttpClient httpclient = null;
         CloseableHttpResponse response = null;
         HttpResult result = new HttpResult();
         try {
-            HttpPost httpPost = new HttpPost(url);
+            HttpPost httpPost = new HttpPost(param.getUrl());
             // 超时设置
             RequestConfig requestConfig = RequestConfig.custom()
-                    .setSocketTimeout(timeout)
-                    .setConnectTimeout(timeout)
-                    .setConnectionRequestTimeout(timeout).build();
+                    .setSocketTimeout(param.getTimeout())
+                    .setConnectTimeout(param.getTimeout())
+                    .setConnectionRequestTimeout(param.getTimeout()).build();
             httpPost.setConfig(requestConfig);
             // head设置
             httpPost.setHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.toString());
-            if (headMap != null && !headMap.isEmpty()) {
-                for (Map.Entry<String, String> entry : headMap.entrySet()) {
+            if (ObjUtils.isNotEmpty(param.getHeaderMap())) {
+                for (Map.Entry<String, String> entry : param.getHeaderMap().entrySet()) {
                     httpPost.setHeader(entry.getKey(), entry.getValue());
                 }
             }
             // 请求体设置
-            if (StringUtils.isNotBlank(requestBody)) {
-                httpPost.setEntity(new StringEntity(requestBody, charset));
+            if (ObjUtils.isNotEmpty(param.getRequestBody())) {
+                httpPost.setEntity(new StringEntity(param.getRequestBody(), param.getCharset()));
             }
-            httpclient = createHttpClient(url);
+            httpclient = createHttpClient(param.getUrl());
             long start = System.currentTimeMillis();
             response = httpclient.execute(httpPost);
             long end = System.currentTimeMillis();
             int status = response.getStatusLine().getStatusCode();
-            logger.info("请求url：{}，结果状态：{}，耗时：{}毫秒。", url, status, ((end - start)));
+            logger.info("请求url：{}，结果状态：{}，耗时：{}毫秒。", param.getUrl(), status, ((end - start)));
+            result.setStatus(status);
+            result.setCost(end - start);
+            result.setHeaders(response.getAllHeaders());
+            HttpEntity entity = response.getEntity();
+            if (entity != null) {
+                byte[] content = EntityUtils.toByteArray(entity);
+                if (content != null) {
+                    result.setInputStream(new ByteArrayInputStream(content));
+                }
+            }
+            return result;
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+            result.setStatus(HttpResult.STATUS_EXP);
+            result.setException(e);
+        } finally {
+            org.apache.http.client.utils.HttpClientUtils.closeQuietly(response);
+            org.apache.http.client.utils.HttpClientUtils.closeQuietly(httpclient);
+        }
+        return result;
+    }
+
+    public static String delete(String url) {
+        HttpParam param = HttpParam.builder()
+                .setUrl(url)
+                .build();
+        return delete(param);
+    }
+
+    public static String delete(String url, int timeout) {
+        HttpParam param = HttpParam.builder()
+                .setUrl(url)
+                .setTimeout(timeout)
+                .build();
+        return delete(param);
+    }
+
+    public static String delete(String url, Map<String, String> headMap) {
+        HttpParam param = HttpParam.builder()
+                .setUrl(url)
+                .setHeaderMap(headMap)
+                .build();
+        return delete(param);
+    }
+
+    public static String delete(String url,
+                                int timeout,
+                                String charset,
+                                Map<String, String> headMap) {
+        HttpParam param = HttpParam.builder()
+                .setUrl(url)
+                .setTimeout(timeout)
+                .setCharset(charset)
+                .setHeaderMap(headMap)
+                .build();
+        return delete(param);
+    }
+
+    public static String delete(HttpParam param) {
+        CloseableHttpClient httpclient = null;
+        CloseableHttpResponse response = null;
+        try {
+            HttpDelete httpDelete = new HttpDelete(param.getUrl());
+            // 超时设置
+            RequestConfig requestConfig = RequestConfig.custom()
+                    .setSocketTimeout(param.getTimeout())
+                    .setConnectTimeout(param.getTimeout())
+                    .setConnectionRequestTimeout(param.getTimeout())
+                    .build();
+            httpDelete.setConfig(requestConfig);
+            if (ObjUtils.isNotEmpty(param.getHeaderMap())) {
+                for (Map.Entry<String, String> entry : param.getHeaderMap().entrySet()) {
+                    httpDelete.setHeader(entry.getKey(), entry.getValue());
+                }
+            }
+            httpclient = createHttpClient(param.getUrl());
+            long start = System.currentTimeMillis();
+            response = httpclient.execute(httpDelete);
+            long end = System.currentTimeMillis();
+            int status = response.getStatusLine().getStatusCode();
+            logger.info("请求url：{}，结果状态：{}，耗时：{}毫秒。", param.getUrl(), status, ((end - start)));
+            if (status >= 200 && status < 300) {
+                HttpEntity entity = response.getEntity();
+                return entity != null ? EntityUtils.toString(entity, param.getCharset()) : null;
+            }
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        } finally {
+            org.apache.http.client.utils.HttpClientUtils.closeQuietly(response);
+            org.apache.http.client.utils.HttpClientUtils.closeQuietly(httpclient);
+        }
+        return null;
+    }
+
+    public static HttpResult deleteHttpResult(String url) {
+        HttpParam param = HttpParam.builder()
+                .setUrl(url)
+                .build();
+        return deleteHttpResult(param);
+    }
+
+    public static HttpResult deleteHttpResult(String url, int timeout) {
+        return getHttpResult(url, timeout, null);
+    }
+
+    public static HttpResult deleteHttpResult(String url, Map<String, String> headMap) {
+        HttpParam param = HttpParam.builder()
+                .setUrl(url)
+                .setHeaderMap(headMap)
+                .build();
+        return deleteHttpResult(param);
+    }
+
+    public static HttpResult deleteHttpResult(String url,
+                                              int timeout,
+                                              Map<String, String> headMap) {
+        HttpParam param = HttpParam.builder()
+                .setUrl(url)
+                .setTimeout(timeout)
+                .setHeaderMap(headMap)
+                .build();
+        return deleteHttpResult(param);
+    }
+
+    public static HttpResult deleteHttpResult(String url,
+                                              int timeout,
+                                              String charset,
+                                              Map<String, String> headMap) {
+        HttpParam param = HttpParam.builder()
+                .setUrl(url)
+                .setTimeout(timeout)
+                .setCharset(charset)
+                .setHeaderMap(headMap)
+                .build();
+        return deleteHttpResult(param);
+    }
+
+    public static HttpResult deleteHttpResult(HttpParam param) {
+        CloseableHttpClient httpclient = null;
+        CloseableHttpResponse response = null;
+        HttpResult result = new HttpResult();
+        try {
+            HttpDelete httpDelete = new HttpDelete(param.getUrl());
+            // 超时设置
+            RequestConfig requestConfig = RequestConfig.custom()
+                    .setSocketTimeout(param.getTimeout())
+                    .setConnectTimeout(param.getTimeout())
+                    .setConnectionRequestTimeout(param.getTimeout()).build();
+            httpDelete.setConfig(requestConfig);
+            // head设置
+            if (ObjUtils.isNotEmpty(param.getHeaderMap())) {
+                for (Map.Entry<String, String> entry : param.getHeaderMap().entrySet()) {
+                    httpDelete.setHeader(entry.getKey(), entry.getValue());
+                }
+            }
+            httpclient = createHttpClient(param.getUrl());
+            long start = System.currentTimeMillis();
+            response = httpclient.execute(httpDelete);
+            long end = System.currentTimeMillis();
+            int status = response.getStatusLine().getStatusCode();
+            logger.info("请求url：{}，结果状态：{}，耗时：{}毫秒。", param.getUrl(), status, ((end - start)));
             result.setStatus(status);
             result.setCost(end - start);
             result.setHeaders(response.getAllHeaders());
@@ -673,31 +1034,45 @@ public class HttpClientUtils {
     }
 
     public static void download(String url, String filePath) {
-        download(url, filePath, null);
+        HttpParam param = HttpParam.builder()
+                .setUrl(url)
+                .setFilePath(filePath)
+                .build();
+        download(param);
     }
 
     public static void download(String url,
                                 String filePath,
                                 Map<String, String> headMap) {
+        HttpParam param = HttpParam.builder()
+                .setUrl(url)
+                .setFilePath(filePath)
+                .setHeaderMap(headMap)
+                .build();
+        download(param);
+    }
+
+
+    public static void download(HttpParam param) {
         CloseableHttpClient httpclient = null;
         CloseableHttpResponse response = null;
         try {
-            HttpGet httpGet = new HttpGet(url);
+            HttpGet httpGet = new HttpGet(param.getUrl());
             // head设置
-            if (headMap != null && !headMap.isEmpty()) {
-                for (Map.Entry<String, String> entry : headMap.entrySet()) {
+            if (ObjUtils.isNotEmpty(param.getHeaderMap())) {
+                for (Map.Entry<String, String> entry : param.getHeaderMap().entrySet()) {
                     httpGet.setHeader(entry.getKey(), entry.getValue());
                 }
             }
-            httpclient = createHttpClient(url);
+            httpclient = createHttpClient(param.getUrl());
             long start = System.currentTimeMillis();
             response = httpclient.execute(httpGet);
             long end = System.currentTimeMillis();
             int status = response.getStatusLine().getStatusCode();
-            logger.info("请求url：{}，结果状态：{}，耗时：{}毫秒。", url, status, ((end - start)));
+            logger.info("请求url：{}，结果状态：{}，耗时：{}毫秒。", param.getUrl(), status, ((end - start)));
             HttpEntity entity = response.getEntity();
             if (entity != null) {
-                File targetFile = new File(filePath);
+                File targetFile = new File(param.getFilePath());
                 File tmpFile = new File(targetFile.getAbsolutePath() + "." + RandomUtils.bsonId());
                 FileUtils.copyInputStreamToFile(entity.getContent(), tmpFile);
                 tmpFile.renameTo(targetFile);
@@ -711,31 +1086,39 @@ public class HttpClientUtils {
     }
 
     public static String getRedirectUrl(String url, Map<String, String> headMap) {
+        HttpParam param = HttpParam.builder()
+                .setUrl(url)
+                .setHeaderMap(headMap)
+                .build();
+        return getRedirectUrl(param);
+    }
+
+    public static String getRedirectUrl(HttpParam param) {
         CloseableHttpClient httpclient = null;
         CloseableHttpResponse response = null;
         try {
-            HttpGet httpGet = new HttpGet(url);
+            HttpGet httpGet = new HttpGet(param.getUrl());
             // 超时设置
             RequestConfig requestConfig = RequestConfig.custom()
-                    .setSocketTimeout(DEFAULT_TIMEOUT)
-                    .setConnectTimeout(DEFAULT_TIMEOUT)
-                    .setConnectionRequestTimeout(DEFAULT_TIMEOUT).build();
+                    .setSocketTimeout(param.getTimeout())
+                    .setConnectTimeout(param.getTimeout())
+                    .setConnectionRequestTimeout(param.getTimeout()).build();
             httpGet.setConfig(requestConfig);
             // head设置
-            if (headMap != null && !headMap.isEmpty()) {
-                for (Map.Entry<String, String> entry : headMap.entrySet()) {
+            if (ObjUtils.isNotEmpty(param.getHeaderMap())) {
+                for (Map.Entry<String, String> entry : param.getHeaderMap().entrySet()) {
                     httpGet.setHeader(entry.getKey(), entry.getValue());
                 }
             }
             // 自定义重定向，不自动处理
             CustomRedirectStrategy redirectStrategy = new CustomRedirectStrategy();
-            httpclient = createHttpClient(url, redirectStrategy);
+            httpclient = createHttpClient(param.getUrl(), redirectStrategy);
             HttpClientContext context = HttpClientContext.create();
             long start = System.currentTimeMillis();
             response = httpclient.execute(httpGet, context);
             long end = System.currentTimeMillis();
             int status = response.getStatusLine().getStatusCode();
-            logger.info("请求url：{}，结果状态：{}，耗时：{}毫秒。", url, status, ((end - start)));
+            logger.info("请求url：{}，结果状态：{}，耗时：{}毫秒。", param.getUrl(), status, ((end - start)));
             HttpEntity entity = response.getEntity();
             logger.info(EntityUtils.toString(entity));
             // 判断是否重定向
