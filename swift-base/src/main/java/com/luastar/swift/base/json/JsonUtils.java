@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Collection;
 import java.util.Map;
+import java.util.TimeZone;
 
 public class JsonUtils {
 
@@ -22,17 +23,20 @@ public class JsonUtils {
     private static ObjectMapper snakeMapper;
 
     static {
+        // 时间格式化设置
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        sdf.setTimeZone(TimeZone.getTimeZone("Asia/Shanghai"));
         // 默认mapper
         defaultMapper = new ObjectMapper();
         defaultMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-        defaultMapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"));
+        defaultMapper.setDateFormat(sdf);
         defaultMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         // 下画线mapper
         snakeMapper = new ObjectMapper();
         snakeMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-        snakeMapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"));
+        snakeMapper.setDateFormat(sdf);
         snakeMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-        snakeMapper.setPropertyNamingStrategy(PropertyNamingStrategy.CAMEL_CASE_TO_LOWER_CASE_WITH_UNDERSCORES);
+        snakeMapper.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
     }
 
     public static String toJson(Object obj) {
