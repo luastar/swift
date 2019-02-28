@@ -25,7 +25,7 @@ public class JsonUtils {
     static {
         // 时间格式化设置
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        sdf.setTimeZone(TimeZone.getTimeZone("Asia/Shanghai"));
+        sdf.setTimeZone(TimeZone.getTimeZone("GMT+8"));
         // 默认mapper
         defaultMapper = new ObjectMapper();
         defaultMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
