@@ -36,7 +36,7 @@ public class JsonUtils {
         snakeMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
         snakeMapper.setDateFormat(sdf);
         snakeMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
-        snakeMapper.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
+        snakeMapper.setPropertyNamingStrategy(PropertyNamingStrategy.CAMEL_CASE_TO_LOWER_CASE_WITH_UNDERSCORES);
     }
 
     public static String toJson(Object obj) {
