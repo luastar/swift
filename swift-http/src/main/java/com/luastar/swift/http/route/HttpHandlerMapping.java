@@ -432,7 +432,7 @@ public class HttpHandlerMapping implements ApplicationContextAware, Initializing
      * @param response
      * @param exception
      */
-    public void exceptionHandler(HttpRequest request, HttpResponse response, Exception exception) throws Exception {
+    public void exceptionHandler(HttpRequest request, HttpResponse response, Throwable exception) throws Throwable {
         if (exceptionHandler == null) {
             throw exception;
         }

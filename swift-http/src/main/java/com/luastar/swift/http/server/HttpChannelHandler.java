@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.util.ReflectionUtils;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
@@ -109,13 +110,17 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<HttpObject> 
                 mappedHandler.applyPostHandle(httpRequest, httpResponse);
                 // 处理返回结果
                 handleHttpResponse(ctx, httpRequest, httpResponse);
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 try {
                     // 处理业务异常
-                    handlerMapping.exceptionHandler(httpRequest, httpResponse, e);
+                    if (e instanceof InvocationTargetException) {
+                        handlerMapping.exceptionHandler(httpRequest, httpResponse, ((InvocationTargetException) e).getTargetException());
+                    } else {
+                        handlerMapping.exceptionHandler(httpRequest, httpResponse, e);
+                    }
                     // 处理返回结果
                     handleHttpResponse(ctx, httpRequest, httpResponse);
-                } catch (Exception ex) {
+                } catch (Throwable ex) {
                     // 处理系统异常
                     exceptionCaught(ctx, ex);
                 }
