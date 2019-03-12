@@ -35,11 +35,11 @@ public class HttpHandlerMapping implements ApplicationContextAware, Initializing
 
     private PathMatcher pathMatcher = new AntPathMatcher();
 
-    private final Map<RequestMappingInfo, HandlerMethod> handlerMethods = new LinkedHashMap<RequestMappingInfo, HandlerMethod>();
+    private final Map<RequestMappingInfo, HandlerMethod> handlerMethods = new LinkedHashMap<>();
 
-    private final MultiValueMap<String, RequestMappingInfo> urlMap = new LinkedMultiValueMap();
+    private final MultiValueMap<String, RequestMappingInfo> urlMap = new LinkedMultiValueMap<>();
 
-    private final List<MappedInterceptor> mappedInterceptorList = new ArrayList<MappedInterceptor>();
+    private final List<MappedInterceptor> mappedInterceptorList = new ArrayList<>();
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
@@ -73,35 +73,15 @@ public class HttpHandlerMapping implements ApplicationContextAware, Initializing
 
     /**
      * Scan beans in the ApplicationContext, detect and register handler methods.
-     *
-     * @see #isHandler(Class)
      * @see #getMappingForMethod(Method, Class)
      */
     protected void initHandlerMethods() {
-        /*
-        String[] beanNames = applicationContext.getBeanNamesForType(Object.class);
-        for (String beanName : beanNames) {
-            if (isHandler(applicationContext.getType(beanName))) {
-                detectHandlerMethods(beanName);
-            }
-        }
-        */
         Map<String, Object> beanMap = applicationContext.getBeansWithAnnotation(HttpService.class);
         if (beanMap != null) {
             for (Map.Entry<String, Object> bean : beanMap.entrySet()) {
                 detectHandlerMethods(bean.getValue());
             }
         }
-    }
-
-    /**
-     * Whether the given type is a handler with handler methods.
-     *
-     * @param beanType the type of the bean being checked
-     * @return "true" if this a handler type, "false" otherwise.
-     */
-    protected boolean isHandler(Class<?> beanType) {
-        return AnnotationUtils.findAnnotation(beanType, HttpService.class) != null;
     }
 
     /**
@@ -112,9 +92,10 @@ public class HttpHandlerMapping implements ApplicationContextAware, Initializing
     protected void detectHandlerMethods(final Object handler) {
         Class<?> handlerType = (handler instanceof String ? applicationContext.getType((String) handler) : handler.getClass());
         // Avoid repeated calls to getMappingForMethod which would rebuild RequestMatchingInfo instances
-        final Map<Method, RequestMappingInfo> mappings = new IdentityHashMap<Method, RequestMappingInfo>();
+        final Map<Method, RequestMappingInfo> mappings = new IdentityHashMap<>();
         final Class<?> userType = ClassUtils.getUserClass(handlerType);
         Set<Method> methods = selectMethods(userType, new ReflectionUtils.MethodFilter() {
+            @Override
             public boolean matches(Method method) {
                 RequestMappingInfo mapping = getMappingForMethod(method, userType);
                 if (mapping == null) {
