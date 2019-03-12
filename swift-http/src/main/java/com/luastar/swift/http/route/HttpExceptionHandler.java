@@ -11,6 +11,6 @@ public interface HttpExceptionHandler {
      * @param response
      * @param exception
      */
-    void exceptionHandle(HttpRequest request, HttpResponse response, Exception exception);
+    void exceptionHandle(HttpRequest request, HttpResponse response, Throwable exception);
 
 }

@@ -12,7 +12,7 @@ public class DefaultHttpExceptionHandler implements HttpExceptionHandler {
     private static final Logger logger = LoggerFactory.getLogger(DefaultHttpExceptionHandler.class);
 
     @Override
-    public void exceptionHandle(HttpRequest request, HttpResponse response, Exception exception) {
+    public void exceptionHandle(HttpRequest request, HttpResponse response, Throwable exception) {
         logger.error(exception.getMessage(), exception);
         ResponseResultUtils.exception(response, exception);
     }

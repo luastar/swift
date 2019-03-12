@@ -24,7 +24,7 @@ public class ResponseResultUtils {
         httpResponse.setResult(JsonUtils.toJson(result));
     }
 
-    public static void exception(HttpResponse httpResponse, Exception exception) {
+    public static void exception(HttpResponse httpResponse, Throwable exception) {
         ResponseResult result = new ResponseResult();
         result.setRequest_id(httpResponse.getRequestId());
         result.setCode(500);

@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.util.ReflectionUtils;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
@@ -109,17 +110,22 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<FullHttpRequ
                 mappedHandler.applyPostHandle(httpRequest, httpResponse);
                 // 处理返回结果
                 handleHttpResponse(ctx, httpRequest, httpResponse);
-            } catch (Exception exception) {
+            } catch (Throwable e) {
                 try {
-                    // 业务处理异常
+                    // 自定义异常处理
                     if (handlerMapping.getExceptionHandler() != null) {
-                        handlerMapping.getExceptionHandler().exceptionHandle(httpRequest, httpResponse, exception);
+                        if (e instanceof InvocationTargetException) {
+                            // 业务异常
+                            handlerMapping.getExceptionHandler().exceptionHandle(httpRequest, httpResponse, ((InvocationTargetException) e).getTargetException());
+                        } else {
+                            handlerMapping.getExceptionHandler().exceptionHandle(httpRequest, httpResponse, e);
+                        }
                     }
                     // 处理返回结果
                     handleHttpResponse(ctx, httpRequest, httpResponse);
-                } catch (Exception e) {
+                } catch (Exception ex) {
                     // 系统异常处理
-                    exceptionCaught(ctx, e);
+                    exceptionCaught(ctx, ex);
                 }
             } finally {
                 logger.info("业务数据销毁......");
