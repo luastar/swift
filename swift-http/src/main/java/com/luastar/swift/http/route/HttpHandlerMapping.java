@@ -8,6 +8,7 @@ import com.luastar.swift.http.route.handlermapping.HandlerMapping;
 import com.luastar.swift.http.route.handlermapping.RequestMappingHandlerMapping;
 import com.luastar.swift.http.route.handlermapping.SimpleUrlHandlerMapping;
 import com.luastar.swift.http.server.HttpRequest;
+import com.luastar.swift.http.server.HttpResponse;
 import org.springframework.core.OrderComparator;
 
 import java.util.List;
@@ -23,33 +24,36 @@ public class HttpHandlerMapping extends RequestMappingHandlerMapping {
 
     private List<HandlerMapping> handlerMappingList;
 
-    public void setExceptionHandler(HttpExceptionHandler exceptionHandler) {
-        this.exceptionHandler = exceptionHandler;
+    public HttpHandlerMapping() {
+        this.handlerMappingList = Lists.newArrayList();
+        setOrder(9999);
     }
 
-    public HttpExceptionHandler getExceptionHandler() {
-        return exceptionHandler;
+    public void setExceptionHandler(HttpExceptionHandler exceptionHandler) {
+        this.exceptionHandler = exceptionHandler;
     }
 
     public void setSimpleUrlHandlerMappingList(List<SimpleUrlHandlerMapping> simpleUrlHandlerMappingList) {
         this.simpleUrlHandlerMappingList = simpleUrlHandlerMappingList;
     }
 
-    public HttpHandlerMapping() {
-        setOrder(9999);
-    }
-
     @Override
     public void afterPropertiesSet() {
         super.afterPropertiesSet();
-        this.handlerMappingList = Lists.newArrayList();
         this.handlerMappingList.add(this);
-        if (CollectionUtils.isNotEmpty(simpleUrlHandlerMappingList)){
+        if (CollectionUtils.isNotEmpty(simpleUrlHandlerMappingList)) {
             this.handlerMappingList.addAll(simpleUrlHandlerMappingList);
         }
         OrderComparator.sort(this.handlerMappingList);
     }
 
+    /**
+     * 获取实际处理器
+     *
+     * @param request
+     * @return
+     * @throws Exception
+     */
     public HandlerExecutionChain getActualHandler(HttpRequest request) throws Exception {
         for (HandlerMapping handlerMapping : this.handlerMappingList) {
             HandlerExecutionChain handler = handlerMapping.getHandler(request);
@@ -58,6 +62,20 @@ public class HttpHandlerMapping extends RequestMappingHandlerMapping {
             }
         }
         return null;
+    }
+
+    /**
+     * 异常处理
+     * @param request
+     * @param httpResponse
+     * @param e
+     * @throws Throwable
+     */
+    public void exceptionHandle(HttpRequest request, HttpResponse httpResponse, Throwable e) throws Throwable {
+        if (exceptionHandler == null) {
+            throw e;
+        }
+        exceptionHandler.exceptionHandle(request, httpResponse, e);
     }
 
 }

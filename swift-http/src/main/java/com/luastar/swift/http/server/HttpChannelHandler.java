@@ -113,17 +113,16 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<FullHttpRequ
             } catch (Throwable e) {
                 try {
                     // 自定义异常处理
-                    if (handlerMapping.getExceptionHandler() != null) {
-                        if (e instanceof InvocationTargetException) {
-                            // 业务异常
-                            handlerMapping.getExceptionHandler().exceptionHandle(httpRequest, httpResponse, ((InvocationTargetException) e).getTargetException());
-                        } else {
-                            handlerMapping.getExceptionHandler().exceptionHandle(httpRequest, httpResponse, e);
-                        }
+                    if (e instanceof InvocationTargetException) {
+                        // 业务异常
+                        handlerMapping.exceptionHandle(httpRequest, httpResponse, ((InvocationTargetException) e).getTargetException());
+                    } else {
+                        // 其他异常
+                        handlerMapping.exceptionHandle(httpRequest, httpResponse, e);
                     }
                     // 处理返回结果
                     handleHttpResponse(ctx, httpRequest, httpResponse);
-                } catch (Exception ex) {
+                } catch (Throwable ex) {
                     // 系统异常处理
                     exceptionCaught(ctx, ex);
                 }
