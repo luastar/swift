@@ -12,6 +12,7 @@
     <artifactId>swift-base</artifactId>
 
     <properties>
+        <slf4j.version>1.7.25</slf4j.version>
         <logback.version>1.2.3</logback.version>
         <spring.version>4.3.20.RELEASE</spring.version>
         <jackson.version>2.9.7</jackson.version>
@@ -21,6 +22,11 @@
 
     <dependencies>
         <!-- logging begin -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
@@ -92,6 +98,10 @@
             <artifactId>dozer</artifactId>
             <version>5.5.1</version>
             <exclusions>
+                <exclusion>
+                    <artifactId>slf4j-api</artifactId>
+                    <groupId>org.slf4j</groupId>
+                </exclusion>
                 <exclusion>
                     <artifactId>jcl-over-slf4j</artifactId>
                     <groupId>org.slf4j</groupId>
