@@ -8,6 +8,7 @@ import org.dozer.DozerBeanMapper;
 import org.dozer.Mapper;
 
 import java.math.BigDecimal;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -122,12 +123,9 @@ public class ObjUtils {
         }
         // 处理字符串值
         String strValue = obj.toString().trim();
-        // 处理千分位
-        if (strValue.contains(COMMA)) {
-            strValue = strValue.replaceAll(COMMA, EMPTY_VALUE);
-        }
         try {
-            return new BigDecimal(strValue).intValue();
+            Number number = NumberFormat.getNumberInstance().parse(strValue);
+            return number.intValue();
         } catch (Exception e) {
         }
         return null;
@@ -149,12 +147,9 @@ public class ObjUtils {
         }
         // 处理字符串值
         String strValue = obj.toString().trim();
-        // 处理千分位
-        if (strValue.contains(COMMA)) {
-            strValue = strValue.replaceAll(COMMA, EMPTY_VALUE);
-        }
         try {
-            return new BigDecimal(strValue).longValue();
+            Number number = NumberFormat.getNumberInstance().parse(strValue);
+            return number.longValue();
         } catch (Exception e) {
         }
         return null;
@@ -173,12 +168,9 @@ public class ObjUtils {
         }
         // 处理字符串值
         String strValue = obj.toString().trim();
-        // 处理千分位
-        if (strValue.contains(COMMA)) {
-            strValue = strValue.replaceAll(COMMA, EMPTY_VALUE);
-        }
         try {
-            return new BigDecimal(strValue);
+            Number number = NumberFormat.getNumberInstance().parse(strValue);
+            return new BigDecimal(number.doubleValue());
         } catch (Exception e) {
         }
         return null;
