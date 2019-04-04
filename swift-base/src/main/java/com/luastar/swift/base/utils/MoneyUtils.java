@@ -1,5 +1,7 @@
 package com.luastar.swift.base.utils;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.text.ParseException;
@@ -31,61 +33,51 @@ import java.util.Locale;
  */
 public class MoneyUtils {
 
+    public static final String RMB = "￥";
+
+    /**
+     * 对象转Number
+     *
+     * @param amount
+     * @return
+     */
+    public static BigDecimal obj2BigDecimal(Object amount) {
+        if (amount == null) {
+            return null;
+        }
+        BigDecimal amountBigDecimal = null;
+        try {
+            if (amount instanceof BigDecimal) {
+                amountBigDecimal = (BigDecimal) amount;
+            } else if (amount instanceof Number) {
+                amountBigDecimal = new BigDecimal(((Number) amount).doubleValue());
+            } else {
+                String amountString = StringUtils.trim(amount.toString());
+                if (StringUtils.containsIgnoreCase(amountString, RMB)) {
+                    NumberFormat format = NumberFormat.getCurrencyInstance(Locale.CHINA);
+                    amountBigDecimal = new BigDecimal(format.parse(amountString).doubleValue());
+                } else {
+                    NumberFormat format = NumberFormat.getNumberInstance();
+                    amountBigDecimal = new BigDecimal(format.parse(amountString).doubleValue());
+                }
+            }
+        } catch (ParseException e) {
+        }
+        return amountBigDecimal;
+    }
+
     /**
      * 将分转换成元
      *
      * @param amount
      * @return
      */
-    public static String fen2yuan(Long amount) {
-        if (amount == null) {
+    public static BigDecimal fen2yuan(Object amount) {
+        BigDecimal amountBigDecimal = obj2BigDecimal(amount);
+        if (amountBigDecimal == null) {
             return null;
         }
-        BigDecimal result = new BigDecimal(amount)
-                .divide(new BigDecimal(100), 2, BigDecimal.ROUND_HALF_UP);
-        NumberFormat format = NumberFormat.getNumberInstance();
-        format.setGroupingUsed(false);
-        format.setMinimumFractionDigits(2);
-        format.setMaximumFractionDigits(2);
-        return format.format(result);
-    }
-
-    /**
-     * 将分转换成元，带千分位
-     *
-     * @param amount
-     * @return
-     */
-    public static String fen2yuanWithGroup(Long amount) {
-        if (amount == null) {
-            return null;
-        }
-        BigDecimal result = new BigDecimal(amount)
-                .divide(new BigDecimal(100), 2, BigDecimal.ROUND_HALF_UP);
-        NumberFormat format = NumberFormat.getNumberInstance();
-        format.setGroupingUsed(true);
-        format.setMinimumFractionDigits(2);
-        format.setMaximumFractionDigits(2);
-        return format.format(result);
-    }
-
-    /**
-     * 将分转换成元，带人民币符号￥，带千分位
-     *
-     * @param amount
-     * @return
-     */
-    public static String fen2yuanWithRMBAndGroup(Long amount) {
-        if (amount == null) {
-            return null;
-        }
-        BigDecimal result = new BigDecimal(amount)
-                .divide(new BigDecimal(100), 2, BigDecimal.ROUND_HALF_UP);
-        NumberFormat format = NumberFormat.getCurrencyInstance(Locale.CHINA);
-        format.setGroupingUsed(true);
-        format.setMinimumFractionDigits(2);
-        format.setMaximumFractionDigits(2);
-        return format.format(result);
+        return amountBigDecimal.divide(new BigDecimal(100), 2, BigDecimal.ROUND_HALF_UP);
     }
 
     /**
@@ -94,30 +86,41 @@ public class MoneyUtils {
      * @param amount
      * @return
      */
-    public static Long yuan2fen(String amount) {
+    public static BigDecimal yuan2fen(Object amount) {
+        BigDecimal amountBigDecimal = obj2BigDecimal(amount);
+        if (amountBigDecimal == null) {
+            return null;
+        }
+        return amountBigDecimal.multiply(new BigDecimal(100))
+                .setScale(0, BigDecimal.ROUND_HALF_UP);
+    }
+
+    public static String formatYuan(BigDecimal amount) {
+        return formatYuan(amount, false, false);
+    }
+
+    public static String formatYuan(BigDecimal amount, boolean group, boolean rmb) {
         if (amount == null) {
             return null;
         }
-        try {
-            NumberFormat format;
-            if (amount.contains("￥")) {
-                format = NumberFormat.getCurrencyInstance(Locale.CHINA);
-            } else {
-                format = NumberFormat.getNumberInstance();
-            }
-            BigDecimal src = new BigDecimal(format.parse(amount).doubleValue());
-            return src.setScale(2, BigDecimal.ROUND_HALF_UP)
-                    .multiply(new BigDecimal(100))
-                    .longValue();
-        } catch (ParseException e) {
-            return null;
+        NumberFormat format;
+        if (rmb) {
+            format = NumberFormat.getCurrencyInstance(Locale.CHINA);
+        } else {
+            format = NumberFormat.getNumberInstance();
         }
+        format.setGroupingUsed(group);
+        format.setMinimumFractionDigits(2);
+        format.setMaximumFractionDigits(2);
+        return format.format(amount);
     }
 
     public static void main(String[] args) {
-        System.out.println(fen2yuan(2134512345000L));
-        System.out.println(fen2yuanWithGroup(2134512345000L));
-        System.out.println(fen2yuanWithRMBAndGroup(2134512345000L));
+        BigDecimal yuan = fen2yuan(2134512345000L);
+        System.out.println(formatYuan(yuan, false, false));
+        System.out.println(formatYuan(yuan, false, true));
+        System.out.println(formatYuan(yuan, true, false));
+        System.out.println(formatYuan(yuan, true, true));
         System.out.println(yuan2fen("21,345,123,450.00"));
         System.out.println(yuan2fen("￥21,345,123,450.00"));
     }
