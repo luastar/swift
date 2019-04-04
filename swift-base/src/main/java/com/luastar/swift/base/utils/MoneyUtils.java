@@ -36,7 +36,7 @@ public class MoneyUtils {
     public static final String RMB = "￥";
 
     /**
-     * 对象转Number
+     * 对象转BigDecimal
      *
      * @param amount
      * @return
@@ -95,10 +95,22 @@ public class MoneyUtils {
                 .setScale(0, BigDecimal.ROUND_HALF_UP);
     }
 
+    /**
+     * 格式化金额，不带人民币符号，不带千分位
+     * @param amount 金额（元）
+     * @return
+     */
     public static String formatYuan(BigDecimal amount) {
         return formatYuan(amount, false, false);
     }
 
+    /**
+     * 格式化金额
+     * @param amount 金额（元）
+     * @param group 是否显示千分位
+     * @param rmb 是否显示人民币符号
+     * @return
+     */
     public static String formatYuan(BigDecimal amount, boolean group, boolean rmb) {
         if (amount == null) {
             return null;
