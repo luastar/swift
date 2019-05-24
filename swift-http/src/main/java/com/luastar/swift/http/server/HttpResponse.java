@@ -78,7 +78,7 @@ public class HttpResponse {
                 MDC.put(HttpConstant.MDC_KEY_RESPONSE_BODY, body);
                 logger.info("== response body : {}", body);
             } else {
-                MDC.put(HttpConstant.MDC_KEY_RESPONSE_BODY, "response body is too long to log out");
+                MDC.put(HttpConstant.MDC_KEY_RESPONSE_BODY, body.substring(0, HttpConstant.SWIFT_MAX_LOG_LENGTH));
                 logger.info("== response body is too long to log out.");
             }
         }
