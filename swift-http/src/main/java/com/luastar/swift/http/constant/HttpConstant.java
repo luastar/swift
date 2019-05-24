@@ -84,7 +84,7 @@ public interface HttpConstant {
     /**
      * 输出日志最大值
      */
-    int SWIFT_MAX_LOG_LENGTH = PropertyUtils.getInt("swift.maxLogLength", 1024 * 512);
+    int SWIFT_MAX_LOG_LENGTH = PropertyUtils.getInt("swift.maxLogLength", 1024 * 16);
     /**
      * 分发线程数，默认值 1（为0表示cpu个数 * 2）
      */
