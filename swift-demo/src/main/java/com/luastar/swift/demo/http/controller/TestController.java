@@ -1,5 +1,6 @@
 package com.luastar.swift.demo.http.controller;
 
+import com.alibaba.fastjson.JSON;
 import com.luastar.swift.base.json.JsonUtils;
 import com.luastar.swift.base.utils.ClassLoaderUtils;
 import com.luastar.swift.demo.http.entity.User;
@@ -26,6 +27,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 @HttpService("/test")
@@ -42,17 +44,24 @@ public class TestController {
         // request info
         logger.info("requestId is : {}", request.getRequestId());
         logger.info("client ip is : {}", request.getIp());
+        for (Map.Entry<String, Object> arrtibute : request.getAttributeMap().entrySet()) {
+            logger.info("request arrtibute : {}={}", arrtibute.getKey(), JSON.toJSONString(arrtibute.getValue()));
+        }
         for (Map.Entry<String, String> header : request.getHeaders()) {
             logger.info("request header : {}={}", header.getKey(), header.getValue());
         }
         for (Map.Entry<String, String> parameter : request.getParameterMap().entrySet()) {
             logger.info("request parameter : {}={}", parameter.getKey(), parameter.getValue());
         }
+        for (Map.Entry<String, List<String>> parameter : request.getMultParameterMap().entrySet()) {
+            logger.info("request mult parameter : {}={}", parameter.getKey(), JSON.toJSONString(parameter.getValue()));
+        }
         for (Map.Entry<String, HttpFileUpload> file : request.getFileMap().entrySet()) {
-            logger.info("request parameter : {}={}", file.getKey(), file.getValue().getFilename());
+            logger.info("request file : {}={}", file.getKey(), file.getValue().getFilename());
         }
         logger.info("request to user : {}", request.bindObj(new User()));
         logger.info("request body is : {}", request.getBody());
+        // throw exp
         if (StringUtils.isNoneBlank(request.getParameter("exp"))) {
             throw new RuntimeException("业务异常");
         }
@@ -64,20 +73,6 @@ public class TestController {
     @HttpService("/path/{p1}")
     public void path(HttpRequest request, HttpResponse response) {
         logger.info("----------come into TestCtrl[path][{}]", request.getPathValue("p1"));
-        // request info
-        logger.info("requestId is : {}", request.getRequestId());
-        logger.info("client ip is : {}", request.getIp());
-        for (Map.Entry<String, String> header : request.getHeaders()) {
-            logger.info("request header : {}={}", header.getKey(), header.getValue());
-        }
-        for (Map.Entry<String, String> parameter : request.getParameterMap().entrySet()) {
-            logger.info("request parameter : {}={}", parameter.getKey(), parameter.getValue());
-        }
-        for (Map.Entry<String, HttpFileUpload> file : request.getFileMap().entrySet()) {
-            logger.info("request parameter : {}={}", file.getKey(), file.getValue().getFilename());
-        }
-        logger.info("request to user : {}", request.bindObj(new User()));
-        logger.info("request body is : {}", request.getBody());
         // response
         response.setResponseContentTypePlain();
         response.setResult("TestCtrl[hello] OK !");
@@ -86,20 +81,6 @@ public class TestController {
     @HttpService(value = "/getpost", method = RequestMethod.GET)
     public void get(HttpRequest request, HttpResponse response) {
         logger.info("----------come into TestCtrl[get]");
-        // request info
-        logger.info("requestId is : {}", request.getRequestId());
-        logger.info("client ip is : {}", request.getIp());
-        for (Map.Entry<String, String> header : request.getHeaders()) {
-            logger.info("request header : {}={}", header.getKey(), header.getValue());
-        }
-        for (Map.Entry<String, String> parameter : request.getParameterMap().entrySet()) {
-            logger.info("request parameter : {}={}", parameter.getKey(), parameter.getValue());
-        }
-        for (Map.Entry<String, HttpFileUpload> file : request.getFileMap().entrySet()) {
-            logger.info("request parameter : {}={}", file.getKey(), file.getValue().getFilename());
-        }
-        logger.info("request to user : {}", request.bindObj(new User()));
-        logger.info("request body is : {}", request.getBody());
         // response
         response.setResponseContentTypePlain();
         response.setResult("TestCtrl[get] OK !");
@@ -108,20 +89,6 @@ public class TestController {
     @HttpService(value = "/getpost", method = RequestMethod.POST)
     public void post(HttpRequest request, HttpResponse response) {
         logger.info("----------come into TestCtrl[post]");
-        // request info
-        logger.info("requestId is : {}", request.getRequestId());
-        logger.info("client ip is : {}", request.getIp());
-        for (Map.Entry<String, String> header : request.getHeaders()) {
-            logger.info("request header : {}={}", header.getKey(), header.getValue());
-        }
-        for (Map.Entry<String, String> parameter : request.getParameterMap().entrySet()) {
-            logger.info("request parameter : {}={}", parameter.getKey(), parameter.getValue());
-        }
-        for (Map.Entry<String, HttpFileUpload> file : request.getFileMap().entrySet()) {
-            logger.info("request parameter : {}={}", file.getKey(), file.getValue().getFilename());
-        }
-        logger.info("request to user : {}", request.bindObj(new User()));
-        logger.info("request body is : {}", request.getBody());
         // response
         response.setResponseContentTypePlain();
         response.setResult("TestCtrl[post] OK !");
@@ -130,20 +97,6 @@ public class TestController {
     @HttpService(value = "/getpost")
     public void getpost(HttpRequest request, HttpResponse response) {
         logger.info("----------come into TestCtrl[getpost]");
-        // request info
-        logger.info("requestId is : {}", request.getRequestId());
-        logger.info("client ip is : {}", request.getIp());
-        for (Map.Entry<String, String> header : request.getHeaders()) {
-            logger.info("request header : {}={}", header.getKey(), header.getValue());
-        }
-        for (Map.Entry<String, String> parameter : request.getParameterMap().entrySet()) {
-            logger.info("request parameter : {}={}", parameter.getKey(), parameter.getValue());
-        }
-        for (Map.Entry<String, HttpFileUpload> file : request.getFileMap().entrySet()) {
-            logger.info("request parameter : {}={}", file.getKey(), file.getValue().getFilename());
-        }
-        logger.info("request to user : {}", request.bindObj(new User()));
-        logger.info("request body is : {}", request.getBody());
         // response
         response.setResponseContentTypePlain();
         response.setResult("TestCtrl[getpost] OK !");
@@ -152,20 +105,6 @@ public class TestController {
     @HttpService(value = "/get_or_post", method = {RequestMethod.GET, RequestMethod.POST})
     public void getOrPost(HttpRequest request, HttpResponse response) throws InterruptedException {
         logger.info("----------come into TestCtrl[get_or_post]");
-        // request info
-        logger.info("requestId is : {}", request.getRequestId());
-        logger.info("client ip is : {}", request.getIp());
-        for (Map.Entry<String, String> header : request.getHeaders()) {
-            logger.info("request header : {}={}", header.getKey(), header.getValue());
-        }
-        for (Map.Entry<String, String> parameter : request.getParameterMap().entrySet()) {
-            logger.info("request parameter : {}={}", parameter.getKey(), parameter.getValue());
-        }
-        for (Map.Entry<String, HttpFileUpload> file : request.getFileMap().entrySet()) {
-            logger.info("request parameter : {}={}", file.getKey(), file.getValue().getFilename());
-        }
-        logger.info("request to user : {}", request.bindObj(new User()));
-        logger.info("request body is : {}", request.getBody());
         // response
         Thread.sleep(60000);
         response.setResponseContentTypePlain();
@@ -235,6 +174,7 @@ public class TestController {
 
     /**
      * 注意重定向只支持GET和HEAD方法
+     *
      * @param request
      * @param response
      */
