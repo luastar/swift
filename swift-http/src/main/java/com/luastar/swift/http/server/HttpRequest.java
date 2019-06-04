@@ -1,6 +1,7 @@
 package com.luastar.swift.http.server;
 
 import com.alibaba.fastjson.JSON;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.luastar.swift.base.entity.SwiftHashMap;
 import com.luastar.swift.base.utils.DateUtils;
@@ -59,6 +60,7 @@ public class HttpRequest {
     private Map<String, String> headerMap = new CaseInsensitiveMap<>();
     private Map<String, Cookie> cookieMap = Maps.newLinkedHashMap();
     private Map<String, String> parameterMap = Maps.newLinkedHashMap();
+    private Map<String, List<String>> multParameterMap = Maps.newLinkedHashMap();
     private Map<String, FileUpload> fileMap = Maps.newLinkedHashMap();
     private Map<String, Object> attributeMap = Maps.newLinkedHashMap();
 
@@ -106,31 +108,54 @@ public class HttpRequest {
             for (String attrVal : attr.getValue()) {
                 parameterMap.put(attr.getKey(), attrVal);
             }
+            if (attr.getValue().size() > 1) {
+                multParameterMap.put(attr.getKey(), attr.getValue());
+            }
         }
     }
 
+    /**
+     * 默认解析 X_WWW_FORM_URLENCODED 和 MULTIPART_FORM_DATA 两种类型的表体
+     * 其他支持解析的类型可以手动调用 decodeBodyFormData() 方法
+     */
     protected void decodeBody() {
+        if (HttpMethod.GET.equals(request.method())) {
+            return;
+        }
+        String contentType = getContentType();
+        if (StringUtils.isEmpty(contentType)) {
+            return;
+        }
+        if (StringUtils.containsIgnoreCase(contentType, HttpHeaderValues.APPLICATION_X_WWW_FORM_URLENCODED)
+                || StringUtils.containsIgnoreCase(contentType, HttpHeaderValues.MULTIPART_FORM_DATA)) {
+            decodeBodyFormData();
+        }
+    }
+
+    /**
+     * 解析表单内容的表体
+     */
+    public void decodeBodyFormData() {
         try {
-            if (HttpMethod.GET.equals(request.method())) {
-                return;
-            }
-            String contentType = getContentType();
-            if (StringUtils.isEmpty(contentType)) {
-                return;
-            }
-            if (StringUtils.containsIgnoreCase(contentType, HttpHeaderValues.APPLICATION_X_WWW_FORM_URLENCODED)
-                    || StringUtils.containsIgnoreCase(contentType, HttpHeaderValues.MULTIPART_FORM_DATA)) {
-                // 只解析 X_WWW_FORM_URLENCODED 和 MULTIPART_FORM_DATA
-                postRequestDecoder = new HttpPostRequestDecoder(factory, request);
-                List<InterfaceHttpData> dataList = postRequestDecoder.getBodyHttpDatas();
-                for (InterfaceHttpData data : dataList) {
-                    if (data.getHttpDataType() == InterfaceHttpData.HttpDataType.Attribute) {
-                        Attribute attribute = (Attribute) data;
-                        parameterMap.put(attribute.getName(), attribute.getValue());
-                    } else if (data.getHttpDataType() == InterfaceHttpData.HttpDataType.FileUpload) {
-                        FileUpload fileUpload = (FileUpload) data;
-                        fileMap.put(fileUpload.getName(), fileUpload);
+            postRequestDecoder = new HttpPostRequestDecoder(factory, request);
+            List<InterfaceHttpData> dataList = postRequestDecoder.getBodyHttpDatas();
+            for (InterfaceHttpData data : dataList) {
+                if (data.getHttpDataType() == InterfaceHttpData.HttpDataType.Attribute) {
+                    Attribute attribute = (Attribute) data;
+                    // 如果有重复key，保存到多值 map
+                    if (parameterMap.containsKey(attribute.getName())) {
+                        List<String> multValueList = multParameterMap.get(attribute.getName());
+                        if (multValueList == null) {
+                            multValueList = Lists.newArrayList(parameterMap.get(attribute.getName()));
+                        }
+                        multValueList.add(attribute.getValue());
+                        multParameterMap.put(attribute.getName(), multValueList);
                     }
+                    // 单值 map 直接覆盖
+                    parameterMap.put(attribute.getName(), attribute.getValue());
+                } else if (data.getHttpDataType() == InterfaceHttpData.HttpDataType.FileUpload) {
+                    FileUpload fileUpload = (FileUpload) data;
+                    fileMap.put(fileUpload.getName(), fileUpload);
                 }
             }
         } catch (Exception e) {
@@ -221,6 +246,10 @@ public class HttpRequest {
         return parameterMap;
     }
 
+    public Map<String, List<String>> getMultParameterMap() {
+        return multParameterMap;
+    }
+
     public String getParameter(String key) {
         return parameterMap.get(key);
     }
@@ -231,6 +260,18 @@ public class HttpRequest {
             return defaultValue;
         }
         return value;
+    }
+
+    public List<String> getMultParameter(String key) {
+        return multParameterMap.get(key);
+    }
+
+    public List<String> getMultParameter(String key, List<String> defaultValue) {
+        List<String> valueList = getMultParameter(key);
+        if (ObjUtils.isEmpty(valueList)) {
+            return defaultValue;
+        }
+        return valueList;
     }
 
     public Integer getIntParameter(String key) {
@@ -378,6 +419,7 @@ public class HttpRequest {
         headerMap.clear();
         cookieMap.clear();
         parameterMap.clear();
+        multParameterMap.clear();
         fileMap.clear();
         attributeMap.clear();
         request.release();
