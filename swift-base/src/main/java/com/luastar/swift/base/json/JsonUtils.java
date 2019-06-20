@@ -1,6 +1,7 @@
 package com.luastar.swift.base.json;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -75,12 +76,36 @@ public class JsonUtils {
         return null;
     }
 
+    public static <T> T toObj(String json, TypeReference<T> typeRef) {
+        try {
+            if (StringUtils.isEmpty(json)) {
+                return null;
+            }
+            return defaultMapper.readValue(json, typeRef);
+        } catch (IOException e) {
+            logger.error("[readValue]：" + e.getMessage(), e);
+        }
+        return null;
+    }
+
     public static <T> T toObjSnake(String json, Class<T> clazz) {
         try {
             if (StringUtils.isEmpty(json)) {
                 return null;
             }
             return snakeMapper.readValue(json, clazz);
+        } catch (IOException e) {
+            logger.error("[readValue]：" + e.getMessage(), e);
+        }
+        return null;
+    }
+
+    public static <T> T toObjSnake(String json, TypeReference<T> typeRef) {
+        try {
+            if (StringUtils.isEmpty(json)) {
+                return null;
+            }
+            return snakeMapper.readValue(json, typeRef);
         } catch (IOException e) {
             logger.error("[readValue]：" + e.getMessage(), e);
         }
