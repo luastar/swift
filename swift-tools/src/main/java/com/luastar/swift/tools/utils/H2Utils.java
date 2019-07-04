@@ -144,7 +144,8 @@ public class H2Utils {
                     dbConfig.getDb_name(),
                     dbConfig.getJdbc_url(),
                     dbConfig.getUser_name(),
-                    dbConfig.getPassword());
+                    dbConfig.getPassword(),
+                    dbConfig.getId());
         } catch (Exception e) {
             logger.error("获取数据库配置异常：" + e.getMessage(), e);
             return 0;
