@@ -90,6 +90,11 @@ public class PageInfo {
         calculate();
     }
 
+    public void nextPageNum() {
+        this.pageNum = this.pageNum + 1;
+        calculate();
+    }
+
     public int getPageSize() {
         return pageSize;
     }
