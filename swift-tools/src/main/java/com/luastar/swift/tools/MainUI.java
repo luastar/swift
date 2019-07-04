@@ -21,7 +21,7 @@ public class MainUI extends Application {
 
     private static final Logger logger = LoggerFactory.getLogger(MainUI.class);
 
-    private static final String version = "1.0.0";
+    private static final String version = "1.0.1";
 
     private static Stage primaryStage;
 

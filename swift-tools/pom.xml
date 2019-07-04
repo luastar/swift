@@ -10,6 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>swift-tools</artifactId>
+    <version>1.0.1</version>
 
     <dependencies>
         <dependency>
@@ -68,6 +69,7 @@
                 <version>8.8.3</version>
                 <configuration>
                     <mainClass>com.luastar.swift.tools.MainUI</mainClass>
+                    <appName>swift-tools</appName>
                     <vendor>zhuminghua</vendor>
                     <identifier>6M6YBBYHVY</identifier>
                 </configuration>
