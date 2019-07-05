@@ -10,7 +10,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>swift-tools</artifactId>
-    <version>1.0.1</version>
+    <version>${swift.tools.version}</version>
+
+    <properties>
+        <swift.tools.version>1.0.2</swift.tools.version>
+    </properties>
 
     <dependencies>
         <dependency>
@@ -70,11 +74,28 @@
                 <configuration>
                     <mainClass>com.luastar.swift.tools.MainUI</mainClass>
                     <appName>swift-tools</appName>
+                    <nativeReleaseVersion>${swift.tools.version}</nativeReleaseVersion>
                     <vendor>zhuminghua</vendor>
                     <identifier>6M6YBBYHVY</identifier>
                 </configuration>
             </plugin>
         </plugins>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <excludes>
+                    <exclude>props/tools.properties</exclude>
+                </excludes>
+                <filtering>false</filtering>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <includes>
+                    <include>props/tools.properties</include>
+                </includes>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
     </build>
 
 </project>

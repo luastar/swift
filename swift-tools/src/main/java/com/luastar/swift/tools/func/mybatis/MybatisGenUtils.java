@@ -31,32 +31,7 @@ public class MybatisGenUtils {
         mybatisGen.gen();
     }
 
-    public static void mybatisGenSwift(String config) {
-        ItfConfig itfConfig = ConfigFactory.getConfig(config);
-        String output = itfConfig.getString("mybatis.gen.output", "~/Downloads/output");
-        String[] tableNameArray = itfConfig.getStringArray("mybatis.gen.tableName");
-        String modelPackage = itfConfig.getString("mybatis.gen.modelPackage");
-        String daoPackage = itfConfig.getString("mybatis.gen.daoPackage");
-        String mybatisRepPackage = itfConfig.getString("mybatis.gen.mybatisRepPackage");
-        String dbDriver = itfConfig.getString("mybatis.gen.dbDriver");
-        String dbUrl = itfConfig.getString("mybatis.gen.dbUrl");
-        String dbUsername = itfConfig.getString("mybatis.gen.dbUsername");
-        String dbPassword = itfConfig.getString("mybatis.gen.dbPassword");
-        // 生成mybatis相关文件
-        MybatisGenSwift genMybatis = new MybatisGenSwift(output,
-                tableNameArray,
-                modelPackage,
-                daoPackage,
-                mybatisRepPackage,
-                dbDriver,
-                dbUrl,
-                dbUsername,
-                dbPassword);
-        genMybatis.gen();
-    }
-
     public static void main(String[] args) {
-//        MybatisGenUtils.mybatisGenSwift("classpath:props/mybatis-gen-swift-mysql.properties");
         MybatisGenUtils.mybatisGen("classpath:props/mybatis-gen-h2.properties");
     }
 
