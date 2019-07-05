@@ -36,7 +36,7 @@ public class MybatisGen {
 
     private String[] tableNameArray;
 
-    private String useActualColumnNames = "false";
+    private String useActualColumnNames;
 
     private DataBaseUtils dataBaseUtils;
 
@@ -83,7 +83,7 @@ public class MybatisGen {
         List<PluginConfiguration> pluginConfigurationList = Lists.newArrayList();
         // limit plugin
         PluginConfiguration limitPlugin = new PluginConfiguration();
-        limitPlugin.setConfigurationType(MybatisLimitPlugin.class.getName());
+        limitPlugin.setConfigurationType(MybatisCustomPlugin.class.getName());
         if (StringUtils.containsIgnoreCase(driverClass, DbType.PostgreSQL.getName())) {
             limitPlugin.addProperty("dbType", DbType.PostgreSQL.getName());
         } else {

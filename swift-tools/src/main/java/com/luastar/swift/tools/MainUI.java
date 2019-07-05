@@ -1,5 +1,6 @@
 package com.luastar.swift.tools;
 
+import com.luastar.swift.base.config.PropertyUtils;
 import com.luastar.swift.base.utils.ClassLoaderUtils;
 import com.luastar.swift.base.utils.ObjUtils;
 import com.luastar.swift.tools.utils.H2Utils;
@@ -21,7 +22,7 @@ public class MainUI extends Application {
 
     private static final Logger logger = LoggerFactory.getLogger(MainUI.class);
 
-    private static final String version = "1.0.1";
+    private static final String version = PropertyUtils.getString("swift.tools.version", "1.0.0");
 
     private static Stage primaryStage;
 
