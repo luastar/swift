@@ -1,8 +1,10 @@
 package com.luastar.swift.base.utils;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.EncodedResource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
@@ -139,13 +141,22 @@ public class ClassLoaderUtils {
         if (resource == null || resource.length == 0) {
             return properties;
         }
+        YamlPropertiesFactoryBean yaml = new YamlPropertiesFactoryBean();
         for (String resPath : resource) {
             try {
                 Resource[] resourceArray = getResourcePatternResolver().getResources(resPath);
                 if (resourceArray != null) {
                     for (Resource res : resourceArray) {
-                        logger.info("加载配置文件：{}", res.getDescription());
-                        PropertiesLoaderUtils.fillProperties(properties, new EncodedResource(res, "UTF-8"));
+                        if (FilenameUtils.isExtension(resPath, "yml")) {
+                            logger.info("加载配置文件：{}", res.getDescription());
+                            yaml.setResources(res);
+                            properties.putAll(yaml.getObject());
+                        } else if (FilenameUtils.isExtension(resPath, "properties")) {
+                            logger.info("加载配置文件：{}", res.getDescription());
+                            PropertiesLoaderUtils.fillProperties(properties, new EncodedResource(res, "UTF-8"));
+                        } else {
+                            logger.warn("忽略不识别的文件类型，目前仅支持properties和yml文件：{}", res.getDescription());
+                        }
                     }
                 }
             } catch (IOException e) {
