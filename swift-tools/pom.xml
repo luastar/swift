@@ -76,7 +76,6 @@
                     <appName>swift-tools</appName>
                     <nativeReleaseVersion>${swift.tools.version}</nativeReleaseVersion>
                     <vendor>zhuminghua</vendor>
-                    <identifier>6M6YBBYHVY</identifier>
                 </configuration>
             </plugin>
         </plugins>

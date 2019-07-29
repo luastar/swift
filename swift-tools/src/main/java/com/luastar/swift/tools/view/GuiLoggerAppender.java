@@ -3,8 +3,11 @@ package com.luastar.swift.tools.view;
 import ch.qos.logback.core.UnsynchronizedAppenderBase;
 import ch.qos.logback.core.encoder.Encoder;
 import ch.qos.logback.core.status.ErrorStatus;
+import javafx.application.Platform;
 import javafx.scene.control.TextArea;
 import org.apache.commons.lang3.StringUtils;
+
+import java.nio.charset.Charset;
 
 
 /**
@@ -41,7 +44,12 @@ public class GuiLoggerAppender<E> extends UnsynchronizedAppenderBase<E> {
         if (!isStarted() || consoleTextArea == null) {
             return;
         }
-        consoleTextArea.appendText(StringUtils.toEncodedString(encoder.encode(eventObject), null));
+        String msg = StringUtils.toEncodedString(encoder.encode(eventObject), Charset.defaultCharset());
+        Platform.runLater(() -> {
+            consoleTextArea.appendText(msg);
+            consoleTextArea.selectEnd();
+            consoleTextArea.deselect();
+        });
     }
 
 }
