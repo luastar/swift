@@ -65,12 +65,11 @@ PROJECT_HOME=$(dirname ${SCRIPT_HOME})
 
 pid=`ps -eo pid,args | grep $1 | grep java | grep -v grep | awk '{print $1}'`
 
-if [ -n "$pid" ]
-then
+if [[ -n "${pid}" ]]; then
     kill -3 ${pid}
-    kill ${pid} && sleep 3
-    if [  -n "`ps -eo pid | grep $pid`" ]
-    then
+    sleep 3
+    pid2=`ps -eo pid | grep ${pid}`
+    if [[  -n "${pid2}" ]]; then
         kill -9 ${pid}
     fi
     echo "-----kill pid: ${pid}-----"
