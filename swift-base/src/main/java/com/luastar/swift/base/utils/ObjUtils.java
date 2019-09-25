@@ -34,6 +34,10 @@ public class ObjUtils {
         return object == null ? defaultValue : object;
     }
 
+    public static <T> T ifEmpty(T object, T defaultValue) {
+        return isEmpty(object) ? defaultValue : object;
+    }
+
     public static boolean isNull(Object value) {
         if (value == null) {
             return true;

@@ -59,21 +59,27 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<HttpObject> 
         if (!(msg instanceof FullHttpRequest)) {
             return;
         }
+        FullHttpRequest fullHttpRequest = (FullHttpRequest) msg;
+        if (HttpUtil.is100ContinueExpected(fullHttpRequest)) {
+            ctx.write(new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE));
+            return;
+        }
         // 异步处理业务逻辑
         HttpThreadPoolExecutor.submit(() -> {
-            long startTime = System.currentTimeMillis();
-            String requestId = RandomStringUtils.random(20, true, true);
             HttpRequest httpRequest = null;
             HttpResponse httpResponse = null;
+            long startTime = System.currentTimeMillis();
             try {
+                String requestId = fullHttpRequest.headers().get(HttpConstant.MDC_KEY_REQUESTID);
+                if (ObjUtils.isEmpty(requestId)) {
+                    requestId = fullHttpRequest.headers().get(HttpConstant.MDC_KEY_REQUEST_ID);
+                }
+                if (ObjUtils.isEmpty(requestId)) {
+                    requestId = RandomStringUtils.random(16, true, true);
+                }
                 MDC.clear();
                 MDC.put(HttpConstant.MDC_KEY_REQUESTID, requestId);
                 MDC.put(HttpConstant.MDC_KEY_REQUEST_ID, requestId);
-                FullHttpRequest fullHttpRequest = (FullHttpRequest) msg;
-                if (HttpUtil.is100ContinueExpected(fullHttpRequest)) {
-                    ctx.write(new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE));
-                    return;
-                }
                 logger.info("业务逻辑处理开始......");
                 // 初始化HttpRequest
                 httpRequest = new HttpRequest(fullHttpRequest, requestId, getSocketAddressIp(ctx));

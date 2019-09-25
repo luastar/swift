@@ -31,6 +31,7 @@ import org.apache.http.ssl.SSLContexts;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 import javax.net.ssl.SSLContext;
 import java.io.ByteArrayInputStream;
@@ -50,6 +51,15 @@ public class HttpClientUtils {
     private static Logger logger = LoggerFactory.getLogger(HttpClientUtils.class);
 
     public static final ContentType TEXT_PLAIN_UTF8 = ContentType.create("text/plain", UTF_8);
+
+    /**
+     * requestId
+     */
+    private static final String MDC_KEY_REQUESTID = "requestId";
+    /**
+     * request_id
+     */
+    private static final String MDC_KEY_REQUEST_ID = "request_id";
 
     /**
      * 创建支持https的调用
@@ -145,6 +155,11 @@ public class HttpClientUtils {
                     httpGet.setHeader(entry.getKey(), entry.getValue());
                 }
             }
+            // requestId
+            String requestId = ObjUtils.ifEmpty(MDC.get(MDC_KEY_REQUESTID), MDC.get(MDC_KEY_REQUEST_ID));
+            if (ObjUtils.isNotEmpty(requestId)) {
+                httpGet.setHeader(MDC_KEY_REQUESTID, requestId);
+            }
             httpclient = createHttpClient(param.getUrl());
             long start = System.currentTimeMillis();
             response = httpclient.execute(httpGet);
@@ -216,6 +231,11 @@ public class HttpClientUtils {
                     httpGet.setHeader(entry.getKey(), entry.getValue());
                 }
             }
+            // requestId
+            String requestId = ObjUtils.ifEmpty(MDC.get(MDC_KEY_REQUESTID), MDC.get(MDC_KEY_REQUEST_ID));
+            if (ObjUtils.isNotEmpty(requestId)) {
+                httpGet.setHeader(MDC_KEY_REQUESTID, requestId);
+            }
             httpclient = createHttpClient(param.getUrl());
             long start = System.currentTimeMillis();
             response = httpclient.execute(httpGet);
@@ -267,6 +287,11 @@ public class HttpClientUtils {
                 for (Map.Entry<String, String> entry : param.getHeaderMap().entrySet()) {
                     httpGet.setHeader(entry.getKey(), entry.getValue());
                 }
+            }
+            // requestId
+            String requestId = ObjUtils.ifEmpty(MDC.get(MDC_KEY_REQUESTID), MDC.get(MDC_KEY_REQUEST_ID));
+            if (ObjUtils.isNotEmpty(requestId)) {
+                httpGet.setHeader(MDC_KEY_REQUESTID, requestId);
             }
             httpclient = createHttpClient(param.getUrl());
             long start = System.currentTimeMillis();
@@ -383,6 +408,11 @@ public class HttpClientUtils {
                     httpPost.setHeader(entry.getKey(), entry.getValue());
                 }
             }
+            // requestId
+            String requestId = ObjUtils.ifEmpty(MDC.get(MDC_KEY_REQUESTID), MDC.get(MDC_KEY_REQUEST_ID));
+            if (ObjUtils.isNotEmpty(requestId)) {
+                httpPost.setHeader(MDC_KEY_REQUESTID, requestId);
+            }
             // 参数设置
             if (ObjUtils.isNotEmpty(param.getParamMap())) {
                 List<NameValuePair> nvps = new ArrayList<>();
@@ -486,6 +516,11 @@ public class HttpClientUtils {
                     httpPost.setHeader(entry.getKey(), entry.getValue());
                 }
             }
+            // requestId
+            String requestId = ObjUtils.ifEmpty(MDC.get(MDC_KEY_REQUESTID), MDC.get(MDC_KEY_REQUEST_ID));
+            if (ObjUtils.isNotEmpty(requestId)) {
+                httpPost.setHeader(MDC_KEY_REQUESTID, requestId);
+            }
             // 参数设置
             if (ObjUtils.isNotEmpty(param.getParamMap())) {
                 List<NameValuePair> nvps = new ArrayList<>();
@@ -556,11 +591,28 @@ public class HttpClientUtils {
         CloseableHttpResponse response = null;
         try {
             HttpPost httpPost = new HttpPost(param.getUrl());
+            // 超时设置
+            RequestConfig requestConfig = RequestConfig.custom()
+                    .setSocketTimeout(param.getTimeout())
+                    .setConnectTimeout(param.getTimeout())
+                    .setConnectionRequestTimeout(param.getTimeout()).build();
+            httpPost.setConfig(requestConfig);
+            // head设置
+            if (ObjUtils.isNotEmpty(param.getHeaderMap())) {
+                for (Map.Entry<String, String> entry : param.getHeaderMap().entrySet()) {
+                    httpPost.setHeader(entry.getKey(), entry.getValue());
+                }
+            }
+            // requestId
+            String requestId = ObjUtils.ifEmpty(MDC.get(MDC_KEY_REQUESTID), MDC.get(MDC_KEY_REQUEST_ID));
+            if (ObjUtils.isNotEmpty(requestId)) {
+                httpPost.setHeader(MDC_KEY_REQUESTID, requestId);
+            }
+            // 参数设置
             MultipartEntityBuilder builder = MultipartEntityBuilder
                     .create()
                     .setCharset(UTF_8)
                     .setMode(HttpMultipartMode.RFC6532);
-            // 参数设置
             if (ObjUtils.isNotEmpty(param.getFileMap())) {
                 for (Map.Entry<String, Object> entry : param.getFileMap().entrySet()) {
                     Object value = entry.getValue();
@@ -647,11 +699,28 @@ public class HttpClientUtils {
         HttpResult result = new HttpResult();
         try {
             HttpPost httpPost = new HttpPost(param.getUrl());
+            // 超时设置
+            RequestConfig requestConfig = RequestConfig.custom()
+                    .setSocketTimeout(param.getTimeout())
+                    .setConnectTimeout(param.getTimeout())
+                    .setConnectionRequestTimeout(param.getTimeout()).build();
+            httpPost.setConfig(requestConfig);
+            // head设置
+            if (ObjUtils.isNotEmpty(param.getHeaderMap())) {
+                for (Map.Entry<String, String> entry : param.getHeaderMap().entrySet()) {
+                    httpPost.setHeader(entry.getKey(), entry.getValue());
+                }
+            }
+            // requestId
+            String requestId = ObjUtils.ifEmpty(MDC.get(MDC_KEY_REQUESTID), MDC.get(MDC_KEY_REQUEST_ID));
+            if (ObjUtils.isNotEmpty(requestId)) {
+                httpPost.setHeader(MDC_KEY_REQUESTID, requestId);
+            }
+            // 参数设置
             MultipartEntityBuilder builder = MultipartEntityBuilder
                     .create()
                     .setCharset(UTF_8)
                     .setMode(HttpMultipartMode.RFC6532);
-            // 参数设置
             if (ObjUtils.isNotEmpty(param.getFileMap())) {
                 for (Map.Entry<String, Object> entry : param.getFileMap().entrySet()) {
                     Object value = entry.getValue();
@@ -764,6 +833,11 @@ public class HttpClientUtils {
                     httpPost.setHeader(entry.getKey(), entry.getValue());
                 }
             }
+            // requestId
+            String requestId = ObjUtils.ifEmpty(MDC.get(MDC_KEY_REQUESTID), MDC.get(MDC_KEY_REQUEST_ID));
+            if (ObjUtils.isNotEmpty(requestId)) {
+                httpPost.setHeader(MDC_KEY_REQUESTID, requestId);
+            }
             // 请求体设置
             if (StringUtils.isNotEmpty(param.getRequestBody())) {
                 httpPost.setEntity(new StringEntity(param.getRequestBody(), param.getCharset()));
@@ -839,6 +913,11 @@ public class HttpClientUtils {
                 for (Map.Entry<String, String> entry : param.getHeaderMap().entrySet()) {
                     httpPost.setHeader(entry.getKey(), entry.getValue());
                 }
+            }
+            // requestId
+            String requestId = ObjUtils.ifEmpty(MDC.get(MDC_KEY_REQUESTID), MDC.get(MDC_KEY_REQUEST_ID));
+            if (ObjUtils.isNotEmpty(requestId)) {
+                httpPost.setHeader(MDC_KEY_REQUESTID, requestId);
             }
             // 请求体设置
             if (ObjUtils.isNotEmpty(param.getRequestBody())) {
@@ -925,6 +1004,11 @@ public class HttpClientUtils {
                     httpDelete.setHeader(entry.getKey(), entry.getValue());
                 }
             }
+            // requestId
+            String requestId = ObjUtils.ifEmpty(MDC.get(MDC_KEY_REQUESTID), MDC.get(MDC_KEY_REQUEST_ID));
+            if (ObjUtils.isNotEmpty(requestId)) {
+                httpDelete.setHeader(MDC_KEY_REQUESTID, requestId);
+            }
             httpclient = createHttpClient(param.getUrl());
             long start = System.currentTimeMillis();
             response = httpclient.execute(httpDelete);
@@ -1005,6 +1089,11 @@ public class HttpClientUtils {
                     httpDelete.setHeader(entry.getKey(), entry.getValue());
                 }
             }
+            // requestId
+            String requestId = ObjUtils.ifEmpty(MDC.get(MDC_KEY_REQUESTID), MDC.get(MDC_KEY_REQUEST_ID));
+            if (ObjUtils.isNotEmpty(requestId)) {
+                httpDelete.setHeader(MDC_KEY_REQUESTID, requestId);
+            }
             httpclient = createHttpClient(param.getUrl());
             long start = System.currentTimeMillis();
             response = httpclient.execute(httpDelete);
@@ -1064,6 +1153,11 @@ public class HttpClientUtils {
                     httpGet.setHeader(entry.getKey(), entry.getValue());
                 }
             }
+            // requestId
+            String requestId = ObjUtils.ifEmpty(MDC.get(MDC_KEY_REQUESTID), MDC.get(MDC_KEY_REQUEST_ID));
+            if (ObjUtils.isNotEmpty(requestId)) {
+                httpGet.setHeader(MDC_KEY_REQUESTID, requestId);
+            }
             httpclient = createHttpClient(param.getUrl());
             long start = System.currentTimeMillis();
             response = httpclient.execute(httpGet);
@@ -1109,6 +1203,11 @@ public class HttpClientUtils {
                 for (Map.Entry<String, String> entry : param.getHeaderMap().entrySet()) {
                     httpGet.setHeader(entry.getKey(), entry.getValue());
                 }
+            }
+            // requestId
+            String requestId = ObjUtils.ifEmpty(MDC.get(MDC_KEY_REQUESTID), MDC.get(MDC_KEY_REQUEST_ID));
+            if (ObjUtils.isNotEmpty(requestId)) {
+                httpGet.setHeader(MDC_KEY_REQUESTID, requestId);
             }
             // 自定义重定向，不自动处理
             CustomRedirectStrategy redirectStrategy = new CustomRedirectStrategy();

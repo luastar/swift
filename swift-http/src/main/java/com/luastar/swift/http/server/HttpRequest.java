@@ -69,6 +69,7 @@ public class HttpRequest {
         this.requestId = requestId;
         this.socketIp = socketIp;
         initRequestHeader();
+        initRequestIp();
         decodeQueryString();
         decodeBody();
     }
@@ -84,18 +85,17 @@ public class HttpRequest {
                 cookieMap.put(cookie.name(), cookie);
             }
         }
-        initRequestIp();
     }
 
     protected void initRequestIp() {
         String clientIP = request.headers().get("X-Forwarded-For");
-        if (StringUtils.isBlank(clientIP)) {
+        if (ObjUtils.isEmpty(clientIP)) {
             clientIP = request.headers().get("X-Real-IP");
         }
-        if (StringUtils.isBlank(clientIP)) {
+        if (ObjUtils.isEmpty(clientIP)) {
             clientIP = this.socketIp;
         }
-        if (StringUtils.isNotBlank(clientIP) && StringUtils.contains(clientIP, ",")) {
+        if (ObjUtils.isNotEmpty(clientIP) && StringUtils.contains(clientIP, ",")) {
             clientIP = StringUtils.split(clientIP, ",")[0];
         }
         this.ip = clientIP;
@@ -123,7 +123,7 @@ public class HttpRequest {
             return;
         }
         String contentType = getContentType();
-        if (StringUtils.isEmpty(contentType)) {
+        if (ObjUtils.isEmpty(contentType)) {
             return;
         }
         if (StringUtils.containsIgnoreCase(contentType, HttpHeaderValues.APPLICATION_X_WWW_FORM_URLENCODED)
@@ -256,7 +256,7 @@ public class HttpRequest {
 
     public String getParameter(String key, String defaultValue) {
         String value = getParameter(key);
-        if (StringUtils.isEmpty(value)) {
+        if (ObjUtils.isEmpty(value)) {
             return defaultValue;
         }
         return value;
@@ -367,7 +367,7 @@ public class HttpRequest {
 
     public <T> T getBodyObject(Class<T> clazz) {
         String body = getBody();
-        if (StringUtils.isEmpty(body)) {
+        if (ObjUtils.isEmpty(body)) {
             return null;
         }
         T obj = null;
@@ -381,7 +381,7 @@ public class HttpRequest {
 
     public <T> List<T> getBodyArray(Class<T> clazz) {
         String body = getBody();
-        if (StringUtils.isEmpty(body)) {
+        if (ObjUtils.isEmpty(body)) {
             return null;
         }
         try {
