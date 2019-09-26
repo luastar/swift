@@ -25,7 +25,7 @@ import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 
-public class HttpChannelHandler extends SimpleChannelInboundHandler<HttpObject> {
+public class HttpChannelHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
 
     private static final Logger logger = LoggerFactory.getLogger(HttpChannelHandler.class);
 
@@ -50,18 +50,19 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<HttpObject> 
      * 在  worker-group 或 executor-group 线程池中执行
      *
      * @param ctx
-     * @param msg
+     * @param fullHttpRequest
      * @throws Exception
      */
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, HttpObject msg) throws Exception {
-        // 解码成完整请求时再处理
-        if (!(msg instanceof FullHttpRequest)) {
+    protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest fullHttpRequest) throws Exception {
+        if (!fullHttpRequest.decoderResult().isSuccess()) {
+            FullHttpResponse fullHttpResponse = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.BAD_REQUEST);
+            ctx.writeAndFlush(fullHttpResponse).addListener(ChannelFutureListener.CLOSE);
             return;
         }
-        FullHttpRequest fullHttpRequest = (FullHttpRequest) msg;
         if (HttpUtil.is100ContinueExpected(fullHttpRequest)) {
-            ctx.write(new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE));
+            FullHttpResponse fullHttpResponse = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE);
+            ctx.write(fullHttpResponse);
             return;
         }
         // 异步处理业务逻辑
