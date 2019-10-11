@@ -13,7 +13,9 @@ import org.springframework.core.io.support.ResourcePatternResolver;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 public class ClassLoaderUtils {
 
@@ -162,6 +164,9 @@ public class ClassLoaderUtils {
             } catch (IOException e) {
                 logger.error(e.getMessage(), e);
             }
+        }
+        for (Map.Entry<Object, Object> entry : properties.entrySet()) {
+            logger.info("配置文件变量：{} = {}", entry.getKey(), entry.getValue());
         }
         return properties;
     }
