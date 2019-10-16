@@ -36,7 +36,7 @@ public class HttpThreadPoolExecutor {
                             .setMinSize(HttpConstant.SWIFT_BUSINESS_THREADS)
                             .setMaxSize(Math.min(HttpConstant.SWIFT_BUSINESS_THREADS * 8, 512))
                             .setKeepAliveSecs(60)
-                            .setQueueSize(1024000)
+                            .setQueueSize(10240)
                             .build();
                 }
             }
