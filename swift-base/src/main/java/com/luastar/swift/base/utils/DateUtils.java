@@ -1,7 +1,7 @@
 package com.luastar.swift.base.utils;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.time.DateFormatUtils;
+import org.apache.commons.lang3.time.FastDateFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,7 +22,8 @@ public abstract class DateUtils {
     public static final String FORMAT_TIME_NO_BAR = "yyyyMMddHHmmss";
     public static final String FORMAT_MONTH = "yyyyMM";
 
-    public static final SimpleDateFormat NORMAL_FORMAT = new SimpleDateFormat(FORMAT_TIME_WITH_BAR);
+    /** 线程安全 */
+    public static final FastDateFormat NORMAL_FORMAT = FastDateFormat.getInstance(FORMAT_TIME_WITH_BAR);
 
     /**
      * 格式化成：yyyy-MM-dd HH:mm:ss
