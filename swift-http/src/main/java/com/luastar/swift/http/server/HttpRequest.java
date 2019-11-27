@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.luastar.swift.base.entity.SwiftHashMap;
-import com.luastar.swift.base.utils.DateUtils;
 import com.luastar.swift.base.utils.ObjUtils;
 import com.luastar.swift.http.constant.HttpConstant;
 import io.netty.buffer.ByteBuf;
@@ -24,6 +23,7 @@ import org.springframework.validation.DataBinder;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -380,7 +380,7 @@ public class HttpRequest {
 
     public <T> T bindObj(T obj) {
         DataBinder dataBinder = new DataBinder(obj);
-        dataBinder.registerCustomEditor(Date.class, new CustomDateEditor(DateUtils.NORMAL_FORMAT, true));
+        dataBinder.registerCustomEditor(Date.class, new CustomDateEditor(new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"), true));
         dataBinder.bind(new MutablePropertyValues(parameterMap));
         return obj;
     }
