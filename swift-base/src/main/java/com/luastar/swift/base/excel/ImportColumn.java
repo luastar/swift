@@ -1,7 +1,7 @@
 package com.luastar.swift.base.excel;
 
 /**
- * excel导出列定义
+ * excel导入列定义
  */
 public class ImportColumn {
 

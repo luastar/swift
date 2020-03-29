@@ -31,6 +31,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.math.BigDecimal;
+import java.text.NumberFormat;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -723,9 +724,12 @@ public class ExcelUtils {
                     break;
             }
             if (column.getType() == ExcelDataType.StringValue) {
-                // 如果需要获取字符串，转换格式为文本类型后获取字符串值，避免出现取到数值类型为xx.0的值。
-                cell.setCellType(CellType.STRING);
-                cellValue = cell.getStringCellValue();
+                if (cellValue instanceof Double) {
+                    // 数字类型转字符串可能出现精度问题，需要特殊处理
+                    NumberFormat numberFormat = NumberFormat.getInstance();
+                    numberFormat.setGroupingUsed(false);
+                    cellValue = numberFormat.format(cellValue);
+                }
                 PropertyUtils.setProperty(data, column.getProp(), ObjUtils.toString(cellValue));
             } else if (column.getType() == ExcelDataType.LongValue) {
                 PropertyUtils.setProperty(data, column.getProp(), ObjUtils.toLong(cellValue));
@@ -769,8 +773,8 @@ public class ExcelUtils {
     }
 
     public static void main(String[] args) throws Exception {
-        writeExample();
-//        readExample();
+//        writeExample();
+        readExample();
     }
 
     /**
@@ -851,7 +855,7 @@ public class ExcelUtils {
             writeXlsxSheet(workbook, exportSheet);
             writeXlsxSheet(workbook, exportSheet.setAppend(true));
 //            writeBigXlsxWorkbook(workbook, exportSheet);
-            workbook.write(new FileOutputStream(new File("/Users/zhuminghua/Downloads/test.xlsx")));
+            workbook.write(new FileOutputStream(new File("/Users/edz/Desktop/test.xlsx")));
         } finally {
 //            workbook.dispose();
         }
@@ -863,11 +867,12 @@ public class ExcelUtils {
      * @throws Exception
      */
     private static void readExample() throws Exception {
-        File file = new File("/Users/zhuminghua/Downloads/test.xlsx");
+        File file = new File("/Users/edz/Desktop/test.xlsx");
         List<ImportColumn> columnList = Lists.newArrayList(
-                new ImportColumn("测试列1", "col1", ExcelDataType.StringValue),
-                new ImportColumn("测试列2", "col2", ExcelDataType.EnumValue, SexEnum.class, "getByValue"),
-                new ImportColumn("测试列3", "col3", ExcelDataType.StringValue)
+                new ImportColumn("a", "a", ExcelDataType.StringValue),
+                new ImportColumn("b", "b", ExcelDataType.StringValue),
+                new ImportColumn("c", "c", ExcelDataType.StringValue),
+                new ImportColumn("d", "d", ExcelDataType.StringValue)
         );
         ImportSheet importSheet = new ImportSheet(columnList, LinkedHashMap.class);
         readXlsxExcel(file, importSheet);
