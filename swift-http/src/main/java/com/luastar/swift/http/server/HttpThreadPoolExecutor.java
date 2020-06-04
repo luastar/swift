@@ -34,9 +34,9 @@ public class HttpThreadPoolExecutor {
                             .setThreadNamePrefix("business-group")
                             .setDaemon(true)
                             .setMinSize(HttpConstant.SWIFT_BUSINESS_THREADS)
-                            .setMaxSize(Math.min(HttpConstant.SWIFT_BUSINESS_THREADS * 8, 512))
+                            .setMaxSize(Math.min(HttpConstant.SWIFT_BUSINESS_THREADS * 4, 256))
                             .setKeepAliveSecs(60)
-                            .setQueueSize(10240)
+                            .setQueueSize(1024)
                             .build();
                 }
             }
