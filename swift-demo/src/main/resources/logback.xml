@@ -3,7 +3,7 @@
 <configuration>
 
     <!--属性定义-->
-    <property name="LOG_NAME" value="/Users/zhuminghua/logs/swift-demo/demo" />
+    <property name="LOG_NAME" value="/Users/zhuminghua/Documents/logs/swift-demo/demo" />
     <property name="LOG_PORT" value="${port:-80}" />
     <property name="LOG_KEEP_DAY" value="10" />
 
