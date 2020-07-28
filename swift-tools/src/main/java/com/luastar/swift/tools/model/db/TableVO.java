@@ -22,10 +22,6 @@ public class TableVO extends PropBaseVO {
     /**
      * 主键
      */
-    private ColumnVO primaryKey;
-    /**
-     * 多主键
-     */
     private List<ColumnVO> primaryKeys;
 
     public String getTableName() {
@@ -52,20 +48,19 @@ public class TableVO extends PropBaseVO {
         this.remark = remark;
     }
 
-    public ColumnVO getPrimaryKey() {
-        return primaryKey;
-    }
-
-    public void setPrimaryKey(ColumnVO primaryKey) {
-        this.primaryKey = primaryKey;
-    }
-
     public List<ColumnVO> getPrimaryKeys() {
         return primaryKeys;
     }
 
     public void setPrimaryKeys(List<ColumnVO> primaryKeys) {
         this.primaryKeys = primaryKeys;
+    }
+
+    public ColumnVO getPrimaryKey() {
+        if (primaryKeys == null || primaryKeys.isEmpty()) {
+            return null;
+        }
+        return primaryKeys.get(0);
     }
 
     public Map<String, ColumnVO> getColumnMap() {
