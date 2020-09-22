@@ -145,12 +145,25 @@ public class ExcelUtils {
         if (startRow == 0) {
             // 设置标题
             Row rowTitle = sheet.createRow(0);
+            // 设置标题行高
+            if (sheetConfig.getTitleHeight() != null
+                    && sheetConfig.getTitleHeight() >= 0
+                    && sheetConfig.getTitleHeight() <= 409) {
+                rowTitle.setHeight((short) (sheetConfig.getTitleHeight() * 20));
+            }
             for (int i = 0; i < columnNum; i++) {
                 ExportColumn column = columnList.get(i);
                 String title = ObjUtils.ifNull(column.getTitle(), "");
                 Cell cell = rowTitle.createCell(i);
                 cell.setCellStyle(ObjUtils.ifNull(column.getTitleStyle(), sheetConfig.getTitleStyle()));
                 cell.setCellValue(createHelper.createRichTextString(title));
+                // 设置批注
+                if (ObjUtils.isNotEmpty(column.getTitleComment())) {
+                    Drawing draw = sheet.createDrawingPatriarch();
+                    Comment comment = draw.createCellComment(createHelper.createClientAnchor());
+                    comment.setString(createHelper.createRichTextString(column.getTitleComment()));
+                    cell.setCellComment(comment);
+                }
                 // 设置隐藏列
                 sheet.setColumnHidden(i, column.isHidden());
             }
@@ -163,6 +176,12 @@ public class ExcelUtils {
                 Row row = sheet.createRow(startRow + i);
                 logger.info("写入第{}/{}条数据", i + 1, rowNum);
                 Object data = sheetConfig.getDataList().get(i);
+                // 设置数据行高
+                if (sheetConfig.getDataHeight() != null
+                        && sheetConfig.getDataHeight() >= 0
+                        && sheetConfig.getDataHeight() <= 409) {
+                    row.setHeight((short) (sheetConfig.getDataHeight() * 20));
+                }
                 for (int j = 0; j < columnNum; j++) {
                     ExportColumn column = columnList.get(j);
                     Cell cell = row.createCell(j);
@@ -226,7 +245,7 @@ public class ExcelUtils {
         for (int i = 0; i < columnNum; i++) {
             ExportColumn column = columnList.get(i);
             if (column.getWidth() != null && column.getWidth() > 0 && column.getWidth() <= 255) {
-                sheet.setColumnWidth(i, column.getWidth() * 256);
+                sheet.setColumnWidth(i, column.getWidth() * 256 + 200);
             } else {
                 sheet.autoSizeColumn(i);
             }
@@ -776,8 +795,8 @@ public class ExcelUtils {
     }
 
     public static void main(String[] args) throws Exception {
-//        writeExample();
-        readExample();
+        writeExample();
+//        readExample();
     }
 
     /**
@@ -832,7 +851,9 @@ public class ExcelUtils {
         List<ExportColumn> columnList = Lists.newArrayList(
                 new ExportColumn("测试列1", "col1", ExcelDataType.StringValue, true),
                 new ExportColumn("测试列2", "col2", ExcelDataType.EnumValue, SexEnum.getValues()),
-                new ExportColumn("测试列3", "col3", ExcelDataType.LongValue),
+                new ExportColumn("测试列3", "col3", ExcelDataType.LongValue)
+                        .setTitleComment("我是一段批注，哈哈哈哈我是一段批注，哈哈哈哈我是一段批注，哈哈哈哈我是一段批注，哈哈哈哈我是一段批注，哈哈哈哈我是一段批注，哈哈哈哈")
+                        .setWidth(30),
                 new ExportColumn("测试列4测试列4测试列4测试列4测试列4测试列4", "col4", ExcelDataType.BigDecimalValue, 3).setIfNull("-"),
                 new ExportColumn("测试列5", "col5", ExcelDataType.BigDecimalValue, 5),
                 new ExportColumn("测试列6", "col6", ExcelDataType.BooleanValue),
@@ -852,13 +873,15 @@ public class ExcelUtils {
         evenStyle.setFillForegroundColor(IndexedColors.YELLOW.getIndex());
         evenStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
         ExportSheet exportSheet = new ExportSheet(columnList, resultList)
+                .setTitleHeight(60)
+                .setDataHeight(30)
                 .setOddRowStyle(oddStyle)
                 .setEvenRowStyle(evenStyle);
         try {
             writeXlsxSheet(workbook, exportSheet);
             writeXlsxSheet(workbook, exportSheet.setAppend(true));
 //            writeBigXlsxWorkbook(workbook, exportSheet);
-            workbook.write(new FileOutputStream(new File("/Users/edz/Desktop/test.xlsx")));
+            workbook.write(new FileOutputStream(new File("/Users/zhuminghua/Desktop/test.xlsx")));
         } finally {
 //            workbook.dispose();
         }
