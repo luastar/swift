@@ -15,6 +15,10 @@ public class ExportColumn {
      */
     private String title;
     /**
+     * 标题批注
+     */
+    private String titleComment;
+    /**
      * 属性
      */
     private String prop;
@@ -98,64 +102,81 @@ public class ExportColumn {
         return title;
     }
 
-    public void setTitle(String title) {
+    public ExportColumn setTitle(String title) {
         this.title = title;
+        return this;
+    }
+
+    public String getTitleComment() {
+        return titleComment;
+    }
+
+    public ExportColumn setTitleComment(String titleComment) {
+        this.titleComment = titleComment;
+        return this;
     }
 
     public String getProp() {
         return prop;
     }
 
-    public void setProp(String prop) {
+    public ExportColumn setProp(String prop) {
         this.prop = prop;
+        return this;
     }
 
     public ExcelDataType getType() {
         return type;
     }
 
-    public void setType(ExcelDataType type) {
+    public ExportColumn setType(ExcelDataType type) {
         this.type = type;
+        return this;
     }
 
     public int getScale() {
         return scale;
     }
 
-    public void setScale(int scale) {
+    public ExportColumn setScale(int scale) {
         this.scale = scale;
+        return this;
     }
 
     public String[] getValueArray() {
         return valueArray;
     }
 
-    public void setValueArray(String[] valueArray) {
+    public ExportColumn setValueArray(String[] valueArray) {
         this.valueArray = valueArray;
+        return this;
     }
 
     public boolean isAutoWidth() {
         return autoWidth;
     }
 
-    public void setAutoWidth(boolean autoWidth) {
+    public ExportColumn setAutoWidth(boolean autoWidth) {
         this.autoWidth = autoWidth;
+        return this;
     }
 
     public boolean isHidden() {
         return hidden;
     }
 
-    public void setHidden(boolean hidden) {
+    public ExportColumn setHidden(boolean hidden) {
         this.hidden = hidden;
+        return this;
     }
 
     public Integer getWidth() {
         return width;
     }
 
-    public void setWidth(Integer width) {
+    public ExportColumn setWidth(Integer width) {
         this.width = width;
+        return this;
     }
 
     public String getIfNull() {

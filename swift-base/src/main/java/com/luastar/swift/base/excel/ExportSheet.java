@@ -30,6 +30,14 @@ public class ExportSheet {
      */
     private Boolean isAppend;
     /**
+     * 标题行高
+     */
+    private Integer titleHeight;
+    /**
+     * 数据行高
+     */
+    private Integer dataHeight;
+    /**
      * 标题样式
      */
     private CellStyle titleStyle;
@@ -96,6 +104,24 @@ public class ExportSheet {
 
     public ExportSheet setAppend(Boolean append) {
         isAppend = append;
+        return this;
+    }
+
+    public Integer getTitleHeight() {
+        return titleHeight;
+    }
+
+    public ExportSheet setTitleHeight(Integer titleHeight) {
+        this.titleHeight = titleHeight;
+        return this;
+    }
+
+    public Integer getDataHeight() {
+        return dataHeight;
+    }
+
+    public ExportSheet setDataHeight(Integer dataHeight) {
+        this.dataHeight = dataHeight;
         return this;
     }
 

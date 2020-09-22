@@ -31,6 +31,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.math.BigDecimal;
+import java.text.NumberFormat;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -144,12 +145,25 @@ public class ExcelUtils {
         if (startRow == 0) {
             // 设置标题
             Row rowTitle = sheet.createRow(0);
+            // 设置标题行高
+            if (sheetConfig.getTitleHeight() != null
+                    && sheetConfig.getTitleHeight() >= 0
+                    && sheetConfig.getTitleHeight() <= 409) {
+                rowTitle.setHeight((short) (sheetConfig.getTitleHeight() * 20));
+            }
             for (int i = 0; i < columnNum; i++) {
                 ExportColumn column = columnList.get(i);
                 String title = ObjUtils.ifNull(column.getTitle(), "");
                 Cell cell = rowTitle.createCell(i);
                 cell.setCellStyle(ObjUtils.ifNull(column.getTitleStyle(), sheetConfig.getTitleStyle()));
                 cell.setCellValue(createHelper.createRichTextString(title));
+                // 设置批注
+                if (ObjUtils.isNotEmpty(column.getTitleComment())) {
+                    Drawing draw = sheet.createDrawingPatriarch();
+                    Comment comment = draw.createCellComment(createHelper.createClientAnchor());
+                    comment.setString(createHelper.createRichTextString(column.getTitleComment()));
+                    cell.setCellComment(comment);
+                }
                 // 设置隐藏列
                 sheet.setColumnHidden(i, column.isHidden());
             }
@@ -162,6 +176,12 @@ public class ExcelUtils {
                 Row row = sheet.createRow(startRow + i);
                 logger.info("写入第{}/{}条数据", i + 1, rowNum);
                 Object data = sheetConfig.getDataList().get(i);
+                // 设置数据行高
+                if (sheetConfig.getDataHeight() != null
+                        && sheetConfig.getDataHeight() >= 0
+                        && sheetConfig.getDataHeight() <= 409) {
+                    row.setHeight((short) (sheetConfig.getDataHeight() * 20));
+                }
                 for (int j = 0; j < columnNum; j++) {
                     ExportColumn column = columnList.get(j);
                     Cell cell = row.createCell(j);
@@ -225,7 +245,7 @@ public class ExcelUtils {
         for (int i = 0; i < columnNum; i++) {
             ExportColumn column = columnList.get(i);
             if (column.getWidth() != null && column.getWidth() > 0 && column.getWidth() <= 255) {
-                sheet.setColumnWidth(i, column.getWidth() * 256);
+                sheet.setColumnWidth(i, column.getWidth() * 256 + 200);
             } else {
                 sheet.autoSizeColumn(i);
             }
@@ -726,9 +746,12 @@ public class ExcelUtils {
                     break;
             }
             if (column.getType() == ExcelDataType.StringValue) {
-                // 如果需要获取字符串，转换格式为文本类型后获取字符串值，避免出现取到数值类型为xx.0的值。
-                cell.setCellType(CellType.STRING);
-                cellValue = cell.getStringCellValue();
+                if (cellValue instanceof Double) {
+                    // 数字类型转字符串可能出现精度问题，需要特殊处理
+                    NumberFormat numberFormat = NumberFormat.getInstance();
+                    numberFormat.setGroupingUsed(false);
+                    cellValue = numberFormat.format(cellValue);
+                }
                 PropertyUtils.setProperty(data, column.getProp(), ObjUtils.toString(cellValue));
             } else if (column.getType() == ExcelDataType.LongValue) {
                 PropertyUtils.setProperty(data, column.getProp(), ObjUtils.toLong(cellValue));
@@ -828,7 +851,9 @@ public class ExcelUtils {
         List<ExportColumn> columnList = Lists.newArrayList(
                 new ExportColumn("测试列1", "col1", ExcelDataType.StringValue, true),
                 new ExportColumn("测试列2", "col2", ExcelDataType.EnumValue, SexEnum.getValues()),
-                new ExportColumn("测试列3", "col3", ExcelDataType.LongValue),
+                new ExportColumn("测试列3", "col3", ExcelDataType.LongValue)
+                        .setTitleComment("我是一段批注，哈哈哈哈我是一段批注，哈哈哈哈我是一段批注，哈哈哈哈我是一段批注，哈哈哈哈我是一段批注，哈哈哈哈我是一段批注，哈哈哈哈")
+                        .setWidth(30),
                 new ExportColumn("测试列4测试列4测试列4测试列4测试列4测试列4", "col4", ExcelDataType.BigDecimalValue, 3).setIfNull("-"),
                 new ExportColumn("测试列5", "col5", ExcelDataType.BigDecimalValue, 5),
                 new ExportColumn("测试列6", "col6", ExcelDataType.BooleanValue),
@@ -848,13 +873,15 @@ public class ExcelUtils {
         evenStyle.setFillForegroundColor(IndexedColors.YELLOW.getIndex());
         evenStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
         ExportSheet exportSheet = new ExportSheet(columnList, resultList)
+                .setTitleHeight(60)
+                .setDataHeight(30)
                 .setOddRowStyle(oddStyle)
                 .setEvenRowStyle(evenStyle);
         try {
             writeXlsxSheet(workbook, exportSheet);
             writeXlsxSheet(workbook, exportSheet.setAppend(true));
 //            writeBigXlsxWorkbook(workbook, exportSheet);
-            workbook.write(new FileOutputStream(new File("/Users/zhuminghua/Downloads/test.xlsx")));
+            workbook.write(new FileOutputStream(new File("/Users/zhuminghua/Desktop/test.xlsx")));
         } finally {
 //            workbook.dispose();
         }
@@ -866,11 +893,12 @@ public class ExcelUtils {
      * @throws Exception
      */
     private static void readExample() throws Exception {
-        File file = new File("/Users/zhuminghua/Downloads/test.xlsx");
+        File file = new File("/Users/edz/Desktop/test.xlsx");
         List<ImportColumn> columnList = Lists.newArrayList(
-                new ImportColumn("测试列1", "col1", ExcelDataType.StringValue),
-                new ImportColumn("测试列2", "col2", ExcelDataType.EnumValue, SexEnum.class, "getByValue"),
-                new ImportColumn("测试列3", "col3", ExcelDataType.StringValue)
+                new ImportColumn("a", "a", ExcelDataType.StringValue),
+                new ImportColumn("b", "b", ExcelDataType.StringValue),
+                new ImportColumn("c", "c", ExcelDataType.StringValue),
+                new ImportColumn("d", "d", ExcelDataType.StringValue)
         );
         ImportSheet importSheet = new ImportSheet(columnList, LinkedHashMap.class);
         readXlsxExcel(file, importSheet);
