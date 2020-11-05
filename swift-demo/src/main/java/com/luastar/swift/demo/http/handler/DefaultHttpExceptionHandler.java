@@ -16,7 +16,7 @@ public class DefaultHttpExceptionHandler implements HttpExceptionHandler {
     private static final Logger logger = LoggerFactory.getLogger(DefaultHttpExceptionHandler.class);
 
     @Override
-    public void exceptionHandle(HttpRequest request, HttpResponse response, Throwable exception) {
+    public void businessExceptionHandle(HttpRequest request, HttpResponse response, Throwable exception) {
         Map<String, Object> headMap = Maps.newLinkedHashMap();
         headMap.put("requestId", request.getRequestId());
         headMap.put("status", 3);
@@ -26,6 +26,11 @@ public class DefaultHttpExceptionHandler implements HttpExceptionHandler {
         String result = JsonUtils.toJson(resultMap);
         logger.info("result:{}", result);
         response.setResult(result);
+    }
+
+    @Override
+    public void systemExceptionHandle(Throwable exception) {
+
     }
 
 }

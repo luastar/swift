@@ -407,17 +407,32 @@ public class HttpHandlerMapping implements ApplicationContextAware, Initializing
     }
 
     /**
-     * 异常业务处理
+     * 业务异常处理
      *
      * @param request
      * @param response
      * @param exception
      */
-    public void exceptionHandler(HttpRequest request, HttpResponse response, Throwable exception) throws Throwable {
+    public void businessExceptionHandle(HttpRequest request, HttpResponse response, Throwable exception) throws Throwable {
         if (exceptionHandler == null) {
             throw exception;
         }
-        exceptionHandler.exceptionHandle(request, response, exception);
+        exceptionHandler.businessExceptionHandle(request, response, exception);
+    }
+
+    /**
+     * 系统异常处理
+     *
+     * @param exception
+     */
+    public void systemExceptionHandle(Throwable exception) {
+        try {
+            if (exceptionHandler != null) {
+                exceptionHandler.systemExceptionHandle(exception);
+            }
+        } catch (Throwable e) {
+            logger.error(e.getMessage(), e);
+        }
     }
 
     /**
