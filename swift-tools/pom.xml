@@ -13,7 +13,7 @@
     <version>${swift.tools.version}</version>
 
     <properties>
-        <swift.tools.version>1.0.3</swift.tools.version>
+        <swift.tools.version>1.0.4-SNAPSHOT</swift.tools.version>
     </properties>
 
     <dependencies>
