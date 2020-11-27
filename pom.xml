@@ -85,12 +85,12 @@
         <repository>
             <id>releases</id>
             <name>nexus-releases</name>
-            <url>http://172.16.0.6:8081/nexus/content/repositories/releases/</url>
+            <url>http://nexus.fenbeijinfu.com:8081/nexus/content/repositories/releases/</url>
         </repository>
         <snapshotRepository>
             <id>snapshots</id>
             <name>nexus-snapshots</name>
-            <url>http://172.16.0.6:8081/nexus/content/repositories/snapshots/</url>
+            <url>http://nexus.fenbeijinfu.com:8081/nexus/content/repositories/snapshots/</url>
         </snapshotRepository>
     </distributionManagement>
 
