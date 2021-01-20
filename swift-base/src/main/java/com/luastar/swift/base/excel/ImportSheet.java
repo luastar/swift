@@ -1,5 +1,7 @@
 package com.luastar.swift.base.excel;
 
+import com.google.common.collect.Lists;
+
 import java.util.List;
 
 /**
@@ -65,6 +67,17 @@ public class ImportSheet {
 
     public void setDataList(List<ExcelData> dataList) {
         this.dataList = dataList;
+    }
+
+    /**
+     * 增加数据
+     * @param data
+     */
+    public void addData(ExcelData data){
+        if (dataList == null){
+            dataList = Lists.newArrayList();
+        }
+        dataList.add(data);
     }
 
 }
