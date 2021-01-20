@@ -17,7 +17,7 @@
         <spring.version>4.3.29.RELEASE</spring.version>
         <jackson.version>2.11.3</jackson.version>
         <httpclient.version>4.5.3</httpclient.version>
-        <poi.version>3.16</poi.version>
+        <poi.version>3.17</poi.version>
     </properties>
 
     <dependencies>

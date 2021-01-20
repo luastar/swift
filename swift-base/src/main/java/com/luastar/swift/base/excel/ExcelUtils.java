@@ -3,6 +3,7 @@ package com.luastar.swift.base.excel;
 import com.alibaba.fastjson.JSON;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.luastar.swift.base.utils.CollectionUtils;
 import com.luastar.swift.base.utils.DateUtils;
 import com.luastar.swift.base.utils.ObjUtils;
@@ -15,8 +16,16 @@ import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.openxml4j.opc.OPCPackage;
+import org.apache.poi.openxml4j.opc.PackageAccess;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddressList;
+import org.apache.poi.util.SAXHelper;
+import org.apache.poi.xssf.eventusermodel.ReadOnlySharedStringsTable;
+import org.apache.poi.xssf.eventusermodel.XSSFReader;
+import org.apache.poi.xssf.eventusermodel.XSSFSheetXMLHandler;
+import org.apache.poi.xssf.model.SharedStringsTable;
+import org.apache.poi.xssf.model.StylesTable;
 import org.apache.poi.xssf.streaming.SXSSFSheet;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.apache.poi.xssf.usermodel.XSSFCell;
@@ -25,6 +34,9 @@ import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.xml.sax.ContentHandler;
+import org.xml.sax.InputSource;
+import org.xml.sax.XMLReader;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -402,6 +414,51 @@ public class ExcelUtils {
     }
 
     /**
+     * 从文件读取excel
+     *
+     * @param file
+     * @param sheetConfig
+     * @throws Exception
+     */
+    public static void readBigXlsxExcel(File file, ImportSheet... sheetConfig) throws Exception {
+        if (file == null || ArrayUtils.isEmpty(sheetConfig)) {
+            throw new IllegalArgumentException("excel导入参数错误！");
+        }
+        Map<Integer, ImportSheet> sheetMap = Maps.newHashMap();
+        for (int i = 0; i < sheetConfig.length; i++) {
+            if (sheetConfig[i].getIndex() == null) {
+                sheetConfig[i].setIndex(i);
+            }
+            sheetMap.put(sheetConfig[i].getIndex(), sheetConfig[i]);
+        }
+        try (OPCPackage pkg = OPCPackage.open(file, PackageAccess.READ)) {
+            ReadOnlySharedStringsTable strings = new ReadOnlySharedStringsTable(pkg);
+            XSSFReader reader = new XSSFReader(pkg);
+            StylesTable styles = reader.getStylesTable();
+            XSSFReader.SheetIterator iter = (XSSFReader.SheetIterator) reader.getSheetsData();
+            Integer sheetIndex = 0;
+            while (iter.hasNext()) {
+                try (InputStream stream = iter.next()) {
+                    ImportSheet importSheet = sheetMap.get(sheetIndex);
+                    if (importSheet != null) {
+                        InputSource source = new InputSource(stream);
+                        XMLReader parser = SAXHelper.newXMLReader();
+                        ContentHandler handler = new XSSFSheetXMLHandler(
+                                styles,
+                                strings,
+                                new ExcelContentHandler(importSheet),
+                                new DataFormatter(),
+                                false);
+                        parser.setContentHandler(handler);
+                        parser.parse(source);
+                    }
+                    sheetIndex++;
+                }
+            }
+        }
+    }
+
+    /**
      * 从输入流读取excel
      *
      * @param sheetConfig
@@ -417,6 +474,47 @@ public class ExcelUtils {
                 sheetConfig[i].setIndex(i);
             }
             readXlsxSheet(workbook, sheetConfig[i]);
+        }
+    }
+
+    /**
+     * 从输入流读取excel
+     *
+     * @param sheetConfig
+     * @return
+     */
+    public static void readBigXlsxExcel(InputStream inputStream, ImportSheet... sheetConfig) throws Exception {
+        if (inputStream == null || ArrayUtils.isEmpty(sheetConfig)) {
+            throw new IllegalArgumentException("excel导入参数错误！");
+        }
+        Map<Integer, ImportSheet> sheetMap = Maps.newHashMap();
+        for (int i = 0; i < sheetConfig.length; i++) {
+            if (sheetConfig[i].getIndex() == null) {
+                sheetConfig[i].setIndex(i);
+            }
+            sheetMap.put(sheetConfig[i].getIndex(), sheetConfig[i]);
+        }
+        try (OPCPackage pkg = OPCPackage.open(inputStream)) {
+            ReadOnlySharedStringsTable strings = new ReadOnlySharedStringsTable(pkg);
+            XSSFReader reader = new XSSFReader(pkg);
+            StylesTable styles = reader.getStylesTable();
+            XSSFReader.SheetIterator iter = (XSSFReader.SheetIterator) reader.getSheetsData();
+            Integer sheetIndex = 0;
+            while (iter.hasNext()) {
+                try (InputStream stream = iter.next()) {
+                    InputSource source = new InputSource(stream);
+                    XMLReader parser = SAXHelper.newXMLReader();
+                    ContentHandler handler = new XSSFSheetXMLHandler(
+                            styles,
+                            strings,
+                            new ExcelContentHandler(sheetMap.get(sheetIndex)),
+                            new DataFormatter(),
+                            false);
+                    parser.setContentHandler(handler);
+                    parser.parse(source);
+                    sheetIndex++;
+                }
+            }
         }
     }
 
@@ -795,8 +893,8 @@ public class ExcelUtils {
     }
 
     public static void main(String[] args) throws Exception {
-        writeExample();
-//        readExample();
+//        writeExample();
+        readExample();
     }
 
     /**
@@ -893,16 +991,17 @@ public class ExcelUtils {
      * @throws Exception
      */
     private static void readExample() throws Exception {
-        File file = new File("/Users/edz/Desktop/test.xlsx");
+        File file = new File("/Users/zhuminghua/Desktop/employee_report_2020.xlsx");
         List<ImportColumn> columnList = Lists.newArrayList(
-                new ImportColumn("a", "a", ExcelDataType.StringValue),
-                new ImportColumn("b", "b", ExcelDataType.StringValue),
-                new ImportColumn("c", "c", ExcelDataType.StringValue),
-                new ImportColumn("d", "d", ExcelDataType.StringValue)
+                new ImportColumn("employee_id", "employee_id", ExcelDataType.StringValue),
+                new ImportColumn("phone_num", "phone_num", ExcelDataType.StringValue),
+                new ImportColumn("first_login_time", "first_login_time", ExcelDataType.DateValue),
+                new ImportColumn("consume_amount_air", "consume_amount_air", ExcelDataType.BigDecimalValue)
         );
         ImportSheet importSheet = new ImportSheet(columnList, LinkedHashMap.class);
-        readXlsxExcel(file, importSheet);
-        System.out.println(JSON.toJSONString(importSheet.getDataList()));
+        readBigXlsxExcel(file, importSheet);
+//        System.out.println(JSON.toJSONString(importSheet.getDataList()));
+        System.out.println("end");
     }
 
 }
