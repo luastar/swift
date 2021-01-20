@@ -110,9 +110,14 @@ public interface HttpConstant {
     String MDC_KEY_REQUEST_COST = "request_cost";
 
     /**
-     * 启动spring配置文件地址
+     * 系统自带spring配置文件地址
      */
-    String SWIFT_CONFIG_LOCATION = PropertyUtils.getString("swift.config.location", "spring-swift.xml");
+    String SWIFT_BASE_CONFIG_LOCATION = "classpath*:spring-swift-base.xml";
+
+    /**
+     * 项目spring配置文件地址
+     */
+    String SWIFT_CONFIG_LOCATION = PropertyUtils.getString("swift.config.location", "classpath:spring-swift.xml");
     /**
      * 任务执行超时时间（秒），默认值 86400（24小时）
      */

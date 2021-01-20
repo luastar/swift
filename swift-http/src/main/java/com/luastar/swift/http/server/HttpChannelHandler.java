@@ -121,9 +121,9 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<FullHttpRequ
                 try {
                     // 处理业务异常
                     if (e instanceof InvocationTargetException) {
-                        handlerMapping.exceptionHandler(httpRequest, httpResponse, ((InvocationTargetException) e).getTargetException());
+                        handlerMapping.businessExceptionHandle(httpRequest, httpResponse, ((InvocationTargetException) e).getTargetException());
                     } else {
-                        handlerMapping.exceptionHandler(httpRequest, httpResponse, e);
+                        handlerMapping.businessExceptionHandle(httpRequest, httpResponse, e);
                     }
                     // 处理返回结果
                     handleHttpResponse(ctx, httpRequest, httpResponse);
@@ -152,6 +152,9 @@ public class HttpChannelHandler extends SimpleChannelInboundHandler<FullHttpRequ
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         String errMsg = "exceptionCaught: " + ObjUtils.ifNull(cause.getMessage(), "");
         logger.error(errMsg, cause);
+        // 系统异常处理
+        handlerMapping.systemExceptionHandle(cause);
+        // 返回 500 系统异常
         if (ctx.channel().isActive()) {
             ByteBuf buf = Unpooled.copiedBuffer(errMsg, CharsetUtil.UTF_8);
             FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.INTERNAL_SERVER_ERROR, buf);

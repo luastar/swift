@@ -7,7 +7,7 @@ import java.util.Map;
  */
 public class HttpParam {
 
-    protected static final int DEFAULT_TIMEOUT = 120000;
+    protected static final int DEFAULT_TIMEOUT = 60000;
     protected static final String DEFAULT_CHARSET = "UTF-8";
 
     /**
