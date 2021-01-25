@@ -990,16 +990,16 @@ public class ExcelUtils {
      * @throws Exception
      */
     private static void readExample() throws Exception {
-        File file = new File("/Users/zhuminghua/Desktop/employee_report_2020.xlsx");
+        File file = new File("/Users/zhuminghua/Desktop/company_employee_202101251755.xlsx");
         List<ImportColumn> columnList = Lists.newArrayList(
-                new ImportColumn("employee_id", "employee_id", ExcelDataType.StringValue),
-                new ImportColumn("phone_num", "phone_num", ExcelDataType.StringValue),
-                new ImportColumn("first_login_time", "first_login_time", ExcelDataType.DateValue),
-                new ImportColumn("consume_amount_air", "consume_amount_air", ExcelDataType.BigDecimalValue)
+                new ImportColumn("员工姓名", "t1", ExcelDataType.StringValue),
+                new ImportColumn("员工手机号", "t2", ExcelDataType.StringValue),
+                new ImportColumn("员工身份证号", "t3", ExcelDataType.StringValue),
+                new ImportColumn("直属部门", "t4", ExcelDataType.StringValue)
         );
         ImportSheet importSheet = new ImportSheet(columnList, LinkedHashMap.class);
         readBigXlsxExcel(file, importSheet);
-//        System.out.println(JSON.toJSONString(importSheet.getDataList()));
+        System.out.println(JSON.toJSONString(importSheet.getDataList()));
         System.out.println("end");
     }
 

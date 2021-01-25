@@ -7,6 +7,8 @@ import com.luastar.swift.base.utils.ObjUtils;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.MethodUtils;
+import org.apache.poi.ss.util.CellAddress;
+import org.apache.poi.ss.util.CellReference;
 import org.apache.poi.xssf.eventusermodel.XSSFSheetXMLHandler;
 import org.apache.poi.xssf.usermodel.XSSFComment;
 import org.slf4j.Logger;
@@ -76,7 +78,10 @@ public class ExcelContentHandler implements XSSFSheetXMLHandler.SheetContentsHan
 
     @Override
     public void cell(String cellReference, String formattedValue, XSSFComment xssfComment) {
-        currentCol++;
+        if(cellReference == null) {
+            cellReference = new CellAddress(currentRow, currentCol).formatAsString();
+        }
+        currentCol = (new CellReference(cellReference)).getCol();
         if (currentRow == 0) {
             List<ImportColumn> columnList = importSheet.getColumnList();
             for (ImportColumn column : columnList) {
@@ -88,7 +93,6 @@ public class ExcelContentHandler implements XSSFSheetXMLHandler.SheetContentsHan
             ImportColumn column = columnMap.get(currentCol);
             if (column != null) {
                 try {
-                    logger.info("row:{}, col:{}, value:{}", currentRow, column.getTitle(), formattedValue);
                     switch (column.getType()) {
                         case LongValue:
                             PropertyUtils.setProperty(currentRowData, column.getProp(), ObjUtils.toLong(formattedValue));
