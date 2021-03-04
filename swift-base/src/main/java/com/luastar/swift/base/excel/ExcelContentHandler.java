@@ -72,13 +72,17 @@ public class ExcelContentHandler implements XSSFSheetXMLHandler.SheetContentsHan
         if (rowNum > 0) {
             ExcelData data = new ExcelData(currentRow, currentRowData, currentRowMsg);
             logger.info(JSON.toJSONString(data));
-            importSheet.addData(data);
+            if (importSheet.getDataList().size() <= importSheet.getDataLimit()) {
+                importSheet.addData(data);
+            } else {
+                logger.info("超过读取数量【{}】限制，丢弃", importSheet.getDataLimit());
+            }
         }
     }
 
     @Override
     public void cell(String cellReference, String formattedValue, XSSFComment xssfComment) {
-        if(cellReference == null) {
+        if (cellReference == null) {
             cellReference = new CellAddress(currentRow, currentCol).formatAsString();
         }
         currentCol = (new CellReference(cellReference)).getCol();

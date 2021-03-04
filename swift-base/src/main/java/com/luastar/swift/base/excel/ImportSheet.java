@@ -25,6 +25,10 @@ public class ImportSheet {
      * 数据
      */
     private List<ExcelData> dataList;
+    /**
+     * 限制读取行
+     */
+    private Integer dataLimit = 100000;
 
     public ImportSheet(List<ImportColumn> columnList, Class<?> dataClass) {
         this.columnList = columnList;
@@ -67,6 +71,14 @@ public class ImportSheet {
 
     public void setDataList(List<ExcelData> dataList) {
         this.dataList = dataList;
+    }
+
+    public Integer getDataLimit() {
+        return dataLimit;
+    }
+
+    public void setDataLimit(Integer dataLimit) {
+        this.dataLimit = dataLimit;
     }
 
     /**
