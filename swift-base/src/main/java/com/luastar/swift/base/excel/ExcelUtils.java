@@ -398,6 +398,7 @@ public class ExcelUtils {
      * @param file
      * @param sheetConfig
      * @throws Exception
+     * @deprecated 读取大文件可能会产生OOM异常，建议使用 readBigXlsxExcel 方法
      */
     public static void readXlsxExcel(File file, ImportSheet... sheetConfig) throws Exception {
         if (file == null || ArrayUtils.isEmpty(sheetConfig)) {
@@ -462,6 +463,7 @@ public class ExcelUtils {
      *
      * @param sheetConfig
      * @return
+     * @deprecated 读取大文件可能会产生OOM异常，建议使用 readBigXlsxExcel 方法
      */
     public static void readXlsxExcel(InputStream inputStream, ImportSheet... sheetConfig) throws Exception {
         if (inputStream == null || ArrayUtils.isEmpty(sheetConfig)) {
@@ -604,6 +606,7 @@ public class ExcelUtils {
      * @param file
      * @param sheetConfig
      * @throws Exception
+     * @deprecated 建议使用新版xlsx文件
      */
     public static void readXlsExcel(File file, ImportSheet... sheetConfig) throws Exception {
         if (file == null || ArrayUtils.isEmpty(sheetConfig)) {
@@ -625,6 +628,7 @@ public class ExcelUtils {
      * @param inputStream
      * @param sheetConfig
      * @throws Exception
+     * @deprecated 建议使用新版xlsx文件
      */
     public static void readXlsExcel(InputStream inputStream, ImportSheet... sheetConfig) throws Exception {
         if (inputStream == null || ArrayUtils.isEmpty(sheetConfig)) {

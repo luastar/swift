@@ -5,6 +5,7 @@ import com.google.common.collect.Maps;
 import com.luastar.swift.base.utils.DateUtils;
 import com.luastar.swift.base.utils.ObjUtils;
 import org.apache.commons.beanutils.PropertyUtils;
+import org.apache.commons.compress.utils.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.MethodUtils;
 import org.apache.poi.ss.util.CellAddress;
@@ -52,6 +53,7 @@ public class ExcelContentHandler implements XSSFSheetXMLHandler.SheetContentsHan
             throw new IllegalArgumentException("importSheet must be not null");
         }
         this.importSheet = importSheet;
+        this.importSheet.setDataList(Lists.newArrayList());
     }
 
     @Override

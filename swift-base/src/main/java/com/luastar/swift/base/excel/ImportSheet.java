@@ -83,10 +83,11 @@ public class ImportSheet {
 
     /**
      * 增加数据
+     *
      * @param data
      */
-    public void addData(ExcelData data){
-        if (dataList == null){
+    public void addData(ExcelData data) {
+        if (dataList == null) {
             dataList = Lists.newArrayList();
         }
         dataList.add(data);
