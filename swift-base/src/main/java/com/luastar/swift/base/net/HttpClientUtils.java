@@ -417,7 +417,8 @@ public class HttpClientUtils {
             if (ObjUtils.isNotEmpty(param.getParamMap())) {
                 List<NameValuePair> nvps = new ArrayList<>();
                 for (Map.Entry<String, String> entry : param.getParamMap().entrySet()) {
-                    nvps.add(new BasicNameValuePair(entry.getKey(), entry.getValue()));
+                    // 如果没有按泛型传，需要将值转换为字符串
+                    nvps.add(new BasicNameValuePair(entry.getKey(), ObjUtils.toString(entry.getValue())));
                 }
                 httpPost.setEntity(new UrlEncodedFormEntity(nvps, param.getCharset()));
             }
