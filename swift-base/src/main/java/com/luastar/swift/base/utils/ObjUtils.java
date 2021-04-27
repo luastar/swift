@@ -170,7 +170,7 @@ public class ObjUtils {
         String strValue = obj.toString().trim();
         try {
             Number number = NumberFormat.getNumberInstance().parse(strValue);
-            return new BigDecimal(number.doubleValue());
+            return new BigDecimal(number.toString());
         } catch (Exception e) {
         }
         return null;
@@ -287,6 +287,11 @@ public class ObjUtils {
             longList.add(toLong(strAry[i], defaultValue));
         }
         return longList;
+    }
+
+    public static void main(String[] args) {
+        System.out.println(ObjUtils.toBigDecimal("0.35"));
+        System.out.println(ObjUtils.toBigDecimal("123,456.89"));
     }
 
 }
