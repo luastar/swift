@@ -16,7 +16,7 @@
         <logback.version>1.2.3</logback.version>
         <spring.version>4.3.29.RELEASE</spring.version>
         <jackson.version>2.11.3</jackson.version>
-        <httpclient.version>4.5.3</httpclient.version>
+        <httpclient.version>4.5.13</httpclient.version>
         <poi.version>4.1.2</poi.version>
     </properties>
 
