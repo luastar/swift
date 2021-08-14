@@ -18,6 +18,7 @@ import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.openxml4j.opc.OPCPackage;
 import org.apache.poi.openxml4j.opc.PackageAccess;
+import org.apache.poi.openxml4j.util.ZipSecureFile;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddressList;
 import org.apache.poi.util.XMLHelper;
@@ -495,6 +496,9 @@ public class ExcelUtils {
             }
             sheetMap.put(sheetConfig[i].getIndex(), sheetConfig[i]);
         }
+        // 解决 Zip bomb detected 问题
+        ZipSecureFile.setMinInflateRatio(-1.0d);
+        // 解析文件
         try (OPCPackage pkg = OPCPackage.open(inputStream)) {
             ReadOnlySharedStringsTable strings = new ReadOnlySharedStringsTable(pkg);
             XSSFReader reader = new XSSFReader(pkg);
