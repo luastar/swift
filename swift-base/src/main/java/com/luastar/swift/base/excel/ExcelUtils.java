@@ -44,10 +44,7 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.text.NumberFormat;
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -171,8 +168,15 @@ public class ExcelUtils {
                 cell.setCellValue(createHelper.createRichTextString(title));
                 // 设置批注
                 if (ObjUtils.isNotEmpty(column.getTitleComment())) {
-                    Drawing draw = sheet.createDrawingPatriarch();
-                    Comment comment = draw.createCellComment(createHelper.createClientAnchor());
+                    // 创建备注锚点
+                    ClientAnchor anchor = createHelper.createClientAnchor();
+                    // 设备锚点位置，解决 multiple cell comments in one cell are not allowed 问题
+                    anchor.setRow1(cell.getRowIndex());
+                    anchor.setCol1(cell.getColumnIndex());
+                    anchor.setRow2(cell.getRowIndex() + 4);
+                    anchor.setCol2(cell.getColumnIndex() + 3);
+                    // 创建备注
+                    Comment comment = sheet.createDrawingPatriarch().createCellComment(anchor);
                     comment.setString(createHelper.createRichTextString(column.getTitleComment()));
                     cell.setCellComment(comment);
                 }
@@ -900,8 +904,8 @@ public class ExcelUtils {
     }
 
     public static void main(String[] args) throws Exception {
-//        writeExample();
-        readExample();
+        writeExample();
+//        readExample();
     }
 
     /**
@@ -954,12 +958,16 @@ public class ExcelUtils {
                 .put("cellStyle", workbook.createCellStyle())
                 .build());
         List<ExportColumn> columnList = Lists.newArrayList(
-                new ExportColumn("测试列1", "col1", ExcelDataType.StringValue, true),
-                new ExportColumn("测试列2", "col2", ExcelDataType.EnumValue, SexEnum.getValues()),
+                new ExportColumn("测试列1", "col1", ExcelDataType.StringValue, true)
+                        .setTitleComment("第一列批注"),
+                new ExportColumn("测试列2", "col2", ExcelDataType.EnumValue, SexEnum.getValues())
+                        .setTitleComment("第二列批注"),
                 new ExportColumn("测试列3", "col3", ExcelDataType.LongValue)
-                        .setTitleComment("我是一段批注，哈哈哈哈我是一段批注，哈哈哈哈我是一段批注，哈哈哈哈我是一段批注，哈哈哈哈我是一段批注，哈哈哈哈我是一段批注，哈哈哈哈")
+                        .setTitleComment("第三列批注\n第三列批注，第三列批注，第三列批注，第三列批注，第三列批注，第三列批注")
                         .setWidth(30),
-                new ExportColumn("测试列4测试列4测试列4测试列4测试列4测试列4", "col4", ExcelDataType.BigDecimalValue, 3).setIfNull("-"),
+                new ExportColumn("测试列4测试列4测试列4测试列4测试列4测试列4", "col4", ExcelDataType.BigDecimalValue, 3)
+                        .setTitleComment("第四例批注")
+                        .setIfNull("-"),
                 new ExportColumn("测试列5", "col5", ExcelDataType.BigDecimalValue, 5),
                 new ExportColumn("测试列6", "col6", ExcelDataType.BooleanValue),
                 new ExportColumn("测试列7", "col7", ExcelDataType.DateValue),
