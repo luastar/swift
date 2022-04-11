@@ -1,6 +1,8 @@
 package com.luastar.swift.http.server;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.luastar.swift.base.config.ConfigFactory;
+import com.luastar.swift.base.utils.ObjUtils;
 import com.luastar.swift.base.utils.SpringUtils;
 import com.luastar.swift.http.constant.HttpConstant;
 import com.luastar.swift.http.route.HttpHandlerMapping;
@@ -24,6 +26,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.core.env.AbstractEnvironment;
+import org.springframework.core.env.Environment;
+
+import java.util.Map;
 
 public class HttpServer {
 
@@ -57,6 +63,7 @@ public class HttpServer {
         logger.info("返回结果压缩级别:{}", HttpConstant.SWIFT_COMPRESSION_LEVEL);
         ApplicationContext applicationContext = new ClassPathXmlApplicationContext(HttpConstant.SWIFT_BASE_CONFIG_LOCATION, HttpConstant.SWIFT_CONFIG_LOCATION);
         SpringUtils.setApplicationContext(applicationContext);
+        this.copySystemProperties(applicationContext);
         this.handlerMapping = applicationContext.getBean(HttpHandlerMapping.class);
         if (handlerMapping == null) {
             throw new RuntimeException("handlerMapping不能为空!");
@@ -112,4 +119,21 @@ public class HttpServer {
         }
     }
 
+    /**
+     * copy 系统环境配置到本地的配置类缓存中
+     * @param context
+     */
+    private void copySystemProperties(ApplicationContext context) {
+        if (context == null) {
+            return;
+        }
+        Environment environment = context.getEnvironment();
+        if (environment instanceof AbstractEnvironment) {
+            Map<String, Object> systemProperties = ((AbstractEnvironment) environment).getSystemProperties();
+            if (ObjUtils.isEmpty(systemProperties)) {
+                return;
+            }
+            ConfigFactory.getConfig().putAll(systemProperties);
+        }
+    }
 }
