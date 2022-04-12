@@ -1,12 +1,14 @@
 package com.luastar.swift.base.config;
 
 import com.luastar.swift.base.utils.ClassLoaderUtils;
+import com.luastar.swift.base.utils.ObjUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Properties;
 import java.util.regex.Matcher;
 
@@ -106,4 +108,13 @@ public class ConfigImpl implements ItfConfig {
         return NumberUtils.toDouble(value, defaultValue);
     }
 
+    @Override
+    public void putAll(Map<?, ?> propMap) {
+        if (ObjUtils.isEmpty(propMap)) {
+            return;
+        }
+        synchronized (this) {
+            properties.putAll(propMap);
+        }
+    }
 }

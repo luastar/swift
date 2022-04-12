@@ -1,5 +1,6 @@
 package com.luastar.swift.base.config;
 
+import java.util.Map;
 import java.util.regex.Pattern;
 
 public interface ItfConfig {
@@ -23,5 +24,8 @@ public interface ItfConfig {
     double getDouble(String key, double defaultValue);
 
     boolean containsKey(String key);
+
+    void putAll(Map<?, ?> propMap);
+
 
 }
