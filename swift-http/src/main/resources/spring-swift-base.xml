@@ -12,4 +12,6 @@
         <context:include-filter type="annotation" expression="com.luastar.swift.http.server.HttpService"/>
     </context:component-scan>
 
+    <bean id="configBeanPostProcessor" class="com.luastar.swift.http.processor.ConfigBeanPostProcessor"/>
+
 </beans>
