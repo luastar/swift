@@ -12,9 +12,7 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.codec.http.HttpContentCompressor;
-import io.netty.handler.codec.http.HttpObjectAggregator;
-import io.netty.handler.codec.http.HttpServerCodec;
+import io.netty.handler.codec.http.*;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.ssl.SslContext;
@@ -90,7 +88,7 @@ public class HttpServer {
                                 pipeline.addLast(sslContext.newHandler(ch.alloc()));
                             }
                             // http request decode and response encode
-                            pipeline.addLast(new HttpServerCodec());
+                            pipeline.addLast(new HttpServerCodec(HttpConstant.SWIFT_MAX_INITIAL_LINE_LENGTH, HttpConstant.SWIFT_MAX_HEADER_SIZE, HttpConstant.SWIFT_MAX_CHUNK_SIZE));
                             // 将消息头和体聚合成FullHttpRequest和FullHttpResponse
                             pipeline.addLast(new HttpObjectAggregator(HttpConstant.SWIFT_MAX_CONTENT_LENGTH));
                             // 压缩处理
