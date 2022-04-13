@@ -123,6 +123,18 @@ public interface HttpConstant {
      */
     int SWIFT_EXECUTE_TIMEOUT = PropertyUtils.getInt("swift.executeTimeout", 86400);
     /**
+     * 请求行最大长度
+     */
+    int SWIFT_MAX_INITIAL_LINE_LENGTH = PropertyUtils.getInt("swift.maxInitialLineLength", 4096);
+    /**
+     * 请求头最大值
+     */
+    int SWIFT_MAX_HEADER_SIZE = PropertyUtils.getInt("swift.maxHeaderSize", 8192*4);
+    /**
+     * 请求块最大值
+     */
+    int SWIFT_MAX_CHUNK_SIZE = PropertyUtils.getInt("swift.maxChunkSize", 8192);
+    /**
      * 请求体最大值
      */
     int SWIFT_MAX_CONTENT_LENGTH = PropertyUtils.getInt("swift.maxContentLength", 1024 * 1024 * 10);
