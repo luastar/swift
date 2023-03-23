@@ -151,9 +151,9 @@ public interface HttpConstant {
      */
     int SWIFT_WORKER_THREADS = PropertyUtils.getInt("swift.workerThreads", 0);
     /**
-     * 业务线程数，默认值 max(16, cpu * 2)
+     * 业务线程数，默认值 max(32, cpu * 2)
      */
-    int SWIFT_BUSINESS_THREADS = PropertyUtils.getInt("swift.businessThreads", Math.max(16, NettyRuntime.availableProcessors() * 2));
+    int SWIFT_BUSINESS_THREADS = PropertyUtils.getInt("swift.businessThreads", Math.max(64, NettyRuntime.availableProcessors() * 2));
     /**
      * 返回结果压缩级别，0~9，默认6
      */
